@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YO</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <main id="island" class="island" data-mode="peek" data-vis="hidden" data-variant="system" data-face="idle" data-hit>
+      <div class="shell">
+        <div class="top" id="bar">
+          <button id="hero" class="hero" type="button">
+            <span class="aura" aria-hidden="true"></span>
+            <span class="ring" aria-hidden="true"></span>
+            <span class="sparks" aria-hidden="true"><i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i><i class="s5"></i><i class="s6"></i></span>
+            <span id="face" class="face"></span>
+          </button>
+          <div id="bubble" class="say" hidden></div>
+          <div class="fields">
+            <div class="field">
+              <input id="cmd" type="text" autocomplete="off" spellcheck="false"
+                     role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">
+              <button id="browse" class="icon" type="button" aria-expanded="false" aria-controls="panel">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg>
+              </button>
+              <button id="mic" class="icon" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+              </button>
+            </div>
+            <div id="label" class="label"></div>
+            <span id="wave" class="wave" data-for="listening" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            <button id="stop" class="link" data-for="working" type="button"></button>
+            <button id="cDone" class="btn small ok" data-for="custom" type="button"></button>
+          </div>
+        </div>
+        <div class="fold suggestfold"><div class="fold-in">
+          <div id="suggest" class="suggest" role="listbox"></div>
+          <div id="panel" class="panel" role="group"></div>
+        </div></div>
+        <div class="fold customfold"><div class="fold-in"><div class="custom">
+          <div class="stage">
+            <div id="preview" class="preview"></div>
+            <div class="stage-actions">
+              <button id="cRandom" class="btn small" type="button"></button>
+              <button id="cReset" class="btn small" type="button"></button>
+            </div>
+          </div>
+          <div id="cOpts" class="opts"></div>
+        </div></div></div>
+        <div class="fold cardfold"><div class="fold-in"><div class="cardbody">
+          <div class="blk" data-for="approval">
+            <div class="c-head"><div class="c-title" id="aTitle"></div><span id="risk" class="chip risk"></span></div>
+            <div class="c-text" id="aBody"></div>
+            <div class="c-actions">
+              <button id="bDeny" class="btn" type="button"></button>
+              <button id="bAllow" class="btn ok" type="button"></button>
+              <button id="bAlways" class="btn" type="button"></button>
+            </div>
+          </div>
+          <div class="blk" data-for="result">
+            <div class="c-head"><div class="c-title" id="rTitle"></div></div>
+            <div class="c-text" id="rBody"></div>
+            <div class="c-actions">
+              <button id="bCopy" class="btn ok" type="button"></button>
+              <button id="bClose" class="btn" type="button"></button>
+            </div>
+          </div>
+        </div></div></div>
+      </div>
+    </main>
+    <div id="announce" class="sr-only" role="status" aria-live="polite"></div>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="sound.js"></script>
+  <script src="mascot.js"></script>
+  <script src="commands.js"></script>
+  <script src="mock-agent.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

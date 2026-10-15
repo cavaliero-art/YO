@@ -1,0 +1,11 @@
+# dependencies (reinstall with npm install)
+node_modules/
+
+# build output
+dist/
+out/
+
+# logs and OS files
+*.log
+.DS_Store
+Thumbs.db
