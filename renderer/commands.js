@@ -38,6 +38,8 @@
     folder: svg('<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>'),
     site: svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/>'),
   };
+  LIST.push({ id: 'inbox', category: 'system', words: ['inbox', 'messages', 'notifications', 'missed'],
+    icon: svg('<path d="M4 13l2.5-7.5h11L20 13v5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><path d="M4 13h4.5l1 2h5l1-2H20"/>') });
   // emotes: YO does them right away, nothing leaves the page
   LIST.push(
     { id: 'dance', category: 'fun', words: ['dance', 'boogie'], icon: svg('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>') },
@@ -74,13 +76,13 @@
   }
 
   // best matches first; an empty bar shows a few starters
-  function match(text, max) {
+  function match(text, max, rank) {
     const q = normalize(text);
     if (!q) return STARTERS.map(byId).slice(0, max);
     return LIST
       .map((c, i) => ({ c, s: score(c, q), i }))
       .filter((x) => x.s > 0)
-      .sort((a, b) => b.s - a.s || a.i - b.i)
+      .sort((a, b) => b.s - a.s || (rank ? rank(b.c.id) - rank(a.c.id) : 0) || a.i - b.i)
       .slice(0, max)
       .map((x) => x.c);
   }

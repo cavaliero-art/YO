@@ -357,6 +357,25 @@ html, body {
   box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--cat) 40%, transparent);
 }
 .act:active { transform: scale(.95); }
+.act.pinned::before { content: "★"; color: var(--c-tools); font-size: 11px; }
+
+/* something in the inbox you haven't seen: a small dot on YO */
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  inset-inline-end: 7px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--s-alert);
+  box-shadow: 0 0 0 2px var(--bg);
+  opacity: 0;
+  transform: scale(.3);
+  transition: opacity .25s, transform .35s var(--spring);
+  pointer-events: none;
+}
+.island[data-unread="true"] .hero::after { opacity: 1; transform: none; }
 
 /* only one drawer at a time: matches while typing, or the panel */
 .island:not([data-list="all"]) .panel,

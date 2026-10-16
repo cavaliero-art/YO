@@ -59,6 +59,7 @@
   let customHint = ''; // shown in the panel title for a moment (how to unlock something)
   let nowPlaying = null; // { playing, title, artist } while the pill is on screen
   let dragDepth = 0;
+  let histIndex = -1; // browsing past commands with ↑ / ↓
   let preview = null; // the big YO in that panel
 
   // ---------- preferences: YO's look and sound (kept in this window's storage until Stage 3 saves settings) ----------
@@ -171,6 +172,10 @@
     } else {
       el.rTitle.textContent = card.title;
       el.rBody.textContent = card.body;
+      if (card.inboxId) {
+        Y.memory.inbox.markRead(card.inboxId); // you're looking at it now
+        syncUnread();
+      }
       el.bCopy.hidden = !card.copyable || Boolean(card.actions);
       el.rMore.replaceChildren(...(card.actions || []).map((action) => {
         const button = document.createElement('button');
@@ -262,7 +267,7 @@
     const typed = el.cmd.value.trim();
     if (typed) panel = false; // typing takes over from the panel
     el.browse.setAttribute('aria-expanded', String(panel));
-    matches = typed ? Y.commands.match(typed, MAX_SUGGEST) : [];
+    matches = typed ? Y.commands.match(typed, MAX_SUGGEST, Y.memory.usage.count) : [];
     // a quick answer (math, units, color, uuid...) goes first: Enter copies it
     const found = typed ? Y.quick.answer(typed) : null;
     if (found) {
@@ -293,7 +298,10 @@
   }
 
   function setPanel(open) {
-    if (open && !panel) Y.sound.play('drawer');
+    if (open && !panel) {
+      Y.sound.play('drawer');
+      drawPanel(); // Recent changes as you use YO
+    }
     panel = open;
     hoverCat = null;
     el.browse.setAttribute('aria-expanded', String(open));
@@ -335,7 +343,51 @@
       row.append(name, chips);
       return row;
     });
-    el.panel.replaceChildren(...rows);
+    const recent = recentRow();
+    el.panel.replaceChildren(...(recent ? [recent] : []), ...rows);
+  }
+
+  // what you ran lately, pinned ones first (right-click a chip to pin it)
+  function recentRow() {
+    const pinned = Y.memory.pins.list();
+    const seen = new Set(pinned.map((p) => p.text));
+    const entries = pinned.concat(Y.memory.history.list().filter((h) => !seen.has(h.text))).slice(0, 5);
+    if (!entries.length) return null;
+    const row = document.createElement('div');
+    const name = document.createElement('span');
+    const chips = document.createElement('div');
+    row.className = 'prow';
+    name.className = 'plabel';
+    name.textContent = t('cat.recent');
+    chips.className = 'chips';
+    entries.forEach((entry) => {
+      const cmd = entry.id ? Y.commands.byId(entry.id) : null;
+      const chip = document.createElement('button');
+      const label = document.createElement('span');
+      chip.type = 'button';
+      chip.className = 'act recent';
+      chip.dataset.cat = cmd ? cmd.category : 'system';
+      if (Y.memory.pins.has(entry.text)) chip.classList.add('pinned');
+      chip.title = t('pinTip');
+      if (cmd) chip.innerHTML = cmd.icon; // static markup from commands.js
+      label.textContent = entry.text.length > 24 ? entry.text.slice(0, 23) + '…' : entry.text;
+      chip.append(label);
+      chip.addEventListener('mousedown', (event) => event.preventDefault());
+      chip.addEventListener('click', () => {
+        el.cmd.value = entry.text;
+        setPanel(false);
+        submit(cmd);
+      });
+      chip.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        Y.memory.pins.toggle({ text: entry.text, id: entry.id });
+        Y.sound.play('tick');
+        drawPanel();
+      });
+      chips.append(chip);
+    });
+    row.append(name, chips);
+    return row;
   }
 
   // a Tools chip puts an example in the bar; the answer shows right away
@@ -578,6 +630,11 @@
   }
 
   function onEvent(ev) {
+    // YO's own news goes to the inbox (once), shown as a dot on YO until you've seen it
+    if (ev.background && !ev.inboxId) {
+      ev.inboxId = Y.memory.inbox.add({ title: ev.title, kind: ev.unlock ? 'unlock' : ev.alarm ? 'timer' : 'reminder' });
+      syncUnread();
+    }
     // YO's own news (a reminder) waits until you're done with what you're doing
     if (ev.background && busy()) {
       later.push(ev);
@@ -606,7 +663,7 @@
     } else if (ev.type === 'result') {
       s.state = 'result';
       s.label = ev.sources || t('done');
-      s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky };
+      s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky, inboxId: ev.inboxId };
       if (ev.unlock) {
         const { slot, value } = ev.unlock;
         s.card.actions = [{
@@ -905,6 +962,7 @@
 
   // ---------- what the user does ----------
   function expand(seed) {
+    histIndex = -1;
     if (!composing) Y.sound.play('open');
     if (s.state === 'done') { clearTimeout(s.timer); s.state = 'idle'; s.fg = false; }
     composing = true;
@@ -936,6 +994,9 @@
     if (!text && !cmd) return;
     if (text === '/quit') return bridge.quit();
     earn('actions');
+    Y.memory.history.add(text || (cmd ? cmd.words[0] : ''), cmd && cmd.id);
+    if (cmd) Y.memory.usage.bump(cmd.id);
+    if ((cmd && cmd.id === 'inbox') || (!cmd && Y.commands.leadWord(Y.commands.byId('inbox'), text))) return showInbox();
     const fun = cmd && cmd.category === 'fun' ? cmd : !cmd && Y.commands.match(text, 1).find((c) => c.category === 'fun' && Y.commands.leadWord(c, text));
     if (fun) return emote(fun);
     el.cmd.value = '';
@@ -955,6 +1016,38 @@
     s.card = null;
     s.pendingId = null;
     s.fg = false;
+  }
+
+  function syncUnread() {
+    el.island.dataset.unread = String(Y.memory.inbox.unread() > 0);
+  }
+
+  function when(at) {
+    const d = new Date(at);
+    const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return d.toDateString() === new Date().toDateString() ? time : d.toLocaleDateString('en', { month: 'short', day: 'numeric' }) + ' ' + time;
+  }
+
+  // the inbox: the last reminders, timers and unlocks
+  function showInbox() {
+    const items = Y.memory.inbox.list().slice(0, 8);
+    const fresh = Y.memory.inbox.unread();
+    el.cmd.value = '';
+    composing = false;
+    clearTimeout(s.timer);
+    s.state = 'result';
+    s.fg = true;
+    s.category = 'system';
+    s.label = t('inbox.title');
+    s.card = {
+      title: t('inbox.title') + (fresh ? ' · ' + t('inbox.new').replace('{n}', fresh) : ''),
+      body: items.length ? items.map((n) => (n.read ? '   ' : '•  ') + n.title + '   ' + when(n.at)).join('\n') : t('inbox.empty'),
+      actions: items.length ? [{ label: t('inbox.clear'), run: () => { Y.memory.inbox.clear(); syncUnread(); dismiss(); } }] : null,
+    };
+    Y.memory.inbox.markRead();
+    syncUnread();
+    render();
+    showIsland(true);
   }
 
   // emotes happen right here: YO does it, with a little sound
@@ -1066,6 +1159,7 @@
   el.island.addEventListener('mouseenter', () => { hovering = true; });
   el.island.addEventListener('mouseleave', () => { hovering = false; });
   el.cmd.addEventListener('input', updateSuggestions);
+  el.cmd.addEventListener('input', () => { histIndex = -1; });
   el.cmd.addEventListener('input', () => face.react('type'));
   el.cmd.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
@@ -1073,6 +1167,21 @@
       event.preventDefault();
       if (!el.cmd.value.trim()) return setPanel(true); // empty bar: show what YO can do
       choose(pick);
+    } else if (event.key === 'ArrowUp' && (histIndex >= 0 || !el.cmd.value.trim())) {
+      event.preventDefault();
+      const past = Y.memory.history.list();
+      if (histIndex + 1 >= past.length) return;
+      histIndex += 1;
+      el.cmd.value = past[histIndex].text;
+      updateSuggestions();
+      focusCommand();
+    } else if (event.key === 'ArrowDown' && histIndex >= 0) {
+      event.preventDefault();
+      const past = Y.memory.history.list();
+      histIndex -= 1;
+      el.cmd.value = histIndex >= 0 && past[histIndex] ? past[histIndex].text : '';
+      updateSuggestions();
+      focusCommand();
     } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       if (!matches.length) {
@@ -1277,6 +1386,7 @@
 
   // English only for now: the FR/AR strings stay in i18n.js but are no longer offered
   setLang('en');
+  syncUnread();
   applyPrefs();
   applyStrings();
   bridge.getInfo().then((info) => {

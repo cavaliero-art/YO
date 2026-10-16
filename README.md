@@ -23,6 +23,11 @@ YO slides down once to say hello, then hides in the tray (bottom right).
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
    The grid button (or `↓` / `Enter` on an empty bar) shows every action, grouped by category.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
+4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
+   panel starts with a Recent row (right-click a chip there to pin it).
+
+Reminders, timers and unlocks also go to the inbox: a small dot on YO means something new.
+Type `inbox` to see the last ones.
 
 When something needs you (a reminder, an approval), YO comes back alone and says it inside the pill.
 Click it, or press the shortcut, to open the card. If you're busy typing, it waits until you're done.
@@ -145,6 +150,5 @@ apps.json (the installed apps it found). Your look and sound choices are in the 
 
 ## Next
 
-- An inbox for missed messages (reminders are already kept until you see them).
 - Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
 
