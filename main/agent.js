@@ -248,7 +248,7 @@ function create(emit) {
       if (decision === 'deny') return say('Cancelled', CATEGORY[action], 'cancel');
       if (decision === 'always' && allowAlways) {
         trusted.add(action);
-        // read the file again: other settings (like the walk) live in it too
+        // read the file again: it may hold other settings too
         store.save('settings', Object.assign(store.load('settings', {}), { trusted: Array.from(trusted) }));
       }
       attempt(action, text, target);

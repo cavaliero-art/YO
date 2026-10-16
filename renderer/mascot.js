@@ -237,7 +237,6 @@
     let hungry = false; // a file is hovering over YO: mouth open
     let chompUntil = 0;
     let music = false; // something is playing: YO bops along
-    let walking = false;
 
     const calm = () => reduced.matches;
     const hold = (kind, v, ms) => { holds[kind] = { v, until: clock + ms / 1000 }; };
@@ -338,14 +337,7 @@
       sp.sx.t = 1 - (sp.sy.t - 1) * 0.6;
       const tilt = held('tilt');
       sp.tilt.t = tilt !== null ? tilt : clock < dizzyUntil ? Math.sin(clock * 8) * 12 : sleeping ? 7 : state === 'think' ? -4 : 0;
-      // walking: little hops, swinging arms, leaning into the step
-      if (walking && !still) {
-        const step = clock * 10;
-        sp.hop.t = -Math.abs(Math.sin(step)) * 2.4;
-        sp.armL.t = armL + Math.sin(step) * 28;
-        sp.armR.t = armR - Math.sin(step) * 28;
-        if (tilt === null) sp.tilt.t = 4;
-      } else if (music && !still && !sleeping && !hungry && (state === 'idle' || state === 'done')) {
+      if (music && !still && !sleeping && !hungry && (state === 'idle' || state === 'done')) {
         // bopping to the music, 112 beats a minute
         const beat = clock * Math.PI * (112 / 60);
         sp.hop.t = -Math.abs(Math.sin(beat)) * 2.6;
@@ -616,9 +608,6 @@
         music = Boolean(on);
         if (music) stream('music', 1.8, 0, () => spawn('note', 124 + Math.random() * 8, 62, 8 + Math.random() * 8, -24, 1.5, 0, 1));
         else stopStream('music');
-      },
-      setWalking(on) {
-        walking = Boolean(on);
       },
     };
   }

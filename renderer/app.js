@@ -22,7 +22,7 @@
     onCursor(cb) {
       document.addEventListener('mousemove', (e) => cb({ x: e.clientX, y: e.clientY }));
     },
-    onPref() {}, reportPrefs() {}, onMedia() {}, onWalk() {},
+    onPref() {}, reportPrefs() {}, onMedia() {},
   };
 
   const el = {
@@ -58,7 +58,6 @@
   let customizing = false; // the Customize panel is open
   let customHint = ''; // shown in the panel title for a moment (how to unlock something)
   let nowPlaying = null; // { playing, title, artist } while the pill is on screen
-  let walkOn = false;
   let dragDepth = 0;
   let preview = null; // the big YO in that panel
 
@@ -919,7 +918,6 @@
     const text = el.cmd.value.trim();
     if (!text && !cmd) return;
     if (text === '/quit') return bridge.quit();
-    if ((cmd && cmd.id === 'walk') || (!cmd && Y.commands.leadWord(Y.commands.byId('walk'), text))) return toggleWalk();
     earn('actions');
     el.cmd.value = '';
     composing = false;
@@ -929,16 +927,6 @@
     s.label = t('working');
     render();
     agent.send(text, cmd && cmd.id);
-  }
-
-  // YO walks along the taskbar (main/walker.js) or comes home
-  function toggleWalk() {
-    el.cmd.value = '';
-    composing = false;
-    if (!bridge.setWalk) return onEvent({ type: 'message', category: 'system', tone: 'info', text: t('walk.na') });
-    walkOn = !walkOn;
-    bridge.setWalk(walkOn);
-    onEvent({ type: 'message', category: 'system', tone: 'ok', text: t(walkOn ? 'walk.on' : 'walk.off') });
   }
 
   // close a card without sending YO away (a card button is about to do something else)
@@ -1250,7 +1238,6 @@
     }
     render();
   });
-  bridge.onWalk((on) => { walkOn = Boolean(on); });
 
   // Sounds on/off from the tray menu
   bridge.onPref((pref) => {
@@ -1263,7 +1250,6 @@
   applyStrings();
   bridge.getInfo().then((info) => {
     if (info && info.shortcut) shortcut = info.shortcut;
-    walkOn = Boolean(info && info.walk);
     onEvent({ type: 'message', category: 'system', text: t('welcome').replace('{key}', shortcut), ms: 4600 });
   });
 

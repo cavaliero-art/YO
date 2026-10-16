@@ -38,8 +38,6 @@
     folder: svg('<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>'),
     site: svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/>'),
   };
-  LIST.push({ id: 'walk', category: 'system', words: ['go for a walk', 'walk', 'desktop buddy'],
-    icon: svg('<circle cx="13" cy="4.5" r="2"/><path d="M10 21l2-6 3 3v3M7 12l3-4 4 1 2 3 3 1M12 15l-2-4"/>') });
   const STARTERS = ['open', 'remind', 'play', 'lock', 'timer'];
   const CATEGORIES = ['system', 'media', 'apps', 'time'];
 

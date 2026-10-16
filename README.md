@@ -82,13 +82,6 @@ While YO is on screen it knows what's playing (Spotify, YouTube in the browser, 
 up in Windows' media controls). It bops along, shows the song when it peeks out, and names the new
 song after `next` or `previous`. It only asks Windows while YO is visible and keeps nothing.
 
-### Walk on the taskbar
-
-Type `walk` (or use the tray: Walk on the taskbar). When the pill is away, YO walks along the top
-of your taskbar: it strolls, looks around, naps, and waves when your pointer comes close.
-Hold it to pet it, boop its antenna, double-click it to open the pill. It steps aside while a
-fullscreen app (a game, a video) is in front, and while the pill is open.
-
 ### Unlockables
 
 Some looks are earned by using YO; you get one small "New!" moment, never a nag.
@@ -131,12 +124,11 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
                        apps.js (installed apps), keys.js (media keys), store.js (JSON files),
-                       watch.js (what's playing, fullscreen check), walker.js (the taskbar walk)
+                       watch.js (what's playing)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
-                       walker.html / walker.js / walker.css (YO on the taskbar),
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser)
     tests/             npm test (nothing real happens: Electron, keys, launching and lock are faked)
 

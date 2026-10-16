@@ -22,8 +22,4 @@ contextBridge.exposeInMainWorld('yo', {
   pathForFile: (file) => { try { return webUtils.getPathForFile(file) || ''; } catch (err) { return ''; } },
   fileAction: (action, target) => ipcRenderer.invoke('file-action', action, target),
   onMedia: (callback) => ipcRenderer.on('media', (event, now) => callback(now)),
-  setWalk: (on) => ipcRenderer.send('set-walk', Boolean(on)),
-  onWalk: (callback) => ipcRenderer.on('walk', (event, on) => callback(on)),
-  onWalker: (callback) => ipcRenderer.on('walker', (event, state) => callback(state)),
-  summon: () => ipcRenderer.send('summon'),
 });
