@@ -36,7 +36,7 @@
 
   const face = Y.mascot.mount(el.face, 46);
   const s = { state: 'idle', label: '', card: null, pendingId: null, timer: null, fg: false, category: 'system' };
-  const agent = Y.mockAgent.create(onEvent);
+  const agent = Y.agent.create(onEvent);
   const later = []; // news that arrived while you were busy
   let composing = false;
   let vis = 'hidden';
@@ -48,6 +48,7 @@
   let spoken = '';
   let matches = [];
   let pick = 0;
+  let openAsk = 0; // latest "open <something>" lookup; older answers are ignored
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   const PANEL_ORDER = ['apps', 'time', 'media', 'tools', 'system'];
@@ -265,6 +266,24 @@
     pick = 0;
     drawSuggestions();
     syncDrawer();
+    lookUpOpen(typed);
+  }
+
+  // "open spo" -> Spotify, Downloads, github.com... from the main process (installed apps live there)
+  function lookUpOpen(typed) {
+    const ask = ++openAsk;
+    const open = Y.commands.byId('open');
+    const arg = Y.commands.argOf(open, typed);
+    if (!Y.commands.leadWord(open, typed) || !arg) return;
+    Y.agent.suggestOpen(arg).then((found) => {
+      if (ask !== openAsk || !composing || !Array.isArray(found) || !found.length) return;
+      const targets = found.map((target) => ({ id: 'open', category: 'apps', target }));
+      // the real targets replace the generic "Open an app, folder or site" row
+      matches = targets.concat(matches.filter((cmd) => cmd.id !== 'open' || cmd.target)).slice(0, MAX_SUGGEST);
+      pick = 0;
+      drawSuggestions();
+      syncDrawer();
+    });
   }
 
   function setPanel(open) {
@@ -367,7 +386,11 @@
       icon.className = 'ico';
       title.className = 'ttl';
       example.className = 'ex';
-      if (cmd.answer) {
+      if (cmd.target) {
+        icon.innerHTML = Y.commands.TARGET_ICONS[cmd.target.kind] || Y.commands.TARGET_ICONS.app; // static markup
+        title.textContent = cmd.target.label;
+        example.textContent = t('target.' + cmd.target.kind);
+      } else if (cmd.answer) {
         row.classList.add('answer');
         if (cmd.swatch) {
           icon.classList.add('swatch');
@@ -421,6 +444,10 @@
     const cmd = matches[i];
     if (!cmd) return submit(null);
     if (cmd.answer) return copyAnswer(cmd.answer.value);
+    if (cmd.target) {
+      el.cmd.value = 'open ' + cmd.target.label;
+      return submit(Y.commands.byId('open'));
+    }
     const text = el.cmd.value;
     if (!Y.commands.ready(cmd, text)) {
       if (Y.commands.leadWord(cmd, text)) restart(el.bar, 'knock');

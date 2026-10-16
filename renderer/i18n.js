@@ -33,6 +33,7 @@
         base64: 'Base64', decoded: 'Decoded',
       },
       copied: 'Copied {v}',
+      target: { app: 'App', folder: 'Folder', site: 'Website' },
       copyFailed: "Couldn't copy that",
       example: {
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min',

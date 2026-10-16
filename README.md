@@ -1,8 +1,9 @@
-# YO v0.4: one robot, real-looking actions
+# YO v0.5: a little robot with real hands
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
-Still a demo: actions don't touch your PC yet (Stage 3). Reminders and timers are real.
+Its actions are real: it opens your apps, folders and sites, controls your music and volume,
+locks your PC (after asking) and keeps your reminders, even across restarts.
 
 ## Run it (Windows)
 
@@ -26,12 +27,19 @@ YO slides down once to say hello, then hides in the tray (bottom right).
 When something needs you (a reminder, an approval), YO comes back alone and says it inside the pill.
 Click it, or press the shortcut, to open the card. If you're busy typing, it waits until you're done.
 
-## What it knows (demo)
+## What it does
 
-- Apps: `open spotify` (also folders and sites later)
-- Time: `remind me in 20 min to stretch`, `timer 25 min` (these really fire)
-- Media: `play`, `next`, `previous`, `louder`, `quieter`, `mute`
-- System: `lock` asks for your OK first; "Always" remembers it until you restart
+- Open: `open spotify` finds the app among those installed (normal and Store apps; `vsc` works too),
+  `open downloads` / `documents` / `desktop`..., `open github.com`, or `open C:\some\folder`.
+  Typing `open spo` already suggests Spotify by name.
+- Time: `remind me in 20 min to stretch`, `timer 25 min`. Saved to disk: they survive a restart,
+  and one that came due while YO was closed is delivered when it starts, marked as missed.
+- Media: `play`, `next`, `previous`, `louder`, `quieter`, `mute` press the real media keys.
+- System: `lock` locks the PC after your OK. "Always" is remembered on disk.
+
+Safety: the page never runs anything itself. It asks the main process, which checks every request
+again. Opening a program or script file (.exe, .bat, .ps1...) always asks first and never offers
+"Always". Sites open only as http/https.
 
 ### Quick answers
 
@@ -87,16 +95,21 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 ## Files
 
     main.js            hidden window, transparent, always on top, click-through
+    main/              agent.js (YO's hands: checks, approvals, actions, reminders),
+                       apps.js (installed apps), keys.js (media keys), store.js (JSON files)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers),
-                       mock-agent.js (demo agent)
+                       agent.js (asks the main process), mock-agent.js (demo, for a plain browser)
+    tests/             npm test (nothing real happens: Electron, keys, launching and lock are faked)
+
+YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
+apps.json (the installed apps it found). Your look and sound choices are in the same folder.
 
 ## Next
 
-- Stage 3: real actions in the main process (lock, media keys, volume, open apps/folders/sites),
-  settings and an inbox saved to disk.
+- An inbox for missed messages (reminders are already kept until you see them).
 - Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
 - After Stage 3: drop files or text on YO, unlockable hats, music bop, and a desktop walk
   (YO leaves the pill and walks along the taskbar).

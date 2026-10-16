@@ -2,6 +2,9 @@
 
 const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen } = require('electron');
 const path = require('path');
+const Agent = require('./main/agent');
+const keys = require('./main/keys');
+const apps = require('./main/apps');
 
 const WIN_W = 640;
 const WIN_H = 560;
@@ -12,6 +15,7 @@ const CURSOR_MS = 33; // how often YO's eyes get the pointer position, only whil
 let win = null;
 let tray = null;
 let activeShortcut = null;
+let agent = null;
 let cursorTimer = null;
 let lastCursor = '';
 // mirrored from the page, which keeps it; the tray menu shows and changes it
@@ -64,6 +68,13 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (event) => event.preventDefault());
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+
+  // YO's hands live here, in the main process; the page only asks
+  agent = Agent.create((event) => {
+    if (win && !win.isDestroyed()) win.webContents.send('agent', event);
+  });
+  // once the page listens: deliver reminders that came due while YO was closed, re-arm the rest
+  win.webContents.once('did-finish-load', () => agent.restore());
 }
 
 function summon() {
@@ -168,6 +179,31 @@ ipcMain.on('prefs', (event, next) => {
   buildMenu();
 });
 
+// ---------- the agent: every request is checked again here ----------
+const DECISIONS = new Set(['allow', 'deny', 'always']);
+
+ipcMain.on('agent-run', (event, request) => {
+  if (!fromMainWindow(event) || !agent || !request || typeof request !== 'object') return;
+  agent.send({
+    text: typeof request.text === 'string' ? request.text : '',
+    id: typeof request.id === 'string' ? request.id : null,
+  });
+});
+
+ipcMain.on('agent-respond', (event, id, decision) => {
+  if (!fromMainWindow(event) || !agent || typeof id !== 'string' || !DECISIONS.has(decision)) return;
+  agent.respond(id, decision);
+});
+
+ipcMain.on('agent-stop', (event) => {
+  if (fromMainWindow(event) && agent) agent.stop();
+});
+
+ipcMain.handle('suggest-open', (event, arg) => {
+  if (!fromMainWindow(event) || !agent || typeof arg !== 'string') return [];
+  return agent.suggestOpen(arg.slice(0, 120));
+});
+
 ipcMain.on('quit', (event) => {
   if (fromMainWindow(event)) app.quit();
 });
@@ -190,9 +226,15 @@ if (!app.requestSingleInstanceLock()) {
     registerHotkey();
     createTray();
     screen.on('display-metrics-changed', placeWindow);
+    // get ready in the background: media keys (~1.7 s) and the list of installed apps (~4 s)
+    setTimeout(() => keys.warm(), 2000);
+    setTimeout(() => apps.refresh(), 3000);
   });
 
   app.on('second-instance', summon);
-  app.on('will-quit', () => globalShortcut.unregisterAll());
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+    keys.stop();
+  });
   app.on('window-all-closed', () => app.quit());
 }

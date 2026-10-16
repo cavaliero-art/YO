@@ -32,6 +32,12 @@
     { id: 'lock', category: 'system', words: ['lock my pc', 'lock screen', 'lock pc', 'lock'], risk: 'medium',
       icon: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>') },
   ];
+  // icons for what "open" found: an app, a folder, a site
+  const TARGET_ICONS = {
+    app: svg('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/>'),
+    folder: svg('<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>'),
+    site: svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/>'),
+  };
   const STARTERS = ['open', 'remind', 'play', 'lock', 'timer'];
   const CATEGORIES = ['system', 'media', 'apps', 'time'];
 
@@ -89,5 +95,5 @@
     return cmd.arg === 'time' ? /\d/.test(arg) : arg.length > 0;
   }
 
-  Y.commands = { LIST, CATEGORIES, byId, match, leadWord, argOf, ready, normalize };
+  Y.commands = { LIST, CATEGORIES, TARGET_ICONS, byId, match, leadWord, argOf, ready, normalize };
 })((window.Yo = window.Yo || {}));
