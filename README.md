@@ -33,6 +33,16 @@ Click it, or press the shortcut, to open the card. If you're busy typing, it wai
 - Media: `play`, `next`, `previous`, `louder`, `quieter`, `mute`
 - System: `lock` asks for your OK first; "Always" remembers it until you restart
 
+### Quick answers
+
+Type and the answer shows up as the first row; `Enter` copies it. They're also in the Tools row of the
+actions panel.
+
+- Math: `12*7`, `= sqrt(16) + 2`, `2^10`, `20% of 150` (worked out by YO's own parser; nothing you type is run as code)
+- Units: `5 km in miles`, `100 f to c`, `3 kg in lb`, `1 gb in mb`, `60 mph in km/h`
+- Colors: `#ff6600` or `rgb(255, 102, 0)` gives hex, RGB and HSL with a preview
+- `uuid`, `timestamp`, `timestamp 1700000000`, `base64 hello`, `unbase64 aGVsbG8=`
+
 YO changes its look with what it's doing: teal for system, blue with a ring for media,
 coral with ears for apps, violet with bells for time.
 
@@ -80,10 +90,13 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
-                       commands.js (the action list), mock-agent.js (demo agent)
+                       commands.js (the action list), quick.js (quick answers),
+                       mock-agent.js (demo agent)
 
 ## Next
 
 - Stage 3: real actions in the main process (lock, media keys, volume, open apps/folders/sites),
   settings and an inbox saved to disk.
 - Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
+- After Stage 3: drop files or text on YO, unlockable hats, music bop, and a desktop walk
+  (YO leaves the pill and walks along the taskbar).

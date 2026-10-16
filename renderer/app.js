@@ -50,7 +50,7 @@
   let pick = 0;
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
-  const PANEL_ORDER = ['apps', 'time', 'media', 'system'];
+  const PANEL_ORDER = ['apps', 'time', 'media', 'tools', 'system'];
   let lastActive = Date.now();
   let lastSnore = 0;
   let dozing = false;
@@ -256,6 +256,12 @@
     if (typed) panel = false; // typing takes over from the panel
     el.browse.setAttribute('aria-expanded', String(panel));
     matches = typed ? Y.commands.match(typed, MAX_SUGGEST) : [];
+    // a quick answer (math, units, color, uuid...) goes first: Enter copies it
+    const found = typed ? Y.quick.answer(typed) : null;
+    if (found) {
+      const answers = found.rows.map((row) => ({ id: 'answer', category: 'tools', kind: found.kind, swatch: found.swatch, answer: row }));
+      matches = answers.concat(matches).slice(0, MAX_SUGGEST);
+    }
     pick = 0;
     drawSuggestions();
     syncDrawer();
@@ -280,6 +286,11 @@
       name.className = 'plabel';
       name.textContent = t('cat.' + cat);
       chips.className = 'chips';
+      if (cat === 'tools') {
+        Y.quick.TOOLS.forEach((tool) => chips.append(toolChip(tool)));
+        row.append(name, chips);
+        return row;
+      }
       Y.commands.LIST.filter((cmd) => cmd.category === cat).forEach((cmd) => {
         const chip = document.createElement('button');
         const label = document.createElement('span');
@@ -300,6 +311,27 @@
       return row;
     });
     el.panel.replaceChildren(...rows);
+  }
+
+  // a Tools chip puts an example in the bar; the answer shows right away
+  function toolChip(tool) {
+    const chip = document.createElement('button');
+    const label = document.createElement('span');
+    chip.type = 'button';
+    chip.className = 'act';
+    chip.dataset.cat = 'tools';
+    chip.innerHTML = Y.quick.ICONS[tool.id]; // static markup from quick.js
+    label.textContent = t('tool.' + tool.id);
+    chip.append(label);
+    chip.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
+    chip.addEventListener('mouseenter', () => previewCat('tools'));
+    chip.addEventListener('focus', () => previewCat('tools'));
+    chip.addEventListener('click', () => {
+      el.cmd.value = tool.fill;
+      updateSuggestions();
+      focusCommand();
+    });
+    return chip;
   }
 
   function previewCat(cat) {
@@ -333,11 +365,23 @@
       row.setAttribute('aria-selected', String(i === pick));
       row.dataset.cat = cmd.category;
       icon.className = 'ico';
-      icon.innerHTML = cmd.icon; // static markup from commands.js
       title.className = 'ttl';
-      title.textContent = t('cmd.' + cmd.id);
       example.className = 'ex';
-      example.textContent = t('example.' + cmd.id);
+      if (cmd.answer) {
+        row.classList.add('answer');
+        if (cmd.swatch) {
+          icon.classList.add('swatch');
+          icon.style.background = cmd.swatch;
+        } else {
+          icon.innerHTML = Y.quick.ICONS[cmd.kind] || Y.quick.ICONS.math; // static markup from quick.js
+        }
+        title.textContent = cmd.answer.value;
+        example.textContent = cmd.answer.label;
+      } else {
+        icon.innerHTML = cmd.icon; // static markup from commands.js
+        title.textContent = t('cmd.' + cmd.id);
+        example.textContent = t('example.' + cmd.id);
+      }
       enter.textContent = '↵';
       example.append(enter);
       row.append(icon, title, example);
@@ -376,6 +420,7 @@
   function choose(i) {
     const cmd = matches[i];
     if (!cmd) return submit(null);
+    if (cmd.answer) return copyAnswer(cmd.answer.value);
     const text = el.cmd.value;
     if (!Y.commands.ready(cmd, text)) {
       if (Y.commands.leadWord(cmd, text)) restart(el.bar, 'knock');
@@ -385,6 +430,17 @@
       return;
     }
     submit(cmd);
+  }
+
+  function copyAnswer(value) {
+    const short = value.length > 30 ? value.slice(0, 29) + '…' : value;
+    const done = (ok) => {
+      el.cmd.value = '';
+      composing = false;
+      onEvent({ type: 'message', category: 'tools', tone: ok ? 'ok' : 'error', text: ok ? t('copied').replace('{v}', short) : t('copyFailed') });
+    };
+    if (!navigator.clipboard) return done(false);
+    navigator.clipboard.writeText(value).then(() => done(true), () => done(false));
   }
 
   // ---------- show / hide: the robot only exists when it has something to say ----------

@@ -26,7 +26,14 @@
         play: 'Play', next: 'Next', prev: 'Prev', volup: 'Vol +', voldown: 'Vol −', mute: 'Mute',
         lock: 'Lock PC',
       },
-      cat: { apps: 'Apps', time: 'Time', media: 'Media', system: 'System' },
+      cat: { apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', system: 'System' },
+      tool: { math: 'Calculator', uuid: 'UUID', time: 'Timestamp', color: 'Color', base64: 'Base64', units: 'Units' },
+      quick: {
+        hex: 'Hex', rgb: 'RGB', hsl: 'HSL', uuid: 'New UUID', unix: 'Unix time', iso: 'ISO 8601', local: 'Local time',
+        base64: 'Base64', decoded: 'Decoded',
+      },
+      copied: 'Copied {v}',
+      copyFailed: "Couldn't copy that",
       example: {
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min',
         play: 'play', next: 'next', prev: 'previous', volup: 'louder', voldown: 'quieter', mute: 'mute', lock: 'lock',
