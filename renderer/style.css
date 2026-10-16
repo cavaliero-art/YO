@@ -414,6 +414,10 @@ html, body {
   box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--glow) 50%, transparent);
 }
 .opt:active, .sw:active { transform: scale(.94); }
+/* still to earn: dimmed, with a lock */
+.opt.locked { opacity: .5; }
+.opt.locked::before { content: "🔒"; margin-inline-end: 4px; font-size: 10px; }
+.sw.locked { opacity: .35; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .5); }
 .sw {
   --body: #9FE1CB;
   --eye: #CFFAEA;
@@ -459,7 +463,8 @@ html, body {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, .2) transparent;
 }
-.c-actions { display: flex; gap: 8px; }
+.c-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.c-more { display: contents; }
 
 .btn {
   background: transparent;
@@ -493,6 +498,7 @@ html, body {
 :is(.yo-char, .sw)[data-color="bubblegum"] { --body: #F9C6DA; --foot: #EE8AB2; }
 :is(.yo-char, .sw)[data-color="snow"] { --body: #EEECE6; --foot: #B9B6AD; }
 :is(.yo-char, .sw)[data-color="graphite"] { --body: #858B97; --foot: #555B66; }
+:is(.yo-char, .sw)[data-color="gold"] { --body: #F4D06F; --foot: #D4A72C; }
 :is(.yo-char, .sw)[data-eye="white"] { --eye: #FFFFFF; }
 :is(.yo-char, .sw)[data-eye="amber"] { --eye: #FFD58A; }
 :is(.yo-char, .sw)[data-eye="pink"] { --eye: #FFB3C7; }
@@ -512,7 +518,7 @@ html, body {
 .yo-char[data-state="done"] .dot { fill: var(--s-done); }
 .yo-char[data-state="alert"] .dot { fill: var(--s-alert-deep); }
 .yo-char .hit-ant { fill: transparent; cursor: pointer; }
-.yo-char :is(.eye, .blush, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
+.yo-char :is(.eye, .blush, .mouth, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
 
 /* eyes: one shape at a time */
 .yo-char .eye > * { display: none; fill: var(--eye); }
@@ -540,8 +546,8 @@ html, body {
 .yo-char .p-q { fill: var(--ink); font-size: 12px; }
 
 /* outfit: hat, glasses, held item, and the Ramadan moon */
-.yo-char :is(.o-winter, .o-party, .o-witch, .o-crown, .o-cap, .o-phones, .o-bow, .o-glasses, .o-round,
-  .o-lantern, .o-mug, .o-pad, .o-moon) { display: none; }
+.yo-char :is(.o-winter, .o-party, .o-witch, .o-crown, .o-cap, .o-phones, .o-bow, .o-prop, .o-night, .o-halo, .o-grad,
+  .o-glasses, .o-round, .o-lantern, .o-mug, .o-pad, .o-moon) { display: none; }
 .yo-char[data-hat="winter"] .o-winter,
 .yo-char[data-hat="party"] .o-party,
 .yo-char[data-hat="witch"] .o-witch,
@@ -549,6 +555,10 @@ html, body {
 .yo-char[data-hat="cap"] .o-cap,
 .yo-char[data-hat="headphones"] .o-phones,
 .yo-char[data-hat="bow"] .o-bow,
+.yo-char[data-hat="propeller"] .o-prop,
+.yo-char[data-hat="nightcap"] .o-night,
+.yo-char[data-hat="halo"] .o-halo,
+.yo-char[data-hat="grad"] .o-grad,
 .yo-char[data-glasses="sun"] .o-glasses,
 .yo-char[data-glasses="round"] .o-round,
 .yo-char[data-item="lantern"] .o-lantern,
@@ -567,6 +577,15 @@ html, body {
 .yo-char .o-flame { fill: #FFF3B0; }
 .yo-char .o-chain { fill: none; stroke: #C9A44A; stroke-width: 1.2; }
 .yo-char .o-gem { fill: #E5484D; }
+.yo-char .o-propcap { fill: #F26B5B; }
+.yo-char .o-propstripe { fill: none; stroke: #FFD166; stroke-width: 3; }
+.yo-char .o-stem { fill: #555B66; }
+.yo-char .o-blade { fill: #6EC1FF; }
+.yo-char .o-blade2 { fill: #97C459; }
+.yo-char .o-navy { fill: #2F3E7A; }
+.yo-char .o-halo ellipse { fill: none; stroke: #FFD166; stroke-width: 2.6; }
+.yo-char .o-goldline { fill: none; stroke: #F2C14E; stroke-width: 1.6; stroke-linejoin: round; }
+.yo-char .c-mouth { fill: #050807; stroke: var(--eye); stroke-width: 1.4; }
 .yo-char .o-gem2 { fill: #6EC1FF; }
 .yo-char .o-capc { fill: #3B82F6; }
 .yo-char .o-capline { fill: none; stroke: rgba(0, 0, 0, .2); stroke-width: 1.2; }

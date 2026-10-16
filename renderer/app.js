@@ -13,7 +13,7 @@
 
   const $ = (id) => document.getElementById(id);
   const bridge = window.yo || {
-    setIgnoreMouse() {}, releaseFocus() {}, quit() {}, hide() {},
+    setHitRect() {}, releaseFocus() {}, quit() {}, hide() {},
     show: () => Promise.resolve(),
     getInfo: () => Promise.resolve({ locale: navigator.language, shortcut: 'Ctrl+Space' }),
     onHotkey(cb) {
@@ -22,7 +22,7 @@
     onCursor(cb) {
       document.addEventListener('mousemove', (e) => cb({ x: e.clientX, y: e.clientY }));
     },
-    onPref() {}, reportPrefs() {},
+    onPref() {}, reportPrefs() {}, onMedia() {}, onWalk() {},
   };
 
   const el = {
@@ -31,7 +31,7 @@
     bubble: $('bubble'), risk: $('risk'), announce: $('announce'),
     aTitle: $('aTitle'), aBody: $('aBody'), rTitle: $('rTitle'), rBody: $('rBody'),
     bDeny: $('bDeny'), bAllow: $('bAllow'), bAlways: $('bAlways'), bCopy: $('bCopy'), bClose: $('bClose'),
-    preview: $('preview'), cOpts: $('cOpts'), cDone: $('cDone'), cRandom: $('cRandom'), cReset: $('cReset'),
+    preview: $('preview'), cOpts: $('cOpts'), cDone: $('cDone'), cRandom: $('cRandom'), cReset: $('cReset'), rMore: $('rMore'),
   };
 
   const face = Y.mascot.mount(el.face, 46);
@@ -56,6 +56,10 @@
   let lastSnore = 0;
   let dozing = false;
   let customizing = false; // the Customize panel is open
+  let customHint = ''; // shown in the panel title for a moment (how to unlock something)
+  let nowPlaying = null; // { playing, title, artist } while the pill is on screen
+  let walkOn = false;
+  let dragDepth = 0;
   let preview = null; // the big YO in that panel
 
   // ---------- preferences: YO's look and sound (kept in this window's storage until Stage 3 saves settings) ----------
@@ -77,15 +81,7 @@
   }
 
   // a seasonal outfit only fills the slots you left empty
-  function effectiveLook() {
-    const look = Object.assign({}, prefs.look);
-    const season = prefs.seasonal ? Y.mascot.seasonal() : null;
-    const extra = season ? Y.mascot.SEASON_LOOK[season] : {};
-    Object.keys(extra).forEach((key) => {
-      if (key === 'moon' || look[key] === 'none') look[key] = extra[key];
-    });
-    return look;
-  }
+  const effectiveLook = () => Y.mascot.lookFor(prefs);
 
   function applyPrefs() {
     Y.sound.setEnabled(prefs.sound);
@@ -136,8 +132,11 @@
     if (s.state === 'done') return s.label;
     if (s.state === 'approval') return t('needsOk');
     if (s.state === 'result') return (s.card && s.card.title) || t('done');
+    if (!composing && nowPlaying && nowPlaying.playing && nowPlaying.title) return '♪ ' + songText(nowPlaying);
     return '';
   }
+
+  const songText = (now) => (now.artist ? now.title + ' · ' + now.artist : now.title);
 
   // the black pill grows to fit the message next to the robot
   const measure = document.createElement('canvas').getContext('2d');
@@ -173,7 +172,15 @@
     } else {
       el.rTitle.textContent = card.title;
       el.rBody.textContent = card.body;
-      el.bCopy.hidden = !card.copyable;
+      el.bCopy.hidden = !card.copyable || Boolean(card.actions);
+      el.rMore.replaceChildren(...(card.actions || []).map((action) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = action.primary ? 'btn ok' : 'btn';
+        button.textContent = action.label;
+        button.addEventListener('click', action.run);
+        return button;
+      }));
     }
   }
 
@@ -199,7 +206,7 @@
       if (mode === 'listening' || mode === 'working') text = s.label;
       else if (mode === 'approval') text = t('needsOk');
       else if (mode === 'result') text = s.label || t('done');
-      else if (mode === 'custom') text = t('customize');
+      else if (mode === 'custom') text = customHint || t('customize');
       el.label.textContent = text;
       setBubble(mode === 'peek' ? bubbleFor() : '');
       announce(text || bubbleText);
@@ -459,12 +466,13 @@
     submit(cmd);
   }
 
-  function copyAnswer(value) {
+  function copyAnswer(value, isAnswer) {
     const short = value.length > 30 ? value.slice(0, 29) + '…' : value;
     const done = (ok) => {
       el.cmd.value = '';
       composing = false;
       onEvent({ type: 'message', category: 'tools', tone: ok ? 'ok' : 'error', text: ok ? t('copied').replace('{v}', short) : t('copyFailed') });
+      if (ok && isAnswer !== false) earn('answers');
     };
     if (!navigator.clipboard) return done(false);
     navigator.clipboard.writeText(value).then(() => done(true), () => done(false));
@@ -494,6 +502,8 @@
     el.island.dataset.vis = 'entering';
     render();
     face.setActive(true);
+    reportHit();
+    earn('visit');
     const greet = firstToday();
     // when the robot touches down: a full hello once a day, a quick landing otherwise
     setTimeout(() => {
@@ -505,6 +515,7 @@
       if (token !== visToken) return;
       vis = 'shown';
       el.island.dataset.vis = 'shown';
+      reportHit();
     }, ENTER_MS);
   }
 
@@ -523,6 +534,7 @@
       face.setActive(false);
       face.reset();
       dozing = false;
+      reportHit();
       bridge.hide();
     }, LEAVE_MS);
   }
@@ -596,6 +608,21 @@
       s.state = 'result';
       s.label = ev.sources || t('done');
       s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky };
+      if (ev.unlock) {
+        const { slot, value } = ev.unlock;
+        s.card.actions = [{
+          label: t('unlock.tryOn'),
+          primary: true,
+          run: () => {
+            prefs.look[slot] = value;
+            savePrefs();
+            applyPrefs();
+            clearCard();
+            Y.sound.play('equip');
+            onEvent({ type: 'message', category: 'system', tone: 'ok', text: t('unlock.wearing'), ms: 3600 });
+          },
+        }];
+      }
       if (ev.sticky) clearTimeout(s.timer);
       else scheduleClose(14000);
     } else {
@@ -616,6 +643,9 @@
     if (ev.type === 'approval_needed') {
       move = 'ask';
       sound = 'knock';
+    } else if (ev.type === 'result' && ev.unlock) {
+      move = 'equip';
+      sound = 'unlock';
     } else if (ev.type === 'result') {
       move = ev.background ? 'remind' : 'success';
       sound = ev.background ? (ev.alarm ? 'alarm' : 'chime') : 'success';
@@ -628,6 +658,24 @@
     }
     if (move) face.react(move);
     if (sound) Y.sound.play(sound);
+  }
+
+  // ---------- unlocks: earned by using YO ----------
+  function earn(kind) {
+    const fresh = Y.unlocks.record(kind);
+    fresh.forEach((rule) => {
+      onEvent({
+        type: 'result', background: true, sticky: true, category: 'system', unlock: { slot: rule.slot, value: rule.value },
+        title: t('unlock.title').replace('{name}', optionLabel(rule.slot, rule.value)),
+        body: t('unlock.body'),
+      });
+    });
+    if (fresh.length && customizing) drawCustom();
+  }
+
+  function lockHint(group, value) {
+    const p = Y.unlocks.progress(group, value);
+    return p ? t('lock.' + p.stat).replace(/\{need\}/g, p.need).replace('{have}', p.have) : '';
   }
 
   // ---------- small life: dozing off, petting, boops ----------
@@ -713,6 +761,11 @@
           } else {
             button.textContent = optionLabel(group, value);
           }
+          if (!Y.unlocks.isUnlocked(group, value)) {
+            button.classList.add('locked');
+            button.setAttribute('aria-disabled', 'true');
+            button.title = lockHint(group, value);
+          }
           button.addEventListener('click', () => chooseLook(group, value));
           opts.append(button);
         });
@@ -751,6 +804,16 @@
   }
 
   function chooseLook(group, value) {
+    // still locked: say how to earn it, in the panel's title for a moment
+    if (!Y.unlocks.isUnlocked(group, value)) {
+      customHint = '🔒 ' + lockHint(group, value);
+      render();
+      preview.react('info');
+      Y.sound.play('info');
+      clearTimeout(chooseLook.timer);
+      chooseLook.timer = setTimeout(() => { customHint = ''; render(); }, 2800);
+      return;
+    }
     if (group === 'seasonal') prefs.seasonal = value;
     else if (group === 'voice') {
       prefs.sound = value !== 'off';
@@ -771,8 +834,11 @@
   }
 
   function surprise() {
+    const L = {};
+    Object.keys(Y.mascot.LOOKS).forEach((key) => {
+      L[key] = Y.mascot.LOOKS[key].filter((value) => Y.unlocks.isUnlocked(key, value));
+    });
     const pick = (list) => list[Math.floor(Math.random() * list.length)];
-    const L = Y.mascot.LOOKS;
     prefs.look = {
       color: pick(L.color), eyeColor: pick(L.eyeColor), eyes: pick(L.eyes),
       hat: Math.random() < 0.8 ? pick(L.hat) : 'none',
@@ -853,6 +919,8 @@
     const text = el.cmd.value.trim();
     if (!text && !cmd) return;
     if (text === '/quit') return bridge.quit();
+    if ((cmd && cmd.id === 'walk') || (!cmd && Y.commands.leadWord(Y.commands.byId('walk'), text))) return toggleWalk();
+    earn('actions');
     el.cmd.value = '';
     composing = false;
     s.fg = true;
@@ -861,6 +929,31 @@
     s.label = t('working');
     render();
     agent.send(text, cmd && cmd.id);
+  }
+
+  // YO walks along the taskbar (main/walker.js) or comes home
+  function toggleWalk() {
+    el.cmd.value = '';
+    composing = false;
+    if (!bridge.setWalk) return onEvent({ type: 'message', category: 'system', tone: 'info', text: t('walk.na') });
+    walkOn = !walkOn;
+    bridge.setWalk(walkOn);
+    onEvent({ type: 'message', category: 'system', tone: 'ok', text: t(walkOn ? 'walk.on' : 'walk.off') });
+  }
+
+  // close a card without sending YO away (a card button is about to do something else)
+  function clearCard() {
+    clearTimeout(s.timer);
+    s.state = 'idle';
+    s.card = null;
+    s.pendingId = null;
+    s.fg = false;
+  }
+
+  // run an action as if it had been typed
+  function runText(text, id) {
+    el.cmd.value = text;
+    submit(Y.commands.byId(id));
   }
 
   function respond(decision) {
@@ -929,6 +1022,7 @@
       skipClick = true;
       face.pet(true);
       Y.sound.play('pet');
+      earn('pets');
     }, PET_MS);
   });
   el.hero.addEventListener('pointerup', stopPet);
@@ -1008,15 +1102,104 @@
     dismiss();
   });
 
-  // click-through everywhere except on the island itself
-  let ignoring = true;
-  function setIgnore(value) {
-    if (value === ignoring) return;
-    ignoring = value;
-    bridge.setIgnoreMouse(value);
+  // where YO is in the window: the main process lets clicks (and drops) reach it there, and through everywhere else
+  let lastHit = '';
+  function reportHit() {
+    let rect = null;
+    if (vis !== 'hidden') {
+      const r = el.island.getBoundingClientRect();
+      rect = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+    }
+    const key = JSON.stringify(rect);
+    if (key === lastHit) return;
+    lastHit = key;
+    bridge.setHitRect(rect);
   }
-  document.addEventListener('mousemove', (event) => setIgnore(!event.target.closest('[data-hit]')));
-  document.addEventListener('mouseleave', () => setIgnore(true));
+  new ResizeObserver(reportHit).observe(el.island);
+
+  // ---------- drop a file or some text on YO: it opens its mouth, then eats it ----------
+  function dragKind(event) {
+    const types = Array.from((event.dataTransfer && event.dataTransfer.types) || []);
+    if (types.indexOf('Files') !== -1) return 'files';
+    return types.indexOf('text/plain') !== -1 ? 'text' : null;
+  }
+
+  function eatDrop(data) {
+    const files = Array.from(data.files || []);
+    const paths = files.map((file) => (bridge.pathForFile ? bridge.pathForFile(file) : '')).filter(Boolean);
+    const text = files.length ? '' : (data.getData('text/plain') || '').trim();
+    face.setHungry(false);
+    if (!paths.length && !text) return;
+    if (customizing) closeCustom();
+    face.react('eat');
+    Y.sound.play('gulp');
+    composing = false;
+    panel = false;
+    clearTimeout(s.timer);
+    s.state = 'result';
+    s.fg = true;
+    if (paths.length) {
+      const first = paths[0];
+      const name = first.split(/[\\/]/).pop() || first;
+      s.category = 'apps';
+      s.label = paths.length > 1 ? t('drop.many').replace('{n}', paths.length) : t('drop.one');
+      s.card = {
+        title: paths.length > 1 ? t('drop.files').replace('{name}', name).replace('{n}', paths.length - 1) : name,
+        body: paths.join('\n'),
+        actions: [
+          { label: t('drop.copyPath'), primary: true, run: () => copyAnswer(paths.join('\r\n'), false) },
+          { label: t('drop.reveal'), run: () => { if (bridge.fileAction) bridge.fileAction('reveal', first); dismiss(); } },
+          { label: t('drop.open'), run: () => { clearCard(); runText('open ' + first, 'open'); } },
+        ],
+      };
+    } else {
+      const words = text.split(/\s+/).filter(Boolean).length;
+      const link = /^https?:\/\/\S+$/i.test(text);
+      s.category = 'tools';
+      s.label = t('drop.text');
+      s.card = {
+        title: text.length > 60 ? text.slice(0, 59) + '…' : text,
+        body: t('drop.count').replace('{w}', words).replace('{c}', text.length),
+        actions: [
+          link
+            ? { label: t('drop.openLink'), primary: true, run: () => { clearCard(); runText('open ' + text, 'open'); } }
+            : { label: t('drop.remind'), primary: true, run: () => { clearCard(); expand('remind me in 10 min to ' + text.slice(0, 100)); } },
+          { label: t('copy'), run: () => copyAnswer(text, false) },
+        ],
+      };
+    }
+    render();
+    showIsland(true);
+  }
+
+  el.island.addEventListener('dragenter', (event) => {
+    if (!dragKind(event)) return;
+    event.preventDefault();
+    dragDepth += 1;
+    if (dragDepth === 1) {
+      hovering = true;
+      activity();
+      face.setHungry(true);
+    }
+  });
+  el.island.addEventListener('dragover', (event) => {
+    if (!dragKind(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  });
+  el.island.addEventListener('dragleave', () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) { hovering = false; face.setHungry(false); }
+  });
+  el.island.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dragDepth = 0;
+    hovering = false;
+    eatDrop(event.dataTransfer);
+  });
+  // a drop anywhere else in the window does nothing (never opens the file in the page)
+  document.addEventListener('dragover', (event) => event.preventDefault());
+  document.addEventListener('drop', (event) => event.preventDefault());
   window.addEventListener('blur', () => {
     if (composing && !el.cmd.value) {
       composing = false;
@@ -1055,6 +1238,20 @@
     activity();
   });
 
+  // what's playing (only asked while YO is on screen): YO bops along and names the song
+  bridge.onMedia((now) => {
+    const changed = !nowPlaying || !now || now.title !== nowPlaying.title;
+    nowPlaying = now;
+    face.setMusic(Boolean(now && now.playing));
+    // right after next / previous: say the new song
+    if (changed && now && now.playing && now.title && s.state === 'done' && s.category === 'media') {
+      s.label = '♪ ' + songText(now);
+      scheduleClose(3600);
+    }
+    render();
+  });
+  bridge.onWalk((on) => { walkOn = Boolean(on); });
+
   // Sounds on/off from the tray menu
   bridge.onPref((pref) => {
     if (pref) setPref(pref.key, pref.value);
@@ -1066,6 +1263,7 @@
   applyStrings();
   bridge.getInfo().then((info) => {
     if (info && info.shortcut) shortcut = info.shortcut;
+    walkOn = Boolean(info && info.walk);
     onEvent({ type: 'message', category: 'system', text: t('welcome').replace('{key}', shortcut), ms: 4600 });
   });
 

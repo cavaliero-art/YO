@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test --test-force-exit tests/agent.test.js"
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js"
   },
   "license": "MIT",
   "devDependencies": {

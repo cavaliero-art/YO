@@ -1,9 +1,9 @@
 'use strict';
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('yo', {
-  setIgnoreMouse: (ignore) => ipcRenderer.send('ignore-mouse', Boolean(ignore)),
+  setHitRect: (rect) => ipcRenderer.send('hit-rect', rect),
   show: (focus) => ipcRenderer.invoke('show-window', focus === true),
   hide: () => ipcRenderer.send('hide-window'),
   releaseFocus: () => ipcRenderer.send('release-focus'),
@@ -18,4 +18,12 @@ contextBridge.exposeInMainWorld('yo', {
   stopAgent: () => ipcRenderer.send('agent-stop'),
   onAgent: (callback) => ipcRenderer.on('agent', (event, data) => callback(data)),
   suggestOpen: (arg) => ipcRenderer.invoke('suggest-open', arg),
+  // a dropped file's path on disk (Electron no longer puts it on the File object)
+  pathForFile: (file) => { try { return webUtils.getPathForFile(file) || ''; } catch (err) { return ''; } },
+  fileAction: (action, target) => ipcRenderer.invoke('file-action', action, target),
+  onMedia: (callback) => ipcRenderer.on('media', (event, now) => callback(now)),
+  setWalk: (on) => ipcRenderer.send('set-walk', Boolean(on)),
+  onWalk: (callback) => ipcRenderer.on('walk', (event, on) => callback(on)),
+  onWalker: (callback) => ipcRenderer.on('walker', (event, state) => callback(state)),
+  summon: () => ipcRenderer.send('summon'),
 });

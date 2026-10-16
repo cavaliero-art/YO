@@ -41,6 +41,13 @@ Safety: the page never runs anything itself. It asks the main process, which che
 again. Opening a program or script file (.exe, .bat, .ps1...) always asks first and never offers
 "Always". Sites open only as http/https.
 
+### Drop things on YO
+
+Drag a file or some text onto YO: it opens its mouth, then eats it.
+
+- A file: copy its path, show it in its folder, or open it (programs still ask first).
+- Text: turn it into a reminder ("remind me in 10 min to ..."), or copy it. A link: open it.
+
 ### Quick answers
 
 Type and the answer shows up as the first row; `Enter` copies it. They're also in the Tools row of the
@@ -69,6 +76,33 @@ YO is drawn and moved in code (`renderer/mascot.js`); nothing is an image file.
 - Seasonal outfits, automatic by date: Ramadan lantern, Eid and New Year party hat, Halloween
   witch hat, winter beanie, summer sunglasses. They only fill what you left empty.
 
+### Music
+
+While YO is on screen it knows what's playing (Spotify, YouTube in the browser, any app that shows
+up in Windows' media controls). It bops along, shows the song when it peeks out, and names the new
+song after `next` or `previous`. It only asks Windows while YO is visible and keeps nothing.
+
+### Walk on the taskbar
+
+Type `walk` (or use the tray: Walk on the taskbar). When the pill is away, YO walks along the top
+of your taskbar: it strolls, looks around, naps, and waves when your pointer comes close.
+Hold it to pet it, boop its antenna, double-click it to open the pill. It steps aside while a
+fullscreen app (a game, a video) is in front, and while the pill is open.
+
+### Unlockables
+
+Some looks are earned by using YO; you get one small "New!" moment, never a nag.
+
+| Unlock | How |
+|---|---|
+| Propeller hat | Run 50 actions |
+| Halo | Pet YO 10 times |
+| Nightcap | Use YO after midnight |
+| Grad cap | Copy 20 quick answers |
+| Gold color | Use YO on 7 different days |
+
+Locked items show a lock in Customize; click one to see how far you are.
+
 ### Customize YO (right-click the robot)
 
 A live preview on the left, choices on the right. Everything saves as you click:
@@ -96,11 +130,13 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
-                       apps.js (installed apps), keys.js (media keys), store.js (JSON files)
+                       apps.js (installed apps), keys.js (media keys), store.js (JSON files),
+                       watch.js (what's playing, fullscreen check), walker.js (the taskbar walk)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
-                       commands.js (the action list), quick.js (quick answers),
+                       commands.js (the action list), quick.js (quick answers), unlocks.js,
+                       walker.html / walker.js / walker.css (YO on the taskbar),
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser)
     tests/             npm test (nothing real happens: Electron, keys, launching and lock are faked)
 
@@ -111,5 +147,4 @@ apps.json (the installed apps it found). Your look and sound choices are in the 
 
 - An inbox for missed messages (reminders are already kept until you see them).
 - Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
-- After Stage 3: drop files or text on YO, unlockable hats, music bop, and a desktop walk
-  (YO leaves the pill and walks along the taskbar).
+

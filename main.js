@@ -1,25 +1,34 @@
 'use strict';
 
-const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen } = require('electron');
+const fs = require('fs');
+const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen, shell } = require('electron');
 const path = require('path');
 const Agent = require('./main/agent');
 const keys = require('./main/keys');
 const apps = require('./main/apps');
+const watch = require('./main/watch');
+const Walker = require('./main/walker');
+const store = require('./main/store');
 
 const WIN_W = 640;
 const WIN_H = 560;
 // Ctrl+Space takes over IDE autocomplete while YO runs; Stage 4 adds a shortcut picker in the tray
 const SHORTCUTS = ['Control+Space', 'Control+Alt+Y'];
-const CURSOR_MS = 33; // how often YO's eyes get the pointer position, only while it is on screen
+const POINTER_MS = 33; // pointer checks while a YO window is on screen: eyes follow it, clicks reach YO
+const HIT_MARGIN = 4;
+const MEDIA_MS = 2500; // what's playing, asked only while the pill is on screen
 
 let win = null;
+let walker = null;
 let tray = null;
 let activeShortcut = null;
 let agent = null;
-let cursorTimer = null;
-let lastCursor = '';
+let pointerTimer = null;
+let mediaTimer = null;
+let lastMedia = '';
 // mirrored from the page, which keeps it; the tray menu shows and changes it
 let prefs = { sound: true };
+const settings = store.load('settings', {});
 
 // YO's sounds play without a click first (it speaks when it arrives)
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -63,8 +72,12 @@ function createWindow() {
   win.setIgnoreMouseEvents(true, { forward: true });
   placeWindow();
 
-  win.on('show', startCursor);
-  win.on('hide', stopCursor);
+  win.on('show', () => { startPointer(); startMedia(); if (walker) walker.setPillOpen(true); });
+  win.on('hide', () => {
+    stopMedia();
+    if (walker) walker.setPillOpen(false);
+    startPointer(); // the walking YO may be back on screen
+  });
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (event) => event.preventDefault());
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
@@ -95,24 +108,81 @@ function registerHotkey() {
   activeShortcut = null;
 }
 
-// the pointer position, relative to the window, while YO is visible (its eyes follow it)
-function startCursor() {
-  if (cursorTimer) return;
-  lastCursor = '';
-  cursorTimer = setInterval(() => {
-    if (!win || !win.isVisible()) return stopCursor();
-    const point = screen.getCursorScreenPoint();
-    const bounds = win.getBounds();
-    const key = point.x + ',' + point.y;
-    if (key === lastCursor) return;
-    lastCursor = key;
-    win.webContents.send('cursor', { x: point.x - bounds.x, y: point.y - bounds.y });
-  }, CURSOR_MS);
+// ---------- the pointer, for every YO window on screen ----------
+// Each page tells us where YO is (its "hit" rectangle). The window lets clicks through everywhere
+// else. Checking the pointer from here (not from the page) also works while you drag a file.
+const hits = new Map(); // webContents id -> { x, y, w, h } or null
+const ignoring = new Map(); // webContents id -> true while clicks pass through
+const lastPointer = new Map();
+
+function yoWindows() {
+  return [win, walker && walker.window].filter((w) => w && !w.isDestroyed() && w.isVisible());
 }
 
-function stopCursor() {
-  clearInterval(cursorTimer);
-  cursorTimer = null;
+function pointerTick() {
+  const shown = yoWindows();
+  if (!shown.length) return stopPointer();
+  const point = screen.getCursorScreenPoint();
+  shown.forEach((w) => {
+    const id = w.webContents.id;
+    const b = w.getBounds();
+    const x = point.x - b.x;
+    const y = point.y - b.y;
+    const r = hits.get(id);
+    const over = Boolean(r) && x >= r.x - HIT_MARGIN && x <= r.x + r.w + HIT_MARGIN && y >= r.y - HIT_MARGIN && y <= r.y + r.h + HIT_MARGIN;
+    if (ignoring.get(id) !== !over) {
+      ignoring.set(id, !over);
+      if (over) w.setIgnoreMouseEvents(false);
+      else w.setIgnoreMouseEvents(true, { forward: true });
+    }
+    const key = x + ',' + y;
+    if (lastPointer.get(id) !== key) {
+      lastPointer.set(id, key);
+      w.webContents.send('cursor', { x, y });
+    }
+  });
+}
+
+function startPointer() {
+  if (!pointerTimer) pointerTimer = setInterval(pointerTick, POINTER_MS);
+}
+
+function stopPointer() {
+  clearInterval(pointerTimer);
+  pointerTimer = null;
+}
+
+// ---------- what's playing, while the pill is on screen (YO bops along) ----------
+async function mediaTick() {
+  const now = await watch.nowPlaying();
+  if (!now || !win || !win.isVisible()) return;
+  const key = JSON.stringify(now);
+  if (key === lastMedia) return;
+  lastMedia = key;
+  win.webContents.send('media', now);
+  if (walker && walker.window) walker.window.webContents.send('media', now);
+}
+
+function startMedia() {
+  if (mediaTimer || process.platform !== 'win32') return;
+  lastMedia = '';
+  mediaTick();
+  mediaTimer = setInterval(mediaTick, MEDIA_MS);
+}
+
+function stopMedia() {
+  clearInterval(mediaTimer);
+  mediaTimer = null;
+}
+
+// ---------- the desktop walk ----------
+function setWalk(on) {
+  walker.setEnabled(on);
+  settings.walk = Boolean(on);
+  store.save('settings', Object.assign(store.load('settings', {}), { walk: settings.walk }));
+  buildMenu();
+  if (win) win.webContents.send('walk', settings.walk);
+  if (on) startPointer();
 }
 
 function setPref(key, value) {
@@ -125,6 +195,7 @@ function buildMenu() {
     Menu.buildFromTemplate([
       { label: 'Open YO', click: summon },
       { type: 'separator' },
+      { label: 'Walk on the taskbar', type: 'checkbox', checked: Boolean(settings.walk), click: (item) => setWalk(item.checked) },
       { label: 'Sounds', type: 'checkbox', checked: prefs.sound, click: (item) => setPref('sound', item.checked) },
       { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
@@ -147,10 +218,15 @@ function fromMainWindow(event) {
   return win && event.sender === win.webContents;
 }
 
-ipcMain.on('ignore-mouse', (event, ignore) => {
-  if (!fromMainWindow(event) || typeof ignore !== 'boolean') return;
-  if (ignore) win.setIgnoreMouseEvents(true, { forward: true });
-  else win.setIgnoreMouseEvents(false);
+function fromYoWindow(event) {
+  return fromMainWindow(event) || Boolean(walker && walker.window && event.sender === walker.window.webContents);
+}
+
+const isRect = (r) => r && ['x', 'y', 'w', 'h'].every((k) => typeof r[k] === 'number' && Number.isFinite(r[k]));
+
+ipcMain.on('hit-rect', (event, rect) => {
+  if (!fromYoWindow(event)) return;
+  hits.set(event.sender.id, isRect(rect) ? rect : null);
 });
 
 ipcMain.handle('show-window', (event, focus) => {
@@ -177,6 +253,25 @@ ipcMain.on('prefs', (event, next) => {
   if (!fromMainWindow(event) || !next || typeof next !== 'object') return;
   prefs = { sound: next.sound !== false };
   buildMenu();
+});
+
+// the walking YO was double-clicked: bring up the pill
+ipcMain.on('summon', (event) => {
+  if (fromYoWindow(event)) summon();
+});
+
+ipcMain.on('set-walk', (event, on) => {
+  if (fromMainWindow(event) && typeof on === 'boolean') setWalk(on);
+});
+
+// ---------- something dropped on YO: only real, absolute paths ----------
+ipcMain.handle('file-action', async (event, action, target) => {
+  if (!fromMainWindow(event) || typeof target !== 'string' || !path.isAbsolute(target) || !fs.existsSync(target)) return false;
+  if (action === 'reveal') {
+    shell.showItemInFolder(path.normalize(target));
+    return true;
+  }
+  return false;
 });
 
 // ---------- the agent: every request is checked again here ----------
@@ -209,11 +304,12 @@ ipcMain.on('quit', (event) => {
 });
 
 ipcMain.handle('get-info', (event) => {
-  if (!fromMainWindow(event)) return null;
+  if (!fromYoWindow(event)) return null;
   return {
     locale: app.getLocale(),
     shortcut: activeShortcut ? activeShortcut.replace('Control', 'Ctrl') : null,
     platform: process.platform,
+    walk: Boolean(settings.walk),
   };
 });
 
@@ -223,9 +319,11 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.whenReady().then(() => {
     createWindow();
+    walker = Walker.create({ preload: path.join(__dirname, 'preload.js'), onReady: () => startPointer() });
+    if (settings.walk) walker.setEnabled(true);
     registerHotkey();
     createTray();
-    screen.on('display-metrics-changed', placeWindow);
+    screen.on('display-metrics-changed', () => { placeWindow(); walker.place(); });
     // get ready in the background: media keys (~1.7 s) and the list of installed apps (~4 s)
     setTimeout(() => keys.warm(), 2000);
     setTimeout(() => apps.refresh(), 3000);
@@ -235,6 +333,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
     keys.stop();
+    watch.stop();
   });
   app.on('window-all-closed', () => app.quit());
 }

@@ -45,6 +45,7 @@
     '<rect class="c-visor" x="76" y="84" width="48" height="30" rx="12"/>' +
     '<g class="blush"><ellipse cx="81" cy="119" rx="4.5" ry="2.2"/><ellipse cx="119" cy="119" rx="4.5" ry="2.2"/></g>' +
     '<g class="eye eye-l">' + EYE + '</g><g class="eye eye-r">' + EYE + '</g>' +
+    '<g class="mouth"><ellipse class="c-mouth" cx="100" cy="110" rx="4.5" ry="2.8"/></g>' +
     '<g class="o-round"><circle cx="90" cy="99" r="7.5"/><circle cx="110" cy="99" r="7.5"/><path d="M97.5 98.5Q100 96.5 102.5 98.5"/></g>' +
     '<g class="o-glasses"><rect x="80.5" y="92" width="17.5" height="12" rx="5"/><rect x="102" y="92" width="17.5" height="12" rx="5"/>' +
       '<path class="bridge" d="M98 96.5h4"/><path class="shine" d="M84 95.5l4 -1.6M105.5 95.5l4 -1.6"/></g>' +
@@ -61,6 +62,15 @@
         '<rect class="o-cupin" x="131" y="88" width="6" height="14" rx="3"/></g>' +
       '<g class="o-bow"><path class="o-pink" d="M117 70L106 63.5Q104 70 106 76.5Z"/><path class="o-pink" d="M117 70L128 63.5Q130 70 128 76.5Z"/>' +
         '<circle class="o-pink2" cx="117" cy="70" r="3"/></g>' +
+      '<g class="o-prop"><path class="o-propcap" d="M76 74Q76 56 100 56Q124 56 124 74Z"/><path class="o-propstripe" d="M89 58Q90.5 66 90.5 74M111 58Q109.5 66 109.5 74"/>' +
+        '<rect class="o-stem" x="98.6" y="47" width="2.8" height="10" rx="1"/>' +
+        '<g class="blades"><ellipse class="o-blade" cx="91.5" cy="47" rx="8.5" ry="2.2"/><ellipse class="o-blade2" cx="108.5" cy="47" rx="8.5" ry="2.2"/></g></g>' +
+      '<g class="o-night"><path class="o-navy" d="M71 72Q73 52 98 52Q118 52 132 64Q141 71 143 82L135 80Q127 70 121 72Z"/>' +
+        '<rect class="o-white" x="68" y="69" width="64" height="8" rx="4"/><circle class="o-white" cx="142" cy="84" r="4.5"/></g>' +
+      '<g class="o-halo"><ellipse cx="100" cy="41" rx="15" ry="4.2"/></g>' +
+      '<g class="o-grad"><path class="o-dark" d="M82 71Q82 62 100 62Q118 62 118 71Z"/><path class="o-dark" d="M100 50.5L131 60L100 69.5L69 60Z"/>' +
+        '<circle class="o-gold" cx="100" cy="60" r="1.8"/>' +
+        '<g class="tassel"><path class="o-goldline" d="M100 60L125 64L125 74"/><rect class="o-gold" x="122.5" y="73" width="5" height="7" rx="1.5"/></g></g>' +
     '</g>' +
     '<g class="o-pad"><rect class="o-padbody" x="85" y="110" width="30" height="13" rx="6.5"/><path class="o-dpad" d="M90 116.5h5M92.5 114v5"/>' +
       '<circle class="o-btn" cx="107.5" cy="114.8" r="1.6"/><circle class="o-btn2" cx="111" cy="118" r="1.6"/></g>' +
@@ -96,13 +106,14 @@
   const BLINKS = { open: true, wide: true };
   const HAT_PIVOT = {
     winter: [100, 74], party: [87, 71], witch: [86, 71], crown: [100, 73], cap: [100, 76], headphones: [100, 74], bow: [117, 72],
+    propeller: [100, 74], nightcap: [100, 74], grad: [100, 70],
   };
   // what the user can pick; the first of each list is the default
   const LOOKS = {
-    color: ['mint', 'sky', 'coral', 'lilac', 'lemon', 'bubblegum', 'snow', 'graphite'],
+    color: ['mint', 'sky', 'coral', 'lilac', 'lemon', 'bubblegum', 'snow', 'graphite', 'gold'],
     eyeColor: ['mint', 'white', 'amber', 'pink', 'cyan'],
     eyes: ['classic', 'round', 'pixel'],
-    hat: ['none', 'winter', 'party', 'witch', 'crown', 'cap', 'headphones', 'bow'],
+    hat: ['none', 'winter', 'party', 'witch', 'crown', 'cap', 'headphones', 'bow', 'propeller', 'nightcap', 'halo', 'grad'],
     glasses: ['none', 'sun', 'round'],
     item: ['none', 'lantern', 'mug', 'controller'],
   };
@@ -159,6 +170,17 @@
     return null;
   }
 
+  // YO's look from saved preferences: a seasonal outfit only fills the slots left empty
+  function lookFor(prefs, date) {
+    const look = Object.assign({}, DEFAULT_LOOK, prefs && prefs.look);
+    const season = !prefs || prefs.seasonal !== false ? seasonal(date) : null;
+    const extra = season ? SEASON_LOOK[season] : {};
+    Object.keys(extra).forEach((key) => {
+      if (key === 'moon' || look[key] === 'none') look[key] = extra[key];
+    });
+    return look;
+  }
+
   // the next day a different seasonal outfit starts, to show it in Customize
   function nextSeason(from) {
     const d = new Date(from || Date.now());
@@ -179,6 +201,7 @@
     const node = {
       rig: $('.rig'), ant: $('.ant'), ears: $('.acc-apps'), bells: $('.acc-time'), hat: $('.hat'), glasses: $('.o-glasses'),
       armL: $('.arm-l'), armR: $('.arm-r'), held: $('.held'), steam: $('.o-steam'), eyeL: $('.eye-l'), eyeR: $('.eye-r'),
+      mouth: $('.mouth'), blades: $('.blades'), halo: $('.o-halo'), tassel: $('.tassel'),
       blush: $('.blush'), fx: $('.fx'), badge: $('.x-alert'), listen: $('.x-listen'),
     };
 
@@ -186,7 +209,7 @@
       hop: spring(0, 260, 15), sx: spring(1, 320, 12), sy: spring(1, 320, 12), tilt: spring(0, 120, 11),
       ant: spring(0, 240, 5), acc: spring(0, 180, 7), hat: spring(0, 70, 4.5), glasses: spring(0, 150, 15),
       lantern: spring(0, 45, 2.2), armL: spring(12, 170, 15), armR: spring(12, 170, 15),
-      lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12),
+      lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12), mouth: spring(0, 260, 14),
     };
     const holds = {}; // short overrides: expr, pose, look, tilt -> { v, until }
     const later = []; // steps of a reaction: { at, fn }
@@ -211,6 +234,10 @@
     let ringUntil = 0;
     let lastType = 0;
     let boops = [];
+    let hungry = false; // a file is hovering over YO: mouth open
+    let chompUntil = 0;
+    let music = false; // something is playing: YO bops along
+    let walking = false;
 
     const calm = () => reduced.matches;
     const hold = (kind, v, ms) => { holds[kind] = { v, until: clock + ms / 1000 }; };
@@ -311,6 +338,22 @@
       sp.sx.t = 1 - (sp.sy.t - 1) * 0.6;
       const tilt = held('tilt');
       sp.tilt.t = tilt !== null ? tilt : clock < dizzyUntil ? Math.sin(clock * 8) * 12 : sleeping ? 7 : state === 'think' ? -4 : 0;
+      // walking: little hops, swinging arms, leaning into the step
+      if (walking && !still) {
+        const step = clock * 10;
+        sp.hop.t = -Math.abs(Math.sin(step)) * 2.4;
+        sp.armL.t = armL + Math.sin(step) * 28;
+        sp.armR.t = armR - Math.sin(step) * 28;
+        if (tilt === null) sp.tilt.t = 4;
+      } else if (music && !still && !sleeping && !hungry && (state === 'idle' || state === 'done')) {
+        // bopping to the music, 112 beats a minute
+        const beat = clock * Math.PI * (112 / 60);
+        sp.hop.t = -Math.abs(Math.sin(beat)) * 2.6;
+        if (tilt === null && clock >= dizzyUntil) sp.tilt.t = Math.sin(beat) * 6;
+        sp.armL.t = armL + Math.abs(Math.sin(beat)) * 30;
+        sp.armR.t = armR + Math.abs(Math.cos(beat)) * 30;
+      }
+      sp.mouth.t = hungry ? 1 : clock < chompUntil ? (Math.sin(clock * 34) > 0 ? 1 : 0.15) : 0;
 
       // the antenna leans against the motion, ears/bells and hats lag behind it
       sp.ant.t = -sp.tilt.x * 0.9 + sp.hop.v * 0.05;
@@ -359,6 +402,12 @@
       node.eyeL.setAttribute('transform', 'translate(' + (90 + ex) + ' ' + (99 + ey) + ') scale(1 ' + round(lid) + ')');
       node.eyeR.setAttribute('transform', 'translate(' + (110 + ex) + ' ' + (99 + ey) + ') scale(1 ' + round(lid) + ')');
       node.blush.setAttribute('opacity', String(round(Math.max(0, sp.blush.x) * 0.85)));
+      const mouth = Math.max(0, sp.mouth.x);
+      node.mouth.setAttribute('transform', 'translate(100 110) scale(1 ' + round(mouth) + ') translate(-100 -110)');
+      node.mouth.setAttribute('opacity', mouth > 0.05 ? '1' : '0');
+      if (hat === 'propeller') node.blades.setAttribute('transform', 'translate(100 47) scale(' + round(still ? 1 : Math.cos(clock * 22)) + ' 1) translate(-100 -47)');
+      if (hat === 'halo') node.halo.setAttribute('transform', 'translate(0 ' + round(still ? 0 : Math.sin(clock * 2.2) * 1.6) + ')');
+      if (hat === 'grad') node.tassel.setAttribute('transform', 'rotate(' + round(sp.hat.x * 2.2) + ' 125 64)');
       node.badge.setAttribute('transform', state === 'alert' && !still ? 'translate(128 64) scale(' + round(1 + Math.sin(clock * 6) * 0.08) + ') translate(-128 -64)' : '');
       node.listen.setAttribute('opacity', state === 'listen' ? String(round(0.55 + Math.sin(clock * 6) * 0.45)) : '0');
 
@@ -438,6 +487,18 @@
         sleeping = true;
         stream('z', 1.1, 0, () => spawn('z', 122, 62, 7, -11, 2.2, 0, 1 + Math.random() * 0.4));
       },
+      wave() {
+        hold('pose', 'wave', 1500);
+        hold('expr', 'done', 1100);
+        kick('hop', -40);
+      },
+      eat() {
+        hungry = false;
+        chompUntil = clock + 0.55;
+        kick('sy', -4); kick('sx', 3); kick('ant', 380);
+        burst('spark', 6, 100, 112, 35, 0.6);
+        after(560, () => hold('expr', 'done', 900));
+      },
       equip() {
         hold('expr', 'done', 800);
         hold('pose', 'cheer', 450);
@@ -506,6 +567,8 @@
         sleeping = false;
         petting = false;
         dizzyUntil = 0;
+        hungry = false;
+        chompUntil = 0;
         clearFx();
       },
       react(name) {
@@ -542,8 +605,23 @@
         return true;
       },
       isSleeping: () => sleeping,
+      // a file is being dragged over YO
+      setHungry(on) {
+        if (Boolean(on) === hungry) return;
+        hungry = Boolean(on);
+        if (hungry) { hold('expr', 'listen', 60000); kick('hop', -40); } else delete holds.expr;
+      },
+      setMusic(on) {
+        if (Boolean(on) === music) return;
+        music = Boolean(on);
+        if (music) stream('music', 1.8, 0, () => spawn('note', 124 + Math.random() * 8, 62, 8 + Math.random() * 8, -24, 1.5, 0, 1));
+        else stopStream('music');
+      },
+      setWalking(on) {
+        walking = Boolean(on);
+      },
     };
   }
 
-  Y.mascot = { mount, seasonal, nextSeason, LOOKS, DEFAULT_LOOK, SEASON_LOOK };
+  Y.mascot = { mount, seasonal, nextSeason, lookFor, LOOKS, DEFAULT_LOOK, SEASON_LOOK };
 })((window.Yo = window.Yo || {}));
