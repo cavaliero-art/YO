@@ -3,6 +3,7 @@
 // Clipboard history: the text you copy, newest first.
 // Kept in memory only (gone when YO quits); the ones you pin are saved in clips.json.
 // Password managers mark what they copy as private; YO skips those, the way Windows' own history does.
+// Electron's clipboard calls return promises (Electron 44), so everything here awaits them.
 const { clipboard } = require('electron');
 const store = require('./store');
 
@@ -15,19 +16,28 @@ let items = []; // { id, text, at, pinned }
 let last = null;
 let timer = null;
 let paused = false;
+let reading = false;
 let changed = () => {};
 
 const newId = () => 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
 
-function isPrivate() {
+// apps add CanIncludeInClipboardHistory only to keep something out of history, so its presence is enough
+async function isPrivate() {
   try {
-    if (clipboard.has('ExcludeClipboardContentFromMonitorProcessing')) return true;
-    if (clipboard.has('CanIncludeInClipboardHistory')) {
-      const flag = clipboard.readBuffer('CanIncludeInClipboardHistory');
-      return flag.length >= 4 && flag.readUInt32LE(0) === 0;
-    }
-  } catch (err) { /* unknown format: treat as normal text */ }
-  return false;
+    return Boolean(await clipboard.has('ExcludeClipboardContentFromMonitorProcessing')) ||
+      Boolean(await clipboard.has('CanIncludeInClipboardHistory'));
+  } catch (err) {
+    return false; // unknown format: treat as normal text
+  }
+}
+
+async function readText() {
+  try {
+    const text = await clipboard.readText();
+    return typeof text === 'string' ? text : '';
+  } catch (err) {
+    return '';
+  }
 }
 
 function savePins() {
@@ -45,17 +55,21 @@ function add(text) {
   changed();
 }
 
-function tick() {
-  if (paused) return;
-  let text = '';
-  try { text = clipboard.readText(); } catch (err) { return; }
-  if (!text || text === last) return;
-  last = text;
-  if (!text.trim() || isPrivate()) return;
-  add(text);
+async function tick() {
+  if (paused || reading) return;
+  reading = true;
+  try {
+    const text = await readText();
+    if (!text || text === last || paused) return;
+    last = text;
+    if (!text.trim() || (await isPrivate())) return;
+    add(text);
+  } finally {
+    reading = false;
+  }
 }
 
-function start(onChange) {
+async function start(onChange) {
   if (timer) return;
   changed = onChange || (() => {});
   const pins = store.load('clips', []);
@@ -64,7 +78,9 @@ function start(onChange) {
     .slice(0, MAX_PINS)
     .map((p) => ({ id: newId(), text: p.text.slice(0, MAX_TEXT), at: Number(p.at) || Date.now(), pinned: true }));
   // what was copied before YO started stays out of the history
-  try { last = clipboard.readText(); } catch (err) { last = null; }
+  reading = true;
+  last = await readText();
+  reading = false;
   timer = setInterval(tick, POLL_MS);
 }
 
@@ -76,11 +92,11 @@ function stop() {
 const find = (id) => items.find((c) => c.id === id) || null;
 
 // the page asks for one of these; anything else is ignored
-function act(action, id) {
+async function act(action, id) {
   const item = id ? find(id) : null;
   if (action === 'pause' || action === 'resume') {
     paused = action === 'pause';
-    if (!paused) try { last = clipboard.readText(); } catch (err) { /* fine */ }
+    if (!paused) last = await readText(); // what was copied while paused stays out
     return { paused };
   }
   if (action === 'clear') {
@@ -103,8 +119,8 @@ function act(action, id) {
     return true;
   }
   if (action === 'copy') {
-    clipboard.writeText(item.text);
     last = item.text;
+    await clipboard.writeText(item.text);
     items = [item].concat(items.filter((c) => c !== item));
     item.at = Date.now();
     changed();

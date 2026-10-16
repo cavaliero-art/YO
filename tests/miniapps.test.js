@@ -19,53 +19,56 @@ const clips = require('../main/clipboard');
 const translator = require('../main/translate');
 
 const plain = (value) => JSON.parse(JSON.stringify(value));
+// copy something, then let YO look (the real clipboard answers with promises, so does the fake)
 const copy = (text, formats) => {
-  electron.clipboard.writeText(text);
-  if (formats) electron.clipboard.formats = new Map(Object.entries(formats));
-  clips.tick();
+  electron.clipboard.set(text, formats);
+  return clips.tick();
 };
 const texts = () => clips.list().items.map((c) => c.text);
 
-test('clipboard: keeps what you copy, newest first, without what was there before YO', () => {
-  electron.clipboard.writeText('before YO started');
-  clips.start(() => {});
+test('clipboard: keeps what you copy, newest first, without what was there before YO', async () => {
+  electron.clipboard.set('before YO started');
+  await clips.start(() => {});
   clips.stop(); // the test drives tick() itself
-  copy('first');
-  copy('second');
-  copy('first'); // copied again: back on top, once
+  await clips.tick();
+  assert.deepStrictEqual(texts(), []);
+  await copy('first');
+  await copy('second');
+  await copy('first'); // copied again: back on top, once
   assert.deepStrictEqual(texts(), ['first', 'second']);
 });
 
-test('clipboard: skips what password managers mark as private', () => {
-  copy('hunter2', { ExcludeClipboardContentFromMonitorProcessing: Buffer.alloc(0) });
-  copy('s3cret', { CanIncludeInClipboardHistory: Buffer.from([0, 0, 0, 0]) });
-  copy('fine', { CanIncludeInClipboardHistory: Buffer.from([1, 0, 0, 0]) });
+test('clipboard: skips what password managers mark as private', async () => {
+  await copy('hunter2', ['ExcludeClipboardContentFromMonitorProcessing']);
+  await copy('s3cret', ['CanIncludeInClipboardHistory']);
+  await copy('fine');
   assert.deepStrictEqual(texts(), ['fine', 'first', 'second']);
 });
 
-test('clipboard: pause, pin (saved to disk), remove, clear keeps pins', () => {
-  assert.deepStrictEqual(clips.act('pause'), { paused: true });
-  copy('while paused');
+test('clipboard: pause, pin (saved to disk), remove, clear keeps pins', async () => {
+  assert.deepStrictEqual(await clips.act('pause'), { paused: true });
+  await copy('while paused');
+  await clips.act('resume');
+  await clips.tick();
   assert.ok(!texts().includes('while paused'));
-  clips.act('resume');
   const second = clips.list().items.find((c) => c.text === 'second');
-  assert.strictEqual(clips.act('pin', second.id), true);
+  assert.strictEqual(await clips.act('pin', second.id), true);
   const saved = JSON.parse(fs.readFileSync(path.join(electron.userData, 'clips.json'), 'utf8'));
   assert.deepStrictEqual(saved.map((c) => c.text), ['second']);
   const fine = clips.list().items.find((c) => c.text === 'fine');
-  clips.act('remove', fine.id);
+  await clips.act('remove', fine.id);
   assert.ok(!texts().includes('fine'));
-  clips.act('clear');
+  await clips.act('clear');
   assert.deepStrictEqual(texts(), ['second']);
-  assert.strictEqual(clips.act('pin', 'nope'), false);
+  assert.strictEqual(await clips.act('pin', 'nope'), false);
 });
 
-test('clipboard: copy puts it back on the clipboard without adding it twice', () => {
+test('clipboard: copy puts it back on the clipboard without adding it twice', async () => {
   const item = clips.list().items[0];
-  copy('new thing');
-  assert.strictEqual(clips.act('copy', item.id), true);
-  assert.strictEqual(electron.clipboard.readText(), 'second');
-  clips.tick();
+  await copy('new thing');
+  assert.strictEqual(await clips.act('copy', item.id), true);
+  assert.strictEqual(electron.clipboard.text, 'second');
+  await clips.tick();
   assert.deepStrictEqual(texts(), ['second', 'new thing']);
 });
 
