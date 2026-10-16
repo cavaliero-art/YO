@@ -28,7 +28,7 @@
     let open = false;
 
     const q = h('input.clip-q', { type: 'text', spellcheck: false, autocomplete: 'off', placeholder: t('app.clipboard.search'), 'aria-label': t('app.clipboard.search') });
-    const pauseBtn = button('btn small', '', () => act(paused ? 'resume' : 'pause'));
+    const pauseBtn = button('btn small', t('app.clipboard.pause'), () => act(paused ? 'resume' : 'pause'));
     const clearBtn = button('btn small', t('app.clipboard.clear'), () => act('clear'));
     const list = h('div.clip-list', { role: 'listbox', 'aria-label': t('cmd.clipboard') });
     const foot = h('div.clip-foot');

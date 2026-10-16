@@ -68,7 +68,8 @@ html, body {
 
 /* ---------- the island: a black pill hanging from the top edge, grows into a bar ---------- */
 .island {
-  --glow: var(--c-system);
+  --acc: var(--tint, #9FE1CB);
+  --glow: var(--acc);
   --dir: 1;
   position: relative;
   color: var(--ink); /* text follows the pill's own colors (light pill: dark text) */
@@ -76,11 +77,6 @@ html, body {
   transition: width .42s var(--ease);
 }
 [dir="rtl"] .island { --dir: -1; }
-.island[data-variant="media"] { --glow: var(--c-media); }
-.island[data-variant="apps"] { --glow: var(--c-apps); }
-.island[data-variant="time"] { --glow: var(--c-time); }
-.island[data-variant="tools"] { --glow: var(--c-tools); }
-.island[data-variant="fun"] { --glow: var(--c-fun); }
 .island[data-face="listen"] { --glow: var(--s-listen); }
 .island[data-face="think"] { --glow: var(--s-think); }
 .island[data-face="done"] { --glow: var(--s-done); }
@@ -180,6 +176,7 @@ html, body {
 .island[data-pill="smoke"] { --bg: rgba(20, 20, 26, .74); --line: rgba(255, 255, 255, .16); }
 .island[data-pill="tint"] { --bg: color-mix(in srgb, var(--tint, #9FE1CB) 24%, #0a0a0c); }
 .island[data-pill="light"] {
+  --acc: var(--tint-deep, #5DCAA5);
   --bg: #F6F5F1;
   --ink: #1B1B1F;
   --muted: #5F5E58;
@@ -264,7 +261,7 @@ html, body {
 /* ---------- suggestions: the actions that match what you type ---------- */
 .suggest { display: flex; flex-direction: column; gap: 2px; padding: 0 8px 8px; }
 .sug {
-  --cat: var(--c-system);
+  --cat: var(--acc);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -275,11 +272,6 @@ html, body {
   cursor: pointer;
   transition: background-color .15s, color .15s;
 }
-.sug[data-cat="media"] { --cat: var(--c-media); }
-.sug[data-cat="apps"] { --cat: var(--c-apps); }
-.sug[data-cat="time"] { --cat: var(--c-time); }
-.sug[data-cat="tools"] { --cat: var(--c-tools); }
-.sug[data-cat="fun"] { --cat: var(--c-fun); }
 /* a quick answer: the value in mono, its label always visible */
 .sug.answer .ttl {
   flex: 0 1 auto;
@@ -352,7 +344,7 @@ html, body {
 }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .act {
-  --cat: var(--c-system);
+  --cat: var(--acc);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -367,11 +359,6 @@ html, body {
   cursor: pointer;
   transition: background-color .15s, color .15s, transform .2s var(--spring);
 }
-.act[data-cat="media"] { --cat: var(--c-media); }
-.act[data-cat="apps"] { --cat: var(--c-apps); }
-.act[data-cat="time"] { --cat: var(--c-time); }
-.act[data-cat="tools"] { --cat: var(--c-tools); }
-.act[data-cat="fun"] { --cat: var(--c-fun); }
 .act svg { width: 13px; height: 13px; color: var(--cat); }
 .act:hover, .act:focus-visible {
   color: var(--ink);
@@ -379,7 +366,8 @@ html, body {
   box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--cat) 40%, transparent);
 }
 .act:active { transform: scale(.95); }
-.act.pinned::before { content: "★"; color: var(--c-tools); font-size: 11px; }
+.act.pinned::before { content: "★"; color: var(--acc); font-size: 11px; }
+.act.recent svg { color: var(--muted); }
 
 /* something in the inbox you haven't seen: a small dot on YO */
 .hero::after {
@@ -390,7 +378,7 @@ html, body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--s-alert);
+  background: var(--acc);
   box-shadow: 0 0 0 2px var(--bg);
   opacity: 0;
   transform: scale(.3);
@@ -537,80 +525,52 @@ html, body {
 .sw[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
 .oinfo { flex-basis: 100%; padding-inline-start: 68px; color: var(--faint); font-size: 11px; line-height: 1.4; }
 
-/* ---------- the home panel: Recent, big tiles, YO's moves ---------- */
+/* ---------- the home panel: Recent, tiles, YO's moves ----------
+   One ink for everything; the only color is YO's own (--acc), in the icons' small details. */
 .home { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .htile {
-  --cat: var(--c-tools);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 9px;
   min-width: 0;
-  height: 96px;
-  padding: 10px 6px 8px;
+  height: 88px;
+  padding: 12px 6px 10px;
   border: 0;
-  border-radius: 18px;
-  background:
-    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--cat) 10%, transparent), transparent 70%),
-    var(--fill);
+  border-radius: 16px;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 .5px var(--line);
   color: var(--ink);
   font: inherit;
   cursor: pointer;
   transition: background-color .15s, box-shadow .2s, transform .25s var(--spring);
 }
-.htile[data-tile="translate"] { --cat: var(--c-media); }
-.htile[data-tile="calc"] { --cat: var(--c-tools); }
-.htile[data-tile="clipboard"] { --cat: var(--c-system); }
-.htile[data-tile="open"] { --cat: var(--c-apps); }
-.htile[data-tile="remind"] { --cat: var(--c-time); }
-.htile[data-tile="timer"] { --cat: var(--c-fun); }
-.htile[data-tile="inbox"] { --cat: var(--s-done); }
-.htile[data-tile="customize"] { --cat: #F5C4B3; }
 .htile:hover, .htile.picked {
-  background:
-    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--cat) 26%, transparent), transparent 75%),
-    var(--fill-hover);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cat) 45%, transparent), 0 6px 18px color-mix(in srgb, var(--cat) 14%, transparent);
+  background: var(--fill-hover);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent);
   transform: translateY(-2px);
 }
 .htile:active { transform: scale(.95); }
-.hico {
-  width: 42px;
-  height: 42px;
-  margin-bottom: 4px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  color: var(--cat);
-  background: linear-gradient(150deg, color-mix(in srgb, var(--cat) 30%, transparent), color-mix(in srgb, var(--cat) 9%, transparent));
-  box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--cat) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, .08);
-}
-.htile[data-tile="customize"] .hico {
-  color: #fff;
-  background: conic-gradient(from 200deg, #F0997B, #E8C24F, #5DCAA5, #85B7EB, #A99BF0, #EE8AB2, #F0997B);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
-}
-.htile[data-tile="customize"] .hico svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
-.hico svg { width: 21px; height: 21px; }
-.hname { max-width: 100%; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hsub { max-width: 100%; color: var(--faint); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hbadge {
+.hico { display: grid; place-items: center; color: var(--ink); }
+.hico svg { width: 30px; height: 30px; stroke-width: 1.8; overflow: visible; }
+.hname { max-width: 100%; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdot {
   position: absolute;
-  top: 8px;
-  inset-inline-end: 10px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  background: var(--s-alert);
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 18px;
-  box-shadow: 0 0 0 2px var(--bg);
+  top: 11px;
+  inset-inline-end: 14px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acc);
 }
+/* YO's details in the icons: its eyes blink and its antenna bobs when you point at a tile */
+.island svg .a { fill: var(--acc); stroke: var(--acc); }
+.island svg .al { stroke: var(--acc); }
+.island svg :is(.blink, .bob) { transform-box: fill-box; transform-origin: center; transition: transform .15s; }
+.htile:is(:hover, .picked) .blink { transform: scaleY(.15); }
+.htile:is(:hover, .picked) .bob { transform: translateY(-1.5px) rotate(-8deg); }
 .moves { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
 .mbtns { display: flex; gap: 6px; }
 .mbtn {
@@ -621,20 +581,20 @@ html, body {
   border: 0;
   border-radius: 50%;
   background: var(--fill);
-  color: var(--c-fun);
+  box-shadow: inset 0 0 0 .5px var(--line);
+  color: var(--muted);
   cursor: pointer;
-  transition: background-color .15s, transform .25s var(--spring);
+  transition: background-color .15s, color .15s, transform .25s var(--spring);
 }
-.mbtn:hover { background: color-mix(in srgb, var(--c-fun) 18%, transparent); transform: translateY(-2px) rotate(-8deg); }
+.mbtn:hover { color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); transform: translateY(-2px) rotate(-8deg); }
 .mbtn:active { transform: scale(.9); }
 .mbtn svg { width: 15px; height: 15px; }
+/* the open app's icon next to its name */
+.appico { flex: none; color: var(--ink); margin-inline-end: -2px; }
+.appico svg { width: 22px; height: 22px; stroke-width: 1.8; overflow: visible; }
 
-/* ---------- mini apps: each one inside the pill ---------- */
 /* the frame every app shares: YO, the app's name, Back and Close */
 .island[data-mode="app"] { width: 580px; }
-.island[data-mode="app"][data-app="translate"] { --glow: var(--c-media); }
-.island[data-mode="app"][data-app="calc"] { --glow: var(--c-tools); }
-.island[data-mode="app"][data-app="clipboard"] { --glow: var(--c-system); }
 .island[data-mode="app"] .label { font-size: 15px; font-weight: 600; }
 .island[data-mode="app"] [data-for~="app"] { display: inline-flex; align-items: center; justify-content: center; }
 #aBack { margin-inline-end: 0; }

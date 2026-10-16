@@ -11,12 +11,14 @@
 
   const LIST = [
     { id: 'open', category: 'apps', words: ['open', 'launch', 'start', 'go to'], arg: 'text', fill: 'open ',
-      icon: svg('<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>') },
+      icon: svg('<path d="M14 4.5h-7a3 3 0 0 0-3 3v9.5a3 3 0 0 0 3 3h9.5a3 3 0 0 0 3-3V10"/><path class="al" d="M11 13l9-9M14.5 4H20v5.5"/>') },
     { id: 'remind', category: 'time', words: ['remind me', 'remind', 'reminder'], arg: 'time', fill: 'remind me in ',
-      icon: svg('<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>') },
+      icon: svg('<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10.5 20.5h3"/><g class="bob"><path d="M12 5.5V3.6"/><circle class="a" cx="12" cy="2.6" r="1.5"/></g>') },
     { id: 'timer', category: 'time', words: ['set a timer', 'timer', 'countdown'], arg: 'time', fill: 'timer ',
-      icon: svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>') },
+      icon: svg('<circle cx="12" cy="13.5" r="7"/><g class="bob"><path d="M12 6.5V4"/><circle class="a" cx="12" cy="3" r="1.5"/></g><path class="al" d="M12 13.5V10M12 13.5l2.5 1.5"/>') },
   ];
+  // The home-panel icons are made of YO: its eyes, visor, antenna and party hat, drawn in one ink.
+  // In them, class "a" is filled with YO's own color and "al" is a line in it; "blink" and "bob" move on hover.
   // icons for what "open" found: an app, a folder, a site
   const TARGET_ICONS = {
     app: svg('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/>'),
@@ -24,16 +26,16 @@
     site: svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/>'),
   };
   LIST.push({ id: 'inbox', category: 'system', words: ['inbox', 'messages', 'notifications', 'missed'],
-    icon: svg('<path d="M4 13l2.5-7.5h11L20 13v5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><path d="M4 13h4.5l1 2h5l1-2H20"/>') });
+    icon: svg('<path d="M3.5 13.5l2.4-7a2 2 0 0 1 1.9-1.5h8.4a2 2 0 0 1 1.9 1.5l2.4 7v4.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 13.5h4.5l1.5 2.5h5l1.5-2.5h4.5"/><rect class="a blink" x="9" y="8.4" width="1.8" height="3" rx=".9"/><rect class="a blink" x="13.2" y="8.4" width="1.8" height="3" rx=".9"/>') });
   // mini apps: each opens inside the pill (renderer/apps/); what you type after the word fills it in
   //   tint: the app's color (a category color)
   LIST.push(
     { id: 'translate', category: 'tools', app: 'translate', tint: 'media', words: ['translate', 'translator', 'tr'],
-      icon: svg('<path d="M4 5h8M8 3v2M5.5 5c.8 3.4 3.2 6 6.5 7M10.5 5c-.8 3.4-3.2 6-6.5 7"/><path d="M12.5 21l4-10 4 10M14 17.5h5"/>') },
+      icon: svg('<path d="M4 6.5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-6l-4 3.5v-3.5a3 3 0 0 1-3-3z"/><rect class="a blink" x="8.6" y="8" width="1.8" height="3.4" rx=".9"/><rect class="a blink" x="13.6" y="8" width="1.8" height="3.4" rx=".9"/>') },
     { id: 'calc', category: 'tools', app: 'calc', tint: 'tools', words: ['calculator', 'calculate', 'calc'],
-      icon: svg('<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 13h.01M12 13h.01M15 13h.01M9 17h.01M12 17h.01M15 17h.01"/>') },
+      icon: svg('<rect x="4" y="3.5" width="16" height="17" rx="5"/><rect x="7" y="7" width="10" height="5.5" rx="2.75"/><path class="al" d="M9.5 9h5M9.5 10.6h5"/><path d="M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/>') },
     { id: 'clipboard', category: 'tools', app: 'clipboard', tint: 'system', words: ['clipboard', 'paste history', 'clips', 'clip'],
-      icon: svg('<rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M9 10h6M9 13.5h6M9 17h3.5"/>') }
+      icon: svg('<rect x="5.5" y="6" width="13" height="15" rx="3"/><g class="bob"><path d="M12 6V3.6"/><circle class="a" cx="12" cy="2.6" r="1.5"/></g><path d="M9 11h6M9 14h6M9 17h3.5"/>') }
   );
   // emotes: YO does them right away, nothing leaves the page
   LIST.push(
@@ -46,7 +48,7 @@
   );
   // Customize: opens YO's look (right-click does the same); a tile on the home panel
   LIST.push({ id: 'customize', category: 'system', words: ['customize', 'customise', 'outfit', 'look'],
-    icon: svg('<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>') });
+    icon: svg('<path d="M12 3.5l6.5 14.5h-13z"/><path d="M8 13l3 1.5M10 8.6l3 1.6M6.6 16l4.6 2"/><circle class="a bob" cx="12" cy="3" r="1.7"/><path d="M4 19.5h16"/>') });
   const STARTERS = ['open', 'translate', 'calc', 'remind', 'timer'];
   const CATEGORIES = ['system', 'apps', 'time', 'tools', 'fun'];
 

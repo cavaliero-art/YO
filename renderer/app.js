@@ -32,7 +32,7 @@
     aTitle: $('aTitle'), aBody: $('aBody'), rTitle: $('rTitle'), rBody: $('rBody'),
     bDeny: $('bDeny'), bAllow: $('bAllow'), bAlways: $('bAlways'), bCopy: $('bCopy'), bClose: $('bClose'),
     preview: $('preview'), cOpts: $('cOpts'), cDone: $('cDone'), cRandom: $('cRandom'), cReset: $('cReset'), rMore: $('rMore'),
-    aBack: $('aBack'), aClose: $('aClose'), appBody: $('appBody'),
+    aBack: $('aBack'), aClose: $('aClose'), appBody: $('appBody'), appIco: $('appIco'),
   };
 
   const face = Y.mascot.mount(el.face, 46);
@@ -111,8 +111,12 @@
     el.island.dataset.pill = prefs.pill.pillStyle;
     el.island.dataset.size = prefs.pill.size;
     el.stage.dataset.position = prefs.pill.position;
-    const body = getComputedStyle(face.element).getPropertyValue('--body').trim();
+    // YO's own colors drive the whole pill's accent (icons, glow, highlights)
+    const css = getComputedStyle(face.element);
+    const body = css.getPropertyValue('--body').trim();
+    const foot = css.getPropertyValue('--foot').trim();
     if (body) el.island.style.setProperty('--tint', body);
+    if (foot) el.island.style.setProperty('--tint-deep', foot);
     bridge.reportPrefs({ sound: prefs.sound, position: prefs.pill.position, size: prefs.pill.size });
   }
 
@@ -363,27 +367,20 @@
       const tile = document.createElement('button');
       const ico = document.createElement('span');
       const name = document.createElement('span');
-      const sub = document.createElement('span');
       tile.type = 'button';
       tile.className = 'htile';
       tile.dataset.tile = id;
-      tile.title = t('example.' + id);
       ico.className = 'hico';
       ico.innerHTML = cmd.icon; // static markup from commands.js
       name.className = 'hname';
       name.textContent = t('short.' + id);
-      sub.className = 'hsub';
-      sub.textContent = t('app.sub.' + id);
-      tile.append(ico, name, sub);
-      if (id === 'inbox') {
-        const fresh = Y.memory.inbox.unread();
-        if (fresh) {
-          const badge = document.createElement('span');
-          badge.className = 'hbadge';
-          badge.textContent = String(fresh);
-          badge.title = t('app.unread').replace('{n}', fresh);
-          tile.append(badge);
-        }
+      tile.title = t('app.sub.' + id) + ' · ' + t('example.' + id);
+      tile.append(ico, name);
+      if (id === 'inbox' && Y.memory.inbox.unread()) {
+        const dot = document.createElement('span');
+        dot.className = 'hdot';
+        tile.title = t('app.unread').replace('{n}', Y.memory.inbox.unread()) + ' · ' + tile.title;
+        tile.append(dot);
       }
       const index = homeTiles.length;
       tile.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
@@ -1278,6 +1275,7 @@
       el.appBody.append(appViews[id].root);
     }
     Object.keys(appViews).forEach((key) => { appViews[key].root.hidden = key !== id; });
+    el.appIco.innerHTML = Y.commands.byId(id).icon; // static markup from commands.js
     appHint = '';
     render();
     showIsland(true);

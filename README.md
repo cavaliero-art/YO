@@ -117,7 +117,9 @@ a history).
 - Colors: `#ff6600` or `rgb(255, 102, 0)` gives hex, RGB and HSL with a preview
 - `uuid`, `timestamp`, `timestamp 1700000000`, `base64 hello`, `unbase64 aGVsbG8=`
 
-YO's glow changes with what it's doing: coral for apps, violet for time, gold for tools, pink for fun.
+One color runs through the whole pill: YO's own (the one you pick in Customize). The panel's icons
+are drawn in one ink and made of YO's parts (its eyes, visor, antenna, party hat); only those small
+details take YO's color, and they blink or bob when you point at a tile.
 
 ## YO itself
 
