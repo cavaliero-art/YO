@@ -1,13 +1,12 @@
 'use strict';
 
-// Tests for YO's hands (main/agent.js). Nothing real happens: Electron, the media keys,
-// app launching and the lock command are all replaced by recorders.
+// Tests for YO's hands (main/agent.js). Nothing real happens: Electron and app launching
+// are replaced by recorders.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const Module = require('module');
-const childProcess = require('child_process');
 
 // "electron" -> the fake
 const resolve = Module._resolveFilename;
@@ -24,17 +23,12 @@ fs.writeFileSync(path.join(electron.userData, 'apps.json'), JSON.stringify([
   { name: 'Notepad', id: 'Microsoft.WindowsNotepad_8wekyb3d8bbwe!App' },
 ]));
 
-const keys = require('../main/keys');
 const apps = require('../main/apps');
 const Agent = require('../main/agent');
 
-const pressed = [];
-keys.tap = (name, times) => pressed.push([name, times]);
 const launched = [];
 apps.launch = (entry) => launched.push(entry.name);
 apps.refresh = () => Promise.resolve([]); // never run PowerShell in tests
-let locks = 0;
-childProcess.execFile = (file, args, opts, done) => { if (file === 'rundll32.exe') locks += 1; done(null); };
 
 function agentWithEvents() {
   const events = [];
@@ -81,15 +75,6 @@ test('a program on disk always asks first, and never offers "Always"', { skip: p
   assert.ok(!electron.calls.some(([, target]) => /notepad\.exe$/i.test(target)));
 });
 
-test('media keys: one press, five for volume', async () => {
-  const { agent, last } = agentWithEvents();
-  agent.send({ id: 'play', text: 'play' });
-  agent.send({ id: 'volup', text: 'louder' });
-  await tick();
-  assert.deepStrictEqual(pressed.slice(-2), [['play', 1], ['volup', 5]]);
-  assert.strictEqual(last().tone, 'media');
-});
-
 test('opens apps, folders and sites', async () => {
   const { agent, last } = agentWithEvents();
   agent.send({ id: 'open', text: 'open spo' });
@@ -104,23 +89,12 @@ test('opens apps, folders and sites', async () => {
   assert.strictEqual(last().tone, 'info');
 });
 
-test('lock asks first; "Always" is remembered on disk', async () => {
-  const { agent, events, last } = agentWithEvents();
-  agent.send({ id: 'lock', text: 'lock' });
-  assert.strictEqual(last().type, 'approval_needed');
-  assert.strictEqual(locks, 0);
-  agent.respond(last().id, 'always');
-  await tick();
-  assert.strictEqual(locks, 1);
-  const saved = JSON.parse(fs.readFileSync(path.join(electron.userData, 'settings.json'), 'utf8'));
-  assert.deepStrictEqual(saved.trusted, ['lock']);
-  // a new agent (like after a restart) doesn't ask again
-  const next = agentWithEvents();
-  next.agent.send({ id: 'lock', text: 'lock' });
-  await tick();
-  assert.strictEqual(locks, 2);
-  assert.notStrictEqual(next.last().type, 'approval_needed');
-  assert.ok(events.length > 0);
+test('media and lock are gone: YO says what it can do instead', () => {
+  const { agent, last } = agentWithEvents();
+  ['play', 'next', 'volup', 'lock'].forEach((id) => {
+    agent.send({ id, text: id });
+    assert.strictEqual(last().tone, 'info');
+  });
 });
 
 test('ignores unknown actions and too-long text', () => {

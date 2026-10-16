@@ -38,10 +38,8 @@
   }
 
   function create(emit) {
-    const trusted = new Set();
     let timers = [];
     let pending = null;
-    let counter = 0;
 
     const later = (ms, fn) => timers.push(setTimeout(fn, ms));
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -62,14 +60,13 @@
     }
 
     function run(cmd, text) {
-      if (cmd.id === 'lock') return later(400, () => say(t('lockedDone'), 'system', 'ok'));
       if (cmd.id === 'remind' || cmd.id === 'timer') return schedule(cmd, text);
       if (cmd.id === 'open') {
         const arg = Y.commands.argOf(cmd, text);
         if (!arg) return say(t('openWhat'), 'apps', 'info');
         return later(300, () => say(t('openDone').replace('{arg}', arg), 'apps', 'ok'));
       }
-      later(250, () => say(t('mediaDone').replace('{title}', t('cmd.' + cmd.id)), cmd.category, 'media'));
+      say(t('hint'), 'system', 'info');
     }
 
     return {
@@ -78,13 +75,6 @@
         pending = null;
         const cmd = Y.commands.byId(id) || Y.commands.match(text, 1)[0];
         if (!cmd) return say(t('hint'), 'system', 'info');
-        if (cmd.risk && !trusted.has(cmd.id)) {
-          pending = { id: 'req-' + ++counter, cmd, text };
-          return emit({
-            type: 'approval_needed', id: pending.id, tool: cmd.id, risk: cmd.risk, category: cmd.category,
-            title: t('lockTitle'), body: t('lockBody'), allowAlways: cmd.risk !== 'high',
-          });
-        }
         run(cmd, text);
       },
       respond(id, decision) {
@@ -92,7 +82,6 @@
         const { cmd, text } = pending;
         pending = null;
         if (decision === 'deny') return say(t('denied'), cmd.category, 'cancel');
-        if (decision === 'always' && cmd.risk !== 'high') trusted.add(cmd.id);
         run(cmd, text);
       },
       stop() {

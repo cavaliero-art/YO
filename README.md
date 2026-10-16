@@ -2,8 +2,9 @@
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
-Its actions are real: it opens your apps, folders and sites, controls your music and volume,
-locks your PC (after asking) and keeps your reminders, even across restarts.
+It has small daily apps built in (Translate, Calculator, Clipboard history), opens your apps,
+folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
+already does well (media keys, Win+L).
 
 ## Run it (Windows)
 
@@ -21,7 +22,9 @@ YO slides down once to say hello, then hides in the tray (bottom right).
    edge and the robot drops in.
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
-   The grid button (or `↓` / `Enter` on an empty bar) shows every action, grouped by category.
+   The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: big tiles for Translate,
+   Calculator, Clipboard, Open, Remind me, Timer, Inbox (with a count of what's new) and Customize,
+   and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
    panel starts with a Recent row (right-click a chip there to pin it).
@@ -39,12 +42,9 @@ Click it, or press the shortcut, to open the card. If you're busy typing, it wai
   Typing `open spo` already suggests Spotify by name.
 - Time: `remind me in 20 min to stretch`, `timer 25 min`. Saved to disk: they survive a restart,
   and one that came due while YO was closed is delivered when it starts, marked as missed.
-- Media: `play`, `next`, `previous`, `louder`, `quieter`, `mute` press the real media keys.
-- System: `lock` locks the PC after your OK. "Always" is remembered on disk.
 
 Safety: the page never runs anything itself. It asks the main process, which checks every request
-again. Opening a program or script file (.exe, .bat, .ps1...) always asks first and never offers
-"Always". Sites open only as http/https.
+again. Opening a program or script file (.exe, .bat, .ps1...) always asks first. Sites open only as http/https.
 
 ### Mini apps
 
@@ -76,16 +76,15 @@ snaps shut, chews, and licks its lips.
 
 ### Quick answers
 
-Type and the answer shows up as the first row; `Enter` copies it. They're also in the Tools row of the
-actions panel (the Calculator app does math with a history).
+Type and the answer shows up as the first row; `Enter` copies it (the Calculator app does math with
+a history).
 
 - Math: `12*7`, `= sqrt(16) + 2`, `2^10`, `20% of 150` (worked out by YO's own parser; nothing you type is run as code)
 - Units: `5 km in miles`, `100 f to c`, `3 kg in lb`, `1 gb in mb`, `60 mph in km/h`
 - Colors: `#ff6600` or `rgb(255, 102, 0)` gives hex, RGB and HSL with a preview
 - `uuid`, `timestamp`, `timestamp 1700000000`, `base64 hello`, `unbase64 aGVsbG8=`
 
-YO changes its look with what it's doing: teal for system, blue with a ring for media,
-coral with ears for apps, violet with bells for time.
+YO's glow changes with what it's doing: coral for apps, violet for time, gold for tools, pink for fun.
 
 ## YO itself
 
@@ -100,15 +99,15 @@ YO is drawn and moved in code (`renderer/mascot.js`); nothing is an image file.
 - Leave the bar open and untouched for 20 seconds and YO dozes off. Move or type to wake it.
 - The first time it shows up each day it says a proper hello.
 - While it waits it lives a little: it yawns, stretches, looks around, hums, winks, or reads a tiny book.
-- Emotes: type `dance`, `jump`, `hi yo`, `flip`, `spin` or `love you` (also in the Fun row of the panel).
+- Emotes: type `dance`, `jump`, `hi yo`, `flip`, `spin` or `love you` (also YO's moves in the panel).
 - Seasonal outfits, automatic by date: Ramadan lantern, Eid and New Year party hat, Halloween
   witch hat, winter beanie, summer sunglasses. They only fill what you left empty.
 
 ### Music
 
 While YO is on screen it knows what's playing (Spotify, YouTube in the browser, any app that shows
-up in Windows' media controls). It bops along, shows the song when it peeks out, and names the new
-song after `next` or `previous`. It only asks Windows while YO is visible and keeps nothing.
+up in Windows' media controls). It bops along and shows the song when it peeks out. It only asks Windows
+while YO is visible and keeps nothing.
 
 ### Unlockables
 
@@ -157,7 +156,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
-                       apps.js (installed apps), keys.js (media keys), store.js (JSON files),
+                       apps.js (installed apps), keys.js (the paste key), store.js (JSON files),
                        watch.js (what's playing), clipboard.js (clipboard history),
                        translate.js (asks MyMemory)
     preload.js         the only bridge to Electron (no Node in the page)
@@ -166,7 +165,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
                        miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard)
-    tests/             npm test (nothing real happens: Electron, keys, launching and lock are faked)
+    tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)
 
 YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
 apps.json (the installed apps it found), clips.json (clipboard items you kept with ★). Your look and sound choices are in the same folder.

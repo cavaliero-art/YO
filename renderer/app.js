@@ -52,7 +52,11 @@
   let openAsk = 0; // latest "open <something>" lookup; older answers are ignored
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
-  const PANEL_ORDER = ['apps', 'time', 'media', 'tools', 'fun', 'system'];
+  // the home panel: big tiles in this order, then YO's moves
+  const HOME = ['translate', 'calc', 'clipboard', 'open', 'remind', 'timer', 'inbox', 'customize'];
+  const HOME_COLS = 4;
+  let homeTiles = []; // { node, run } in order, for the arrow keys
+  let homePick = -1;
   let lastActive = Date.now();
   let lastSnore = 0;
   let dozing = false;
@@ -326,7 +330,8 @@
   function setPanel(open) {
     if (open && !panel) {
       Y.sound.play('drawer');
-      drawPanel(); // Recent changes as you use YO
+      homePick = -1;
+      drawPanel(); // Recent and the inbox count change as you use YO
     }
     panel = open;
     hoverCat = null;
@@ -335,72 +340,107 @@
     syncPick();
   }
 
-  // every action as a small chip, one row per category
+  // the home panel: Recent on top, big tiles like a phone's home screen, then YO's moves
   function drawPanel() {
-    const rows = PANEL_ORDER.map((cat) => {
-      const row = document.createElement('div');
-      const name = document.createElement('span');
-      const chips = document.createElement('div');
-      row.className = 'prow';
-      name.className = 'plabel';
-      name.textContent = t('cat.' + cat);
-      chips.className = 'chips';
-      if (cat === 'tools') {
-        Y.quick.TOOLS.filter((tool) => tool.id !== 'math').forEach((tool) => chips.append(toolChip(tool))); // the calculator is an app now
-        row.append(name, chips);
-        return row;
-      }
-      Y.commands.LIST.filter((cmd) => cmd.category === cat).forEach((cmd) => {
-        const chip = document.createElement('button');
-        const label = document.createElement('span');
-        chip.type = 'button';
-        chip.className = 'act';
-        chip.dataset.cat = cat;
-        chip.title = t('cmd.' + cmd.id);
-        chip.innerHTML = cmd.icon; // static markup from commands.js
-        label.textContent = t('short.' + cmd.id);
-        chip.append(label);
-        chip.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
-        chip.addEventListener('mouseenter', () => previewCat(cat));
-        chip.addEventListener('focus', () => previewCat(cat));
-        chip.addEventListener('click', () => fromPanel(cmd));
-        chips.append(chip);
-      });
-      row.append(name, chips);
-      return row;
-    });
-    const recent = recentRow();
-    el.panel.replaceChildren(appTiles(), ...(recent ? [recent] : []), ...rows);
-  }
-
-  // the mini apps, as big tiles at the top of the panel
-  function appTiles() {
+    homeTiles = [];
     const grid = document.createElement('div');
-    grid.className = 'tiles';
-    Y.commands.LIST.filter((cmd) => cmd.app).forEach((cmd) => {
+    grid.className = 'home';
+    HOME.forEach((id) => {
+      const cmd = Y.commands.byId(id);
+      if (!cmd) return;
+      const run = id === 'customize' ? () => { setPanel(false); openCustom(); } : () => fromPanel(cmd);
       const tile = document.createElement('button');
       const ico = document.createElement('span');
-      const text = document.createElement('span');
       const name = document.createElement('span');
       const sub = document.createElement('span');
       tile.type = 'button';
-      tile.className = 'tile';
-      tile.dataset.cat = cmd.tint;
-      ico.className = 'tico';
+      tile.className = 'htile';
+      tile.dataset.tile = id;
+      tile.title = t('example.' + id);
+      ico.className = 'hico';
       ico.innerHTML = cmd.icon; // static markup from commands.js
-      text.className = 'ttxt';
-      name.className = 'tname';
-      name.textContent = t('short.' + cmd.id);
-      sub.className = 'tsub';
-      sub.textContent = t('app.sub.' + cmd.id);
-      text.append(name, sub);
-      tile.append(ico, text);
+      name.className = 'hname';
+      name.textContent = t('short.' + id);
+      sub.className = 'hsub';
+      sub.textContent = t('app.sub.' + id);
+      tile.append(ico, name, sub);
+      if (id === 'inbox') {
+        const fresh = Y.memory.inbox.unread();
+        if (fresh) {
+          const badge = document.createElement('span');
+          badge.className = 'hbadge';
+          badge.textContent = String(fresh);
+          badge.title = t('app.unread').replace('{n}', fresh);
+          tile.append(badge);
+        }
+      }
+      const index = homeTiles.length;
       tile.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
-      tile.addEventListener('mouseenter', () => previewCat('tools'));
-      tile.addEventListener('click', () => fromPanel(cmd));
+      tile.addEventListener('mouseenter', () => setHomePick(index, true));
+      tile.addEventListener('click', run);
+      homeTiles.push({ node: tile, run, cat: cmd.category });
       grid.append(tile);
     });
-    return grid;
+    const recent = recentRow();
+    el.panel.replaceChildren(...(recent ? [recent] : []), grid, movesRow());
+    syncHomePick();
+  }
+
+  // YO's moves: small round buttons, YO does it right away
+  function movesRow() {
+    const row = document.createElement('div');
+    const name = document.createElement('span');
+    const moves = document.createElement('div');
+    row.className = 'moves';
+    name.className = 'plabel';
+    name.textContent = t('app.moves');
+    moves.className = 'mbtns';
+    Y.commands.LIST.filter((cmd) => cmd.category === 'fun').forEach((cmd) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mbtn';
+      button.title = t('cmd.' + cmd.id);
+      button.setAttribute('aria-label', t('cmd.' + cmd.id));
+      button.innerHTML = cmd.icon; // static markup from commands.js
+      button.addEventListener('mousedown', (event) => event.preventDefault());
+      button.addEventListener('mouseenter', () => previewCat('fun'));
+      button.addEventListener('click', () => {
+        face.react(cmd.id);
+        Y.sound.play(EMOTE_SOUND[cmd.id] || 'arrive');
+        earn('actions');
+      });
+      moves.append(button);
+    });
+    row.append(name, moves);
+    return row;
+  }
+
+  // arrow keys move over the tiles (the pointer does too); Enter opens the picked one
+  function setHomePick(i, fromPointer) {
+    homePick = i;
+    syncHomePick();
+    if (!fromPointer) Y.sound.play('tick');
+  }
+
+  function syncHomePick() {
+    homeTiles.forEach((tile, i) => tile.node.classList.toggle('picked', i === homePick));
+    previewCat(homeTiles[homePick] ? homeTiles[homePick].cat : null);
+  }
+
+  function homeKey(key) {
+    const last = homeTiles.length - 1;
+    if (key === 'Enter') {
+      if (homeTiles[homePick]) homeTiles[homePick].run();
+      return;
+    }
+    if (homePick < 0) {
+      if (key === 'ArrowUp') return setPanel(false);
+      return setHomePick(0);
+    }
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -HOME_COLS, ArrowDown: HOME_COLS }[key];
+    const next = homePick + step;
+    if (key === 'ArrowUp' && next < 0) return setHomePick(-1); // above the first row: back to the bar
+    if (next >= 0 && next <= last) setHomePick(next);
   }
 
   // what you ran lately, pinned ones first (right-click a chip to pin it)
@@ -444,27 +484,6 @@
     });
     row.append(name, chips);
     return row;
-  }
-
-  // a Tools chip puts an example in the bar; the answer shows right away
-  function toolChip(tool) {
-    const chip = document.createElement('button');
-    const label = document.createElement('span');
-    chip.type = 'button';
-    chip.className = 'act';
-    chip.dataset.cat = 'tools';
-    chip.innerHTML = Y.quick.ICONS[tool.id]; // static markup from quick.js
-    label.textContent = t('tool.' + tool.id);
-    chip.append(label);
-    chip.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
-    chip.addEventListener('mouseenter', () => previewCat('tools'));
-    chip.addEventListener('focus', () => previewCat('tools'));
-    chip.addEventListener('click', () => {
-      el.cmd.value = tool.fill;
-      updateSuggestions();
-      focusCommand();
-    });
-    return chip;
   }
 
   function previewCat(cat) {
@@ -1307,6 +1326,10 @@
     earn('actions');
     Y.memory.history.add(text || (cmd ? cmd.words[0] : ''), cmd && cmd.id);
     if (cmd) Y.memory.usage.bump(cmd.id);
+    if ((cmd && cmd.id === 'customize') || (!cmd && Y.commands.leadWord(Y.commands.byId('customize'), text))) {
+      el.cmd.value = '';
+      return openCustom();
+    }
     const appCmd = cmd && cmd.app ? cmd : !cmd ? Y.commands.LIST.find((c) => c.app && Y.commands.leadWord(c, text)) : null;
     if (appCmd) return openApp(appCmd.app, Y.commands.argOf(appCmd, text));
     if ((cmd && cmd.id === 'inbox') || (!cmd && Y.commands.leadWord(Y.commands.byId('inbox'), text))) return showInbox();
@@ -1487,6 +1510,12 @@
   el.cmd.addEventListener('input', () => face.react('type'));
   el.cmd.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
+    if (panel && !el.cmd.value.trim() && ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Enter'].indexOf(event.key) !== -1) {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') event.preventDefault();
+      if (event.key === 'Enter' && homePick < 0) return;
+      event.preventDefault();
+      return homeKey(event.key);
+    }
     if (event.key === 'Enter') {
       event.preventDefault();
       if (!el.cmd.value.trim()) return setPanel(true); // empty bar: show what YO can do
@@ -1699,16 +1728,10 @@
     activity();
   });
 
-  // what's playing (only asked while YO is on screen): YO bops along and names the song
+  // what's playing (only asked while YO is on screen): YO bops along and names the song when it peeks
   bridge.onMedia((now) => {
-    const changed = !nowPlaying || !now || now.title !== nowPlaying.title;
     nowPlaying = now;
     face.setMusic(Boolean(now && now.playing));
-    // right after next / previous: say the new song
-    if (changed && now && now.playing && now.title && s.state === 'done' && s.category === 'media') {
-      s.label = '♪ ' + songText(now);
-      scheduleClose(3600);
-    }
     render();
   });
 

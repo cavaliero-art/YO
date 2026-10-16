@@ -8,7 +8,6 @@
   const svg = (paths) =>
     '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
-  const SPEAKER = '<path d="M4 9v6h4l5 4V5L8 9z"/>';
 
   const LIST = [
     { id: 'open', category: 'apps', words: ['open', 'launch', 'start', 'go to'], arg: 'text', fill: 'open ',
@@ -17,20 +16,6 @@
       icon: svg('<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>') },
     { id: 'timer', category: 'time', words: ['set a timer', 'timer', 'countdown'], arg: 'time', fill: 'timer ',
       icon: svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>') },
-    { id: 'play', category: 'media', words: ['play', 'pause', 'resume', 'music'],
-      icon: svg('<path d="M8 5v14l11-7z"/>') },
-    { id: 'next', category: 'media', words: ['next', 'skip'],
-      icon: svg('<path d="M6 6l8 6-8 6zM18 6v12"/>') },
-    { id: 'prev', category: 'media', words: ['previous', 'prev', 'back'],
-      icon: svg('<path d="M18 6l-8 6 8 6zM6 6v12"/>') },
-    { id: 'volup', category: 'media', words: ['volume up', 'vol up', 'turn up', 'louder'],
-      icon: svg(SPEAKER + '<path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>') },
-    { id: 'voldown', category: 'media', words: ['volume down', 'vol down', 'turn down', 'quieter'],
-      icon: svg(SPEAKER + '<path d="M16 9a4 4 0 0 1 0 6"/>') },
-    { id: 'mute', category: 'media', words: ['unmute', 'mute', 'silence'],
-      icon: svg(SPEAKER + '<path d="M17 9l5 6M22 9l-5 6"/>') },
-    { id: 'lock', category: 'system', words: ['lock my pc', 'lock screen', 'lock pc', 'lock'], risk: 'medium',
-      icon: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>') },
   ];
   // icons for what "open" found: an app, a folder, a site
   const TARGET_ICONS = {
@@ -47,7 +32,7 @@
       icon: svg('<path d="M4 5h8M8 3v2M5.5 5c.8 3.4 3.2 6 6.5 7M10.5 5c-.8 3.4-3.2 6-6.5 7"/><path d="M12.5 21l4-10 4 10M14 17.5h5"/>') },
     { id: 'calc', category: 'tools', app: 'calc', tint: 'tools', words: ['calculator', 'calculate', 'calc'],
       icon: svg('<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 13h.01M12 13h.01M15 13h.01M9 17h.01M12 17h.01M15 17h.01"/>') },
-    { id: 'clipboard', category: 'tools', app: 'clipboard', tint: 'time', words: ['clipboard', 'paste history', 'clips', 'clip'],
+    { id: 'clipboard', category: 'tools', app: 'clipboard', tint: 'system', words: ['clipboard', 'paste history', 'clips', 'clip'],
       icon: svg('<rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M9 10h6M9 13.5h6M9 17h3.5"/>') }
   );
   // emotes: YO does them right away, nothing leaves the page
@@ -59,8 +44,11 @@
     { id: 'spin', category: 'fun', words: ['spin', 'twirl'], icon: svg('<path d="M12 3a9 9 0 1 0 9 9M21 3v6h-6"/>') },
     { id: 'love', category: 'fun', words: ['love you', 'love', 'hug'], icon: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>') }
   );
-  const STARTERS = ['open', 'remind', 'play', 'lock', 'timer'];
-  const CATEGORIES = ['system', 'media', 'apps', 'time', 'fun'];
+  // Customize: opens YO's look (right-click does the same); a tile on the home panel
+  LIST.push({ id: 'customize', category: 'system', words: ['customize', 'customise', 'outfit', 'look'],
+    icon: svg('<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>') });
+  const STARTERS = ['open', 'translate', 'calc', 'remind', 'timer'];
+  const CATEGORIES = ['system', 'apps', 'time', 'tools', 'fun'];
 
   function normalize(text) {
     return String(text || '')

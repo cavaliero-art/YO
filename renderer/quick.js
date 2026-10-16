@@ -260,7 +260,7 @@
     return null;
   }
 
-  // ---------- the Tools row in the actions panel: what each chip puts in the bar ----------
+  // ---------- icons for the answer rows ----------
   const svg = (paths) =>
     '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" ' +
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
@@ -272,14 +272,5 @@
     base64: svg('<path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/>'),
     units: svg('<path d="M3 16l13-13 5 5L8 21z"/><path d="M7 12l2 2M10 9l2 2M13 6l2 2"/>'),
   };
-  const TOOLS = [
-    { id: 'math', fill: '= ' },
-    { id: 'uuid', fill: 'uuid' },
-    { id: 'time', fill: 'timestamp' },
-    { id: 'color', fill: '#' },
-    { id: 'base64', fill: 'base64 ' },
-    { id: 'units', fill: '5 km in miles' },
-  ];
-
-  Y.quick = { answer, evaluate, TOOLS, ICONS };
+  Y.quick = { answer, evaluate, ICONS };
 })((window.Yo = window.Yo || {}));

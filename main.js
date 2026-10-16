@@ -314,7 +314,7 @@ if (!app.requestSingleInstanceLock()) {
     registerHotkey();
     createTray();
     screen.on('display-metrics-changed', placeWindow);
-    // get ready in the background: media keys (~1.7 s) and the list of installed apps (~4 s)
+    // get ready in the background: the paste key (~1.7 s) and the list of installed apps (~4 s)
     setTimeout(() => keys.warm(), 2000);
     setTimeout(() => apps.refresh(), 3000);
     clips.start(() => { if (win && !win.isDestroyed()) win.webContents.send('clips'); });

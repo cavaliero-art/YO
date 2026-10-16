@@ -534,56 +534,104 @@ html, body {
 .sw[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
 .oinfo { flex-basis: 100%; padding-inline-start: 68px; color: var(--faint); font-size: 11px; line-height: 1.4; }
 
-/* ---------- mini apps: tiles in the panel, then each app inside the pill ---------- */
-.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
-.tile {
+/* ---------- the home panel: Recent, big tiles, YO's moves ---------- */
+.home { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.htile {
   --cat: var(--c-tools);
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 2px;
   min-width: 0;
-  height: 54px;
-  padding: 0 12px 0 10px;
+  height: 96px;
+  padding: 10px 6px 8px;
   border: 0;
-  border-radius: 15px;
-  background: var(--fill);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--cat) 10%, transparent), transparent 70%),
+    var(--fill);
   color: var(--ink);
   font: inherit;
-  text-align: start;
   cursor: pointer;
-  transition: background-color .15s, box-shadow .15s, transform .25s var(--spring);
+  transition: background-color .15s, box-shadow .2s, transform .25s var(--spring);
 }
-.tile[data-cat="media"] { --cat: var(--c-media); }
-.tile[data-cat="time"] { --cat: var(--c-time); }
-.tile[data-cat="apps"] { --cat: var(--c-apps); }
-.tile:hover, .tile:focus-visible {
-  background: color-mix(in srgb, var(--cat) 13%, transparent);
-  box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--cat) 42%, transparent);
-  transform: translateY(-1px);
+.htile[data-tile="translate"] { --cat: var(--c-media); }
+.htile[data-tile="calc"] { --cat: var(--c-tools); }
+.htile[data-tile="clipboard"] { --cat: var(--c-system); }
+.htile[data-tile="open"] { --cat: var(--c-apps); }
+.htile[data-tile="remind"] { --cat: var(--c-time); }
+.htile[data-tile="timer"] { --cat: var(--c-fun); }
+.htile[data-tile="inbox"] { --cat: var(--s-done); }
+.htile[data-tile="customize"] { --cat: #F5C4B3; }
+.htile:hover, .htile.picked {
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--cat) 26%, transparent), transparent 75%),
+    var(--fill-hover);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cat) 45%, transparent), 0 6px 18px color-mix(in srgb, var(--cat) 14%, transparent);
+  transform: translateY(-2px);
 }
-.tile:active { transform: scale(.97); }
-.tico {
-  flex: none;
-  width: 34px;
-  height: 34px;
+.htile:active { transform: scale(.95); }
+.hico {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 4px;
   display: grid;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 14px;
   color: var(--cat);
-  background: color-mix(in srgb, var(--cat) 16%, transparent);
-  transition: transform .3s var(--spring);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--cat) 30%, transparent), color-mix(in srgb, var(--cat) 9%, transparent));
+  box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--cat) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, .08);
 }
-.tile:hover .tico { transform: rotate(-6deg) scale(1.08); }
-.tico svg { width: 19px; height: 19px; }
-.ttxt { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.tname { font-size: 13px; font-weight: 600; }
-.tsub { color: var(--faint); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.htile[data-tile="customize"] .hico {
+  color: #fff;
+  background: conic-gradient(from 200deg, #F0997B, #E8C24F, #5DCAA5, #85B7EB, #A99BF0, #EE8AB2, #F0997B);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+}
+.htile[data-tile="customize"] .hico svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
+.hico svg { width: 21px; height: 21px; }
+.hname { max-width: 100%; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hsub { max-width: 100%; color: var(--faint); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbadge {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--s-alert);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 18px;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.moves { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+.mbtns { display: flex; gap: 6px; }
+.mbtn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--c-fun);
+  cursor: pointer;
+  transition: background-color .15s, transform .25s var(--spring);
+}
+.mbtn:hover { background: color-mix(in srgb, var(--c-fun) 18%, transparent); transform: translateY(-2px) rotate(-8deg); }
+.mbtn:active { transform: scale(.9); }
+.mbtn svg { width: 15px; height: 15px; }
 
+/* ---------- mini apps: each one inside the pill ---------- */
 /* the frame every app shares: YO, the app's name, Back and Close */
 .island[data-mode="app"] { width: 580px; }
 .island[data-mode="app"][data-app="translate"] { --glow: var(--c-media); }
 .island[data-mode="app"][data-app="calc"] { --glow: var(--c-tools); }
-.island[data-mode="app"][data-app="clipboard"] { --glow: var(--c-time); }
+.island[data-mode="app"][data-app="clipboard"] { --glow: var(--c-system); }
 .island[data-mode="app"] .label { font-size: 15px; font-weight: 600; }
 .island[data-mode="app"] [data-for~="app"] { display: inline-flex; align-items: center; justify-content: center; }
 #aBack { margin-inline-end: 0; }
@@ -874,7 +922,7 @@ html, body {
 .btn:hover { background: var(--fill-hover); }
 .btn.ok { background: var(--glow); color: var(--on-accent); border-color: transparent; font-weight: 600; }
 .btn.ok:hover { filter: brightness(1.1); }
-:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw, .ctab, .tile, .ckey, .tr-lang, .calc-item, .clip-act):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw, .ctab, .htile, .mbtn, .ckey, .tr-lang, .calc-item, .clip-act):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 
 .wave { gap: 3px; height: 20px; }
 .wave i { width: 3px; height: 6px; border-radius: 2px; background: var(--s-listen); }
@@ -1061,7 +1109,17 @@ html, body {
   .suggest.intro .sug:nth-child(3) { animation-delay: .08s; }
   .suggest.intro .sug:nth-child(4) { animation-delay: .12s; }
   .suggest.intro .sug:nth-child(5) { animation-delay: .16s; }
-  .panel.intro .prow, .panel.intro .tiles { animation: sugIn .45s var(--spring) both; }
+  .panel.intro .prow, .panel.intro .moves { animation: sugIn .45s var(--spring) both; }
+  .panel.intro .htile { animation: tileIn .5s var(--spring) both; }
+  .panel.intro .htile:nth-child(2) { animation-delay: .03s; }
+  .panel.intro .htile:nth-child(3) { animation-delay: .06s; }
+  .panel.intro .htile:nth-child(4) { animation-delay: .09s; }
+  .panel.intro .htile:nth-child(5) { animation-delay: .06s; }
+  .panel.intro .htile:nth-child(6) { animation-delay: .09s; }
+  .panel.intro .htile:nth-child(7) { animation-delay: .12s; }
+  .panel.intro .htile:nth-child(8) { animation-delay: .15s; }
+  .panel.intro .moves { animation-delay: .16s; }
+  .htile.picked .hico, .htile:hover .hico { animation: hop .45s var(--spring); }
   .appbody > :not([hidden]) { animation: sugIn .45s var(--spring) both; }
   .panel.intro .prow:nth-child(2) { animation-delay: .05s; }
   .panel.intro .prow:nth-child(3) { animation-delay: .1s; }
@@ -1119,6 +1177,11 @@ html, body {
 }
 @keyframes sayIn { 0% { transform: translateX(calc(-8px * var(--dir))); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes nudge { 30% { transform: translateY(-6px) scale(.96, 1.06); } 60% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes tileIn {
+  0% { transform: translateY(-8px) scale(.9); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes hop { 40% { transform: translateY(-4px) scale(1.08) rotate(-5deg); } 70% { transform: translateY(1px) scale(.97); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes knock { 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }

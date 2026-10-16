@@ -8,15 +8,12 @@
 //   { type: 'result', title, body, category, sticky?, background?, alarm? }
 const fs = require('fs');
 const path = require('path');
-const childProcess = require('child_process');
 const { app, shell } = require('electron');
 const store = require('./store');
-const keys = require('./keys');
 const apps = require('./apps');
 
 const MAX_TEXT = 300;
 const MAX_DELAY_S = 24 * 3600;
-const STEP_PRESSES = 5; // "louder" = 5 key presses, about 10%
 
 // the words an action may start with (same as renderer/commands.js), longest first
 const WORDS = {
@@ -24,13 +21,8 @@ const WORDS = {
   remind: ['remind me', 'remind', 'reminder'],
   timer: ['set a timer', 'timer', 'countdown'],
 };
-const CATEGORY = {
-  open: 'apps', remind: 'time', timer: 'time', lock: 'system',
-  play: 'media', next: 'media', prev: 'media', volup: 'media', voldown: 'media', mute: 'media',
-};
-const MEDIA_TEXT = {
-  play: 'Play / pause', next: 'Next track', prev: 'Previous track', volup: 'Volume up', voldown: 'Volume down', mute: 'Mute / unmute',
-};
+const CATEGORY = { open: 'apps', remind: 'time', timer: 'time' };
+const HINT = 'Try “open spotify” or “remind me in 10 min”';
 const FOLDERS = {
   downloads: 'downloads', download: 'downloads', documents: 'documents', docs: 'documents', desktop: 'desktop',
   pictures: 'pictures', photos: 'pictures', music: 'music', videos: 'videos', home: 'home',
@@ -106,12 +98,6 @@ function suggestOpen(arg) {
   return out.slice(0, 5);
 }
 
-function lockPc() {
-  return new Promise((resolve, reject) => {
-    childProcess.execFile('rundll32.exe', ['user32.dll,LockWorkStation'], { windowsHide: true }, (err) => (err ? reject(err) : resolve()));
-  });
-}
-
 function create(emit) {
   const settings = store.load('settings', { trusted: [] });
   const trusted = new Set(Array.isArray(settings.trusted) ? settings.trusted : []);
@@ -170,14 +156,6 @@ function create(emit) {
 
   // ---------- running an action ----------
   async function run(id, text, target) {
-    if (id === 'lock') {
-      await lockPc();
-      return say('Locked', 'system', 'ok');
-    }
-    if (MEDIA_TEXT[id]) {
-      keys.tap(id, id === 'volup' || id === 'voldown' ? STEP_PRESSES : 1);
-      return say(MEDIA_TEXT[id], 'media', 'media');
-    }
     if (id === 'remind' || id === 'timer') return schedule(id, text);
     if (id === 'open') {
       const what = target || resolveOpen(argOf('open', text));
@@ -193,12 +171,11 @@ function create(emit) {
       }
       return say('Opening ' + what.label, 'apps', 'ok');
     }
-    return say('Try “open spotify”, “play” or “remind me in 10 min”', 'system', 'info');
+    return say(HINT, 'system', 'info');
   }
 
-  // which actions need your OK: [risk, title, body, allowAlways]
+  // which actions need your OK: { risk, title, body, allowAlways }
   function needsOk(id, text) {
-    if (id === 'lock') return { risk: 'medium', title: 'Lock this PC', body: 'YO wants to lock your workstation.', allowAlways: true };
     if (id === 'open') {
       const what = resolveOpen(argOf('open', text));
       if (what && what.runsCode) {
@@ -229,7 +206,7 @@ function create(emit) {
         const low = normalize(text);
         id = Object.keys(WORDS).find((key) => WORDS[key].some((w) => low === w || low.startsWith(w + ' '))) || null;
       }
-      if (!id) return say('Try “open spotify”, “play” or “remind me in 10 min”', 'system', 'info');
+      if (!id) return say(HINT, 'system', 'info');
       const ask = needsOk(id, text);
       if (ask && !(ask.allowAlways && trusted.has(id))) {
         pending = { id: 'req-' + ++counter, action: id, text, target: ask.target, allowAlways: ask.allowAlways };

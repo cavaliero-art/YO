@@ -17,23 +17,24 @@
       actions: 'Actions',
       risk: { low: 'Low risk', medium: 'Medium risk', high: 'High risk' },
       cmd: {
-        open: 'Open an app, folder or site', remind: 'Remind me', timer: 'Start a timer',
-        play: 'Play / pause', next: 'Next track', prev: 'Previous track',
-        volup: 'Volume up', voldown: 'Volume down', mute: 'Mute / unmute', lock: 'Lock this PC',
+        open: 'Open an app, folder or site', remind: 'Remind me', timer: 'Start a timer', customize: 'Customize YO',
         dance: 'Dance', jump: 'Jump', wave: 'Wave hello', flip: 'Backflip', spin: 'Spin', love: 'Show some love',
         inbox: 'Inbox', translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard history',
       },
       short: {
-        open: 'Open…', remind: 'Remind me…', timer: 'Timer…',
-        play: 'Play', next: 'Next', prev: 'Prev', volup: 'Vol +', voldown: 'Vol −', mute: 'Mute',
-        lock: 'Lock PC',
+        open: 'Open', remind: 'Remind me', timer: 'Timer', customize: 'Customize',
         dance: 'Dance', jump: 'Jump', wave: 'Wave', flip: 'Flip', spin: 'Spin', love: 'Love', inbox: 'Inbox',
         translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard',
       },
       // mini apps (renderer/apps/)
       app: {
         back: 'All apps', close: 'Close', copied: 'Copied!',
-        sub: { translate: 'Any language', calc: 'Math, units, %', clipboard: 'What you copied' },
+        sub: {
+          translate: 'Any language', calc: 'Math, units, %', clipboard: 'What you copied',
+          open: 'Apps, sites, folders', remind: 'Later, for you', timer: 'Countdown', inbox: 'Your news',
+          customize: 'Make YO yours',
+        },
+        moves: "YO's moves", unread: '{n} new',
         translate: {
           detect: 'Detect', swap: 'Swap languages', placeholder: 'Type or paste text…', from: 'From', to: 'To',
           detected: 'Detected: {lang}', working: 'Translating…', fromClip: 'From your clipboard', cut: 'Only the first 500 characters',
@@ -56,7 +57,6 @@
       cat: { recent: 'Recent', apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', fun: 'Fun', system: 'System' },
       pinTip: 'Click to run · Right-click to pin',
       inbox: { title: 'Inbox', new: '{n} new', clear: 'Clear', empty: 'Nothing here yet. Reminders, timers and unlocks show up here.' },
-      tool: { math: 'Calculator', uuid: 'UUID', time: 'Timestamp', color: 'Color', base64: 'Base64', units: 'Units' },
       quick: {
         hex: 'Hex', rgb: 'RGB', hsl: 'HSL', uuid: 'New UUID', unix: 'Unix time', iso: 'ISO 8601', local: 'Local time',
         base64: 'Base64', decoded: 'Decoded',
@@ -76,14 +76,10 @@
       target: { app: 'App', folder: 'Folder', site: 'Website' },
       copyFailed: "Couldn't copy that",
       example: {
-        open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min',
-        play: 'play', next: 'next', prev: 'previous', volup: 'louder', voldown: 'quieter', mute: 'mute', lock: 'lock',
+        open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min', customize: 'customize',
         dance: 'dance', jump: 'jump', wave: 'hi yo', flip: 'flip', spin: 'spin', love: 'love you', inbox: 'inbox',
         translate: 'tr hola to english', calc: 'calc 12*7', clipboard: 'clip',
       },
-      lockTitle: 'Lock this PC', lockBody: 'YO wants to lock your workstation.',
-      lockedDone: 'PC would lock now (demo)',
-      mediaDone: '{title} (demo)',
       openDone: 'Would open “{arg}” (demo)',
       openWhat: 'Open what? Try “open spotify”',
       needWhen: 'When? Try “in 10 min”',
@@ -91,7 +87,7 @@
       timerSet: 'Timer set for {when}',
       timerDone: "Time's up",
       reminderBody: 'You asked {when} ago.',
-      hint: 'Try “open spotify”, “play” or “remind me in 10 min”',
+      hint: 'Try “open spotify”, “translate hola” or “remind me in 10 min”',
       customize: 'Customize YO', done: 'Done', surprise: 'Surprise me', reset: 'Reset',
       heroTip: 'Click to type · Hold to pet · Right-click to customize',
       custom: {
