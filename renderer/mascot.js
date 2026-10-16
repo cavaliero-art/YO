@@ -7,6 +7,8 @@
   // expressions and particles. The look is the user's (color, eyes, hat, glasses, held item);
   // the category of what YO is doing shows as an accessory:
   //   system: plain antenna   media: ring   apps: pointed ears   time: alarm-clock bells
+  // Work faces: while YO does a job (Translate, Calculator...) its visor becomes a little screen
+  // showing the tool (speech marks, digits, clock eyes...). It flips like a screen when it changes.
   const NS = 'http://www.w3.org/2000/svg';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -36,6 +38,7 @@
     '<g class="ant">' +
       '<line class="c-ant" x1="100" y1="72" x2="100" y2="58" stroke-width="3" stroke-linecap="round"/>' +
       '<circle class="c-ring acc acc-media" cx="100" cy="53" r="9"/>' +
+      '<circle class="prog" cx="100" cy="53" r="9" transform="rotate(-90 100 53)" stroke-dasharray="56.55" stroke-dashoffset="56.55"/>' +
       '<g class="tip"><circle class="dot" cx="100" cy="53" r="5"/>' +
         '<path class="t-heart" d="M100 58C91 52.5 93.5 45 100 49C106.5 45 109 52.5 100 58Z"/>' +
         '<path class="t-star" transform="translate(100 53) scale(1.15)" d="' + STAR + '"/>' +
@@ -58,7 +61,8 @@
       '<path class="s-heart" d="M100 128.5C93.5 124.5 95 119 100 121.8C105 119 106.5 124.5 100 128.5Z"/>' +
     '</g>' +
     '<g class="blush"><ellipse cx="81" cy="119" rx="4.5" ry="2.2"/><ellipse cx="119" cy="119" rx="4.5" ry="2.2"/></g>' +
-    '<g class="eye eye-l">' + EYE + '</g><g class="eye eye-r">' + EYE + '</g>' +
+    '<g class="eyes"><g class="eye eye-l">' + EYE + '</g><g class="eye eye-r">' + EYE + '</g></g>' +
+    '<g class="glyph"></g>' +
     '<g class="mouth"><rect class="c-jaw" x="79" y="98" width="42" height="14.5" rx="7"/>' +
       '<rect class="c-teeth" x="85.5" y="98" width="6" height="3.4" rx="1.2"/><rect class="c-teeth" x="108.5" y="98" width="6" height="3.4" rx="1.2"/>' +
       '<ellipse class="c-tongue" cx="100" cy="109.5" rx="10" ry="3.6"/></g>' +
@@ -232,6 +236,7 @@
       armL: $('.arm-l'), armR: $('.arm-r'), held: $('.held'), steam: $('.o-steam'), eyeL: $('.eye-l'), eyeR: $('.eye-r'),
       mouth: $('.mouth'), smile: $('.smile'), blades: $('.blades'), cape: $('.o-cape'), tail: $('.scarf-tail'), halo: $('.o-halo'), tassel: $('.tassel'),
       blush: $('.blush'), fx: $('.fx'), badge: $('.x-alert'), listen: $('.x-listen'),
+      eyes: $('.eyes'), glyph: $('.glyph'), prog: $('.prog'), dot: $('.tip .dot'),
     };
 
     const sp = {
@@ -276,6 +281,13 @@
     let flipFrom = -9;
     let spinFrom = -9;
     let music = false; // something is playing: YO bops along
+    // work faces: the job YO is doing, a short flash over it, and the screen flip between them
+    let work = null; // { name, text }
+    let flash = null; // { name, text, until }
+    let glyphKey = '';
+    let glyphNext = '';
+    let glyphFlipAt = -9;
+    let talkUntil = 0;
 
     const calm = () => reduced.matches;
     const hold = (kind, v, ms) => { holds[kind] = { v, until: clock + ms / 1000 }; };
@@ -323,6 +335,7 @@
       const forced = held('look');
       if (forced) return forced;
       if (sleeping) return [0, 0.7];
+      if (work && work.name === 'read') return [0, 0.85];
       if (state === 'think') return [0.55 + Math.sin(clock * 0.8) * 0.2, -0.8];
       if (clock - cursor.at < 2.5) return [cursor.x, cursor.y];
       if (typingFocus) return [0.75, 0.5];
@@ -368,7 +381,7 @@
 
       // what YO looks like right now: a short reaction wins over sleep/pet, which win over the state
       const base = BASE[state] || BASE.idle;
-      const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : base[0]);
+      const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : work && work.name === 'star' ? 'proud' : base[0]);
       let pose = held('pose') || (sleeping ? 'droop' : petting ? 'pet' : base[1]);
       if (pose === 'rest' && (item === 'lantern' || item === 'mug')) pose = 'hold'; // holds it out
       if (pose === 'rest' && item === 'controller') pose = 'game'; // both hands on the pad
@@ -395,7 +408,8 @@
         sp.armR.t = armR + Math.abs(Math.cos(beat)) * 30;
       }
       // open wide while a file hovers; after the snap, a few small chews
-      sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) : clock < yawnUntil ? 0.6 : 0;
+      sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) :
+        clock < yawnUntil ? 0.6 : clock < talkUntil ? (Math.sin(clock * 24) > 0 ? 0.3 : 0.08) : 0;
       if (hungry) {
         sp.armL.t += Math.sin(clock * 9) * 8; // "gimme" wiggle
         sp.armR.t -= Math.sin(clock * 9) * 8;
@@ -454,6 +468,7 @@
       const ey = round(sp.lookY.x * 3.5);
       node.eyeL.setAttribute('transform', 'translate(' + (90 + ex) + ' ' + (99 + ey) + ') scale(1 ' + round(lid) + ')');
       node.eyeR.setAttribute('transform', 'translate(' + (110 + ex) + ' ' + (99 + ey) + ') scale(1 ' + round(lid) + ')');
+      drawGlyph(still, Boolean(held('expr')));
       node.blush.setAttribute('opacity', String(round(Math.max(0, sp.blush.x) * 0.85)));
       const mouth = Math.max(0, sp.mouth.x);
       node.mouth.setAttribute('transform', 'translate(100 98) scale(1 ' + round(Math.min(mouth, 1.1)) + ') translate(-100 -98)');
@@ -486,6 +501,53 @@
       parts.forEach((p) => p.node.remove());
       parts.length = 0;
       emitters.length = 0;
+    }
+
+    // ---------- work faces: YO's visor as a little screen ----------
+    // each face, centered on the visor (100, 99); "eyes" faces keep the eyes and only steer them
+    const EYES_FACES = { read: true, star: true };
+    function glyphMarkup(name, text) {
+      const t = (str, size, y) => '<text x="100" y="' + (y || 99) + '" font-size="' + size + '" text-anchor="middle" dominant-baseline="central">' +
+        str.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>';
+      if (name === 'speech') return t('\u00AB \u00BB', 14, 96);
+      if (name === 'launch') return t('\u2197 \u2197', 12);
+      if (name === 'news') return t('! !', 15);
+      if (name === 'notes') return '<circle cx="90" cy="100" r="2.2"/><circle cx="100" cy="100" r="2.2"/><circle cx="110" cy="100" r="2.2"/>';
+      if (name === 'clock') {
+        return '<circle class="gs" cx="90" cy="99" r="5.2"/><circle class="gs" cx="110" cy="99" r="5.2"/>' +
+          '<path class="gs hand" d="M90 99V95.4"/><path class="gs hand" d="M110 99V95.4"/>';
+      }
+      // a screen: digits, a letter, "=" (short text fits bigger)
+      const str = String(text || '=').slice(0, 6);
+      return t(str, str.length <= 2 ? 15 : str.length <= 4 ? 12 : 9.5);
+    }
+
+    // a reaction (happy, dizzy, oops...) takes the visor back for a moment; a flash wins over it
+    function drawGlyph(still, reacting) {
+      if (flash && flash.until <= clock) flash = null;
+      const now = flash || (reacting ? null : work);
+      const key = now && !EYES_FACES[now.name] ? now.name + '|' + (now.text || '') : '';
+      if (key !== glyphNext) {
+        glyphNext = key;
+        glyphFlipAt = still ? clock - 1 : clock;
+      }
+      // the flip: the screen folds shut, changes, and opens again (about 0.2 s)
+      const f = (clock - glyphFlipAt) / 0.2;
+      const squash = f >= 0 && f < 1 ? Math.abs(Math.cos(f * Math.PI)) : 1;
+      if (glyphKey !== glyphNext && (f >= 0.5 || still)) {
+        glyphKey = glyphNext;
+        const [name, text] = glyphKey ? glyphKey.split('|') : ['', ''];
+        node.glyph.innerHTML = name ? glyphMarkup(name, text) : ''; // built from our own strings, text escaped
+      }
+      const showGlyph = Boolean(glyphKey);
+      node.glyph.setAttribute('transform', 'translate(100 99) scale(1 ' + round(squash) + ') translate(-100 -99)');
+      node.eyes.setAttribute('opacity', showGlyph ? '0' : '1');
+      node.eyes.setAttribute('transform', glyphKey === glyphNext ? '' : 'translate(100 99) scale(1 ' + round(squash) + ') translate(-100 -99)');
+      if (glyphKey.startsWith('clock')) {
+        node.glyph.querySelectorAll('.hand').forEach((hand, i) => {
+          hand.setAttribute('transform', 'rotate(' + round((still ? 0 : clock * 220) + i * 90) + ' ' + (i ? 110 : 90) + ' 99)');
+        });
+      }
     }
 
     // ---------- idle moments: small things YO does while it waits ----------
@@ -632,6 +694,32 @@
         kick('hop', -70); kick('ant', 450); kick('hat', 420); kick('lantern', 260); kick('cape', 160); kick('tail', 200);
         burst('star', 5, 100, 58, 45, 0.9);
       },
+      // a small "on it" hop when YO starts a job
+      work() {
+        kick('hop', -70); kick('sy', -2); kick('ant', 380); kick('hat', 260);
+      },
+      dizzy() {
+        dizzyUntil = clock + 1.8;
+        hold('expr', 'dizzy', 1800);
+        burst('star', 4, 100, 56, 36, 1);
+      },
+      // throws something with its arm (Clipboard: pasting where you were)
+      toss() {
+        hold('pose', 'raise', 260);
+        after(260, () => { hold('pose', 'reach', 300); kick('armR', -900); burst('spark', 5, 135, 80, 50, 0.5); });
+        kick('hop', -40);
+      },
+      heart() {
+        spawn('heart', 100, 62, 0, -30, 1.2, 0, 1.1);
+        hold('expr', 'love', 700);
+        kick('hop', -35);
+      },
+      // pulls out its notebook and writes for a moment (a reminder was set)
+      note() {
+        bookUntil = clock + 1.8;
+        hold('look', [0, 0.9], 1800);
+        hold('expr', 'squint', 1600);
+      },
       wake() {
         sleeping = false;
         stopStream('z');
@@ -705,6 +793,11 @@
         bookUntil = 0;
         yawnUntil = 0;
         danceUntil = 0;
+        work = null;
+        flash = null;
+        talkUntil = 0;
+        node.prog.setAttribute('stroke-dashoffset', '56.55');
+        node.dot.style.fill = '';
         clearFx();
       },
       react(name) {
@@ -756,6 +849,26 @@
           delete holds.look;
           delete holds.pose;
         }
+      },
+      // the job YO is doing (null when none): speech, screen (with text), read, launch, notes, clock, news, star
+      setWork(name, text) {
+        work = name ? { name, text: text === undefined ? '' : String(text) } : null;
+      },
+      // show something on the visor for a moment (a face name, or text on the screen)
+      flash(name, text, ms) {
+        flash = { name, text: text === undefined ? '' : String(text), until: clock + (ms || 900) / 1000 };
+      },
+      talk(ms) {
+        talkUntil = clock + (ms || 800) / 1000;
+      },
+      // a ring around the antenna ball fills up (0..1), or goes away (null)
+      setProgress(p) {
+        const v = p === null || p === undefined ? 1 : 1 - Math.max(0, Math.min(1, p));
+        node.prog.setAttribute('stroke-dashoffset', String(round(56.55 * v)));
+      },
+      // the antenna ball takes a color for a moment (a color you copied), or its own again (null)
+      tintTip(color) {
+        node.dot.style.fill = color && /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\))$/i.test(color) ? color : '';
       },
       setMusic(on) {
         if (Boolean(on) === music) return;

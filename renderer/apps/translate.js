@@ -13,6 +13,11 @@
     ['pt', 'Portuguese'], ['nl', 'Dutch'], ['tr', 'Turkish'], ['ru', 'Russian'], ['uk', 'Ukrainian'], ['pl', 'Polish'],
     ['sv', 'Swedish'], ['zh-CN', 'Chinese'], ['ja', 'Japanese'], ['ko', 'Korean'], ['hi', 'Hindi'],
   ];
+  // a letter from each language, shown on YO's visor when a translation lands
+  const LETTER = {
+    en: 'A', fr: '\u00C9', es: '\u00D1', ar: '\u0639', de: '\u00C4', it: 'A', pt: '\u00C7', nl: 'IJ', tr: '\u011E', ru: '\u042F',
+    uk: '\u0407', pl: '\u0141', sv: '\u00C5', 'zh-CN': '\u6587', ja: '\u3042', ko: '\uD55C', hi: '\u0939',
+  };
   const nameOf = (code) => (LANGS.find(([c]) => c.toLowerCase() === String(code || '').toLowerCase()) || [null, code])[1];
 
   // "english", "en", "Arabic" -> its code
@@ -136,6 +141,7 @@
       }
       if (!host.bridge.translate) return show('', t('app.translate.error.app'), 'error');
       root.classList.add('busy');
+      host.face.talk(9000); // "blah blah" until the answer comes back
       status.textContent = t('app.translate.working');
       status.dataset.tone = '';
       let res;
@@ -146,7 +152,15 @@
       }
       if (id !== ask) return; // you kept typing; a newer one is on its way
       root.classList.remove('busy');
-      if (!res || res.error) return show('', t('app.translate.error.' + ((res && res.error) || 'service')), 'error');
+      host.face.talk(0);
+      if (!res || res.error) {
+        if (res && res.error !== 'lang') host.react('error');
+        return show('', t('app.translate.error.' + ((res && res.error) || 'service')), 'error');
+      }
+      if (res.text) {
+        host.face.flash('screen', LETTER[state.to] || 'A', 1100);
+        host.react('work');
+      }
       detected = state.from === 'auto' && res.detected ? res.detected : null;
       drawLangs();
       show(res.text, res.cut ? t('app.translate.cut') : '', '');

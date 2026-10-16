@@ -589,6 +589,15 @@ html, body {
 .mbtn:hover { color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent); transform: translateY(-2px) rotate(-8deg); }
 .mbtn:active { transform: scale(.9); }
 .mbtn svg { width: 15px; height: 15px; }
+/* the tile growing into the app (and back) */
+.ghost {
+  position: absolute;
+  z-index: 3;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 7%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent);
+  pointer-events: none;
+}
 /* the open app's icon next to its name */
 .appico { flex: none; color: var(--ink); margin-inline-end: -2px; }
 .appico svg { width: 22px; height: 22px; stroke-width: 1.8; overflow: visible; }
@@ -925,6 +934,12 @@ html, body {
 .yo-char[data-state="done"] .dot { fill: var(--s-done); }
 .yo-char[data-state="alert"] .dot { fill: var(--s-alert-deep); }
 .yo-char .hit-ant { fill: transparent; cursor: pointer; }
+/* work faces: the visor as a little screen, and the progress ring around the antenna ball */
+.yo-char .glyph { fill: var(--eye); pointer-events: none; }
+.yo-char .glyph text { font-family: "Cascadia Mono", Consolas, "Segoe UI", "Yu Gothic UI", "Malgun Gothic", sans-serif; font-weight: 700; }
+.yo-char .glyph .gs { fill: none; stroke: var(--eye); stroke-width: 2.2; stroke-linecap: round; }
+.yo-char .prog { fill: none; stroke: var(--eye); stroke-width: 2.4; stroke-linecap: round; pointer-events: none; }
+.yo-char .tip .dot { transition: fill .3s; }
 .yo-char :is(.eye, .blush, .mouth, .smile, .stickers, .o-scarf, .o-bowtie, .o-cape, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
 
 /* eyes: one shape at a time */
@@ -1084,6 +1099,7 @@ html, body {
   .panel.intro .moves { animation-delay: .16s; }
   .htile.picked .hico, .htile:hover .hico { animation: hop .45s var(--spring); }
   .appbody > :not([hidden]) { animation: sugIn .45s var(--spring) both; }
+  .appbody.grow > :not([hidden]) { animation: appIn .3s .32s ease-out both; }
   .panel.intro .prow:nth-child(2) { animation-delay: .05s; }
   .panel.intro .prow:nth-child(3) { animation-delay: .1s; }
   .panel.intro .prow:nth-child(4) { animation-delay: .15s; }
@@ -1140,6 +1156,7 @@ html, body {
 }
 @keyframes sayIn { 0% { transform: translateX(calc(-8px * var(--dir))); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes nudge { 30% { transform: translateY(-6px) scale(.96, 1.06); } 60% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes appIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tileIn {
   0% { transform: translateY(-8px) scale(.9); opacity: 0; }
   100% { transform: none; opacity: 1; }

@@ -99,6 +99,20 @@ it fills the app in.
 
 Dropping text on YO while Translate or the Calculator is open puts it in there.
 
+YO does the work, not just sits next to it. Its visor becomes a little screen for each tool, and it
+flips like a screen when it changes:
+
+- In the panel, pointing at a tile shows the tool on YO (speech marks, `=`, clock eyes, `↗ ↗`...)
+  and the bar shows how to type it (`tr hola to english`, `timer 25 min`...).
+- Clicking a tile grows it into the app; `← All apps` shrinks the app back into its tile.
+- Translate: YO talks while it works, then flashes a letter of the new language (É, Я, あ, ع...).
+  `⇄` makes it backflip; offline, it covers its eyes.
+- Calculator: the answer shows on YO's visor as you type. Dividing by zero makes it dizzy.
+- Clipboard: YO reads down your list, its antenna ball takes the color of a copied color, a ★ pops a
+  heart, and pasting, it tosses the item back to your window.
+- A timer winds a ring around YO's antenna; a reminder goes into its little notebook; opening an app
+  flashes `↗ ↗`; the inbox shows `! !`.
+
 ### Drop things on YO
 
 Drag a file or some text onto YO: its whole visor becomes a big open mouth ("gimme!"), then it

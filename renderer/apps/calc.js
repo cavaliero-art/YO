@@ -17,6 +17,14 @@
   ];
 
   const tidy = (v) => String(Number(v.toPrecision(12)));
+  // what fits on YO's visor: up to 5 characters
+  function short(value) {
+    if (value.length <= 5) return value;
+    const n = Number(value);
+    if (!Number.isFinite(n)) return value.slice(0, 5);
+    if (Math.abs(n) >= 1e5) return n.toExponential(0).replace('+', '');
+    return String(Number(n.toPrecision(4))).slice(0, 5);
+  }
 
   function solve(expr) {
     const src = expr.replace(/−/g, '-').trim();
@@ -71,6 +79,7 @@
 
     function update() {
       const r = solve(input.value);
+      host.face.work('screen', r ? short(r.value) : '=');
       out.textContent = r ? r.value : '';
       out.dataset.value = r ? r.value : '';
       note.textContent = r && r.note ? r.note : '';
@@ -103,6 +112,8 @@
         if (expr) {
           host.toast(t('app.calc.bad'));
           host.sound('info');
+          // dividing by zero makes YO dizzy
+          if (/[÷/]\s*0(?![\d.])/.test(expr)) host.react('dizzy');
         }
         return;
       }

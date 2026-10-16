@@ -55,6 +55,13 @@
   // the home panel: big tiles in this order, then YO's moves
   const HOME = ['translate', 'calc', 'clipboard', 'open', 'remind', 'timer', 'inbox', 'customize'];
   const HOME_COLS = 4;
+  // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
+  const TOOL_FACE = {
+    translate: ['speech'], calc: ['screen', '='], clipboard: ['read'], open: ['launch'], remind: ['notes'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'],
+  };
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let growFrom = null; // the tile an app is opening from: it grows into the app
   let homeTiles = []; // { node, run } in order, for the arrow keys
   let homePick = -1;
   let lastActive = Date.now();
@@ -350,6 +357,10 @@
     }
     panel = open;
     hoverCat = null;
+    if (!open && homePick !== -1) {
+      homePick = -1;
+      syncHomePick();
+    }
     el.browse.setAttribute('aria-expanded', String(open));
     syncDrawer();
     syncPick();
@@ -386,9 +397,11 @@
       tile.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
       tile.addEventListener('mouseenter', () => setHomePick(index, true));
       tile.addEventListener('click', run);
-      homeTiles.push({ node: tile, run, cat: cmd.category });
+      tile.addEventListener('click', () => { growFrom = tile.getBoundingClientRect(); }, true);
+      homeTiles.push({ node: tile, run, cat: cmd.category, id });
       grid.append(tile);
     });
+    grid.addEventListener('mouseleave', () => { if (homePick !== -1) setHomePick(-1, true); });
     const recent = recentRow();
     el.panel.replaceChildren(...(recent ? [recent] : []), grid, movesRow());
     syncHomePick();
@@ -431,8 +444,13 @@
   }
 
   function syncHomePick() {
+    const picked = homeTiles[homePick];
     homeTiles.forEach((tile, i) => tile.node.classList.toggle('picked', i === homePick));
-    previewCat(homeTiles[homePick] ? homeTiles[homePick].cat : null);
+    previewCat(picked ? picked.cat : null);
+    if (miniapp) return;
+    if (picked) face.setWork(...TOOL_FACE[picked.id]);
+    else face.setWork(null);
+    el.cmd.placeholder = picked ? t('example.' + picked.id) : t('placeholder');
   }
 
   function homeKey(key) {
@@ -797,6 +815,27 @@
     }
     if (move) face.react(move);
     if (sound) Y.sound.play(sound);
+    if (ev.type === 'message' && ev.tone === 'set') {
+      if (/^timer/i.test(ev.text)) windUp();
+      else face.react('note');
+    } else if (ev.type === 'message' && ev.tone === 'ok' && ev.category === 'apps') {
+      face.flash('launch', '', 800);
+    }
+  }
+
+  // a timer was set: the ring around YO's antenna winds up, with clock eyes
+  function windUp() {
+    face.flash('clock', '', 1300);
+    let p = 0;
+    clearInterval(windUp.timer);
+    windUp.timer = setInterval(() => {
+      p = Math.min(1, p + 0.07);
+      face.setProgress(p);
+      if (p >= 1) {
+        clearInterval(windUp.timer);
+        setTimeout(() => face.setProgress(null), 500);
+      }
+    }, 50);
   }
 
   // ---------- unlocks: earned by using YO ----------
@@ -1218,6 +1257,15 @@
     bridge,
     sound: (name) => Y.sound.play(name),
     react: (move) => face.react(move),
+    // YO's work face: work(name, text) while the app shows something, flash() for a moment,
+    // talk(ms), tint(color) of the antenna ball, progress(0..1 or null) around it
+    face: {
+      work: (name, text) => face.setWork(name, text),
+      flash: (name, text, ms) => face.flash(name, text, ms),
+      talk: (ms) => face.talk(ms),
+      tint: (color) => face.tintTip(color),
+      progress: (p) => face.setProgress(p),
+    },
     toast: flashApp,
     copy(text) {
       const fail = () => flashApp(t('copyFailed'));
@@ -1232,9 +1280,12 @@
     close: () => closeApp(),
     // Clipboard app: YO steps aside, then the main process presses Ctrl+V in the window you were in
     pasteBack() {
-      shutApp();
-      render();
-      hideIsland('paste');
+      face.react('toss');
+      setTimeout(() => {
+        shutApp();
+        render();
+        hideIsland('paste');
+      }, reducedMotion.matches ? 0 : 380);
     },
     // the text you copied in the last few moments (Translate starts with it)
     recentCopy(ms) {
@@ -1277,10 +1328,60 @@
     Object.keys(appViews).forEach((key) => { appViews[key].root.hidden = key !== id; });
     el.appIco.innerHTML = Y.commands.byId(id).icon; // static markup from commands.js
     appHint = '';
+    const from = growFrom;
+    growFrom = null;
     render();
     showIsland(true);
+    face.setWork(...TOOL_FACE[id]);
+    if (fresh) {
+      face.react('work');
+      Y.sound.play('drawer');
+      if (from) growInto(from, appViews[id].root);
+    }
     appViews[id].open(seed || '');
-    if (fresh) Y.sound.play('drawer');
+  }
+
+  // ---------- the tile grows into the app (and the app shrinks back into its tile) ----------
+  // a plain rounded shape moves between the two places while the panel and the app swap underneath
+  function islandBox(rect) {
+    const a = el.island.getBoundingClientRect();
+    const k = a.width / el.island.offsetWidth || 1; // the pill's size setting zooms it
+    return { left: (rect.left - a.left) / k + 'px', top: (rect.top - a.top) / k + 'px', width: rect.width / k + 'px', height: rect.height / k + 'px' };
+  }
+
+  function ghost(from, to) {
+    if (reducedMotion.matches || !from || !to) return;
+    const shape = document.createElement('div');
+    shape.className = 'ghost';
+    el.island.append(shape);
+    const move = shape.animate([islandBox(from), islandBox(to)], { duration: 420, easing: 'cubic-bezier(.3, .9, .3, 1)', fill: 'forwards' });
+    move.onfinish = () => {
+      shape.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' }).onfinish = () => shape.remove();
+    };
+  }
+
+  // where the app will be once the drawers have moved: right under the bar, full width
+  function growInto(from, root) {
+    const a = el.island.getBoundingClientRect();
+    const k = a.width / el.island.offsetWidth || 1;
+    const top = el.bar.getBoundingClientRect().bottom;
+    const to = { left: a.left + 14 * k, top, width: a.width - 28 * k, height: Math.max(80, root.offsetHeight) * k };
+    el.appBody.classList.add('grow');
+    clearTimeout(growInto.timer);
+    growInto.timer = setTimeout(() => el.appBody.classList.remove('grow'), 900);
+    ghost(from, to);
+  }
+
+  // back to the panel: the app shrinks into its tile
+  function backToTiles() {
+    const id = miniapp;
+    const root = id && appViews[id] ? appViews[id].root : null;
+    const from = root ? root.getBoundingClientRect() : null;
+    shutApp();
+    expand('');
+    setPanel(true);
+    const tile = homeTiles.find((tl) => tl.id === id);
+    if (from && tile) ghost(from, tile.node.getBoundingClientRect());
   }
 
   // close the app and nothing else (something else takes over)
@@ -1288,6 +1389,9 @@
     if (!miniapp) return;
     const view = appViews[miniapp];
     miniapp = null;
+    face.setWork(null);
+    face.setProgress(null);
+    face.tintTip(null);
     if (view && view.close) view.close();
   }
 
@@ -1393,6 +1497,7 @@
     syncUnread();
     render();
     showIsland(true);
+    face.flash('news', '', 900);
   }
 
   // emotes happen right here: YO does it, with a little sound
@@ -1505,11 +1610,7 @@
   });
   el.cDone.addEventListener('click', closeCustom);
   el.aClose.addEventListener('click', () => closeApp());
-  el.aBack.addEventListener('click', () => {
-    shutApp();
-    expand('');
-    setPanel(true);
-  });
+  el.aBack.addEventListener('click', backToTiles);
   el.cRandom.addEventListener('click', surprise);
   el.cReset.addEventListener('click', resetLook);
   el.island.addEventListener('mouseenter', () => { hovering = true; });

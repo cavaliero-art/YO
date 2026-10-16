@@ -58,10 +58,12 @@
       foot.textContent = paused ? t('app.clipboard.paused') : shown.length ? t('app.clipboard.hint') : t('app.clipboard.privacy');
       foot.dataset.tone = paused ? 'warn' : '';
       if (!shown.length) {
+        tintFor(null);
         list.replaceChildren(h('div.side-empty', { text: needle ? t('app.clipboard.none') : t('app.clipboard.empty') }));
         return;
       }
       const now = Date.now();
+      tintFor(shown[pick]);
       list.replaceChildren(...shown.map((c, i) => {
         const kind = kindOf(c.text);
         const flat = c.text.replace(/\s+/g, ' ').trim();
@@ -85,8 +87,14 @@
       }));
     }
 
+    // a color under the pointer paints YO's antenna ball
+    function tintFor(c) {
+      host.face.tint(c && kindOf(c.text) === 'color' ? c.text.trim() : null);
+    }
+
     function setPick(i) {
       pick = i;
+      tintFor(shown[i]);
       Array.from(list.children).forEach((row, n) => row.setAttribute('aria-selected', String(n === pick)));
       const row = list.children[pick];
       if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
@@ -94,8 +102,11 @@
 
     function act(action, id) {
       if (!host.bridge.clip) return;
+      const wasPinned = id && items.some((c) => c.id === id && c.pinned);
       host.bridge.clip(action, id).then((ok) => {
         if (action === 'pin' && ok === false) host.toast(t('app.clipboard.full'));
+        if (action === 'pin' && ok && !wasPinned) host.react('heart');
+        if (action === 'remove' || action === 'clear') host.react('cancel');
         host.sound(action === 'remove' || action === 'clear' ? 'cancel' : 'tick');
         refresh();
       });
@@ -143,6 +154,7 @@
       },
       close() {
         open = false;
+        host.face.tint(null);
       },
     };
   }
