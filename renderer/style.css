@@ -518,7 +518,7 @@ html, body {
 .yo-char[data-state="done"] .dot { fill: var(--s-done); }
 .yo-char[data-state="alert"] .dot { fill: var(--s-alert-deep); }
 .yo-char .hit-ant { fill: transparent; cursor: pointer; }
-.yo-char :is(.eye, .blush, .mouth, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
+.yo-char :is(.eye, .blush, .mouth, .smile, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
 
 /* eyes: one shape at a time */
 .yo-char .eye > * { display: none; fill: var(--eye); }
@@ -585,7 +585,10 @@ html, body {
 .yo-char .o-navy { fill: #2F3E7A; }
 .yo-char .o-halo ellipse { fill: none; stroke: #FFD166; stroke-width: 2.6; }
 .yo-char .o-goldline { fill: none; stroke: #F2C14E; stroke-width: 1.6; stroke-linejoin: round; }
-.yo-char .c-mouth { fill: #050807; stroke: var(--eye); stroke-width: 1.4; }
+.yo-char .c-jaw { fill: #030504; stroke: var(--eye); stroke-width: 1.2; }
+.yo-char .c-teeth { fill: #F4F1EA; }
+.yo-char .c-tongue { fill: #FF7A93; }
+.yo-char .c-smile { fill: none; stroke: var(--eye); stroke-width: 2.4; stroke-linecap: round; }
 .yo-char .o-gem2 { fill: #6EC1FF; }
 .yo-char .o-capc { fill: #3B82F6; }
 .yo-char .o-capline { fill: none; stroke: rgba(0, 0, 0, .2); stroke-width: 1.2; }

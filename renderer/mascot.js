@@ -45,7 +45,10 @@
     '<rect class="c-visor" x="76" y="84" width="48" height="30" rx="12"/>' +
     '<g class="blush"><ellipse cx="81" cy="119" rx="4.5" ry="2.2"/><ellipse cx="119" cy="119" rx="4.5" ry="2.2"/></g>' +
     '<g class="eye eye-l">' + EYE + '</g><g class="eye eye-r">' + EYE + '</g>' +
-    '<g class="mouth"><ellipse class="c-mouth" cx="100" cy="110" rx="4.5" ry="2.8"/></g>' +
+    '<g class="mouth"><rect class="c-jaw" x="79" y="98" width="42" height="14.5" rx="7"/>' +
+      '<rect class="c-teeth" x="85.5" y="98" width="6" height="3.4" rx="1.2"/><rect class="c-teeth" x="108.5" y="98" width="6" height="3.4" rx="1.2"/>' +
+      '<ellipse class="c-tongue" cx="100" cy="109.5" rx="10" ry="3.6"/></g>' +
+    '<g class="smile"><path class="c-smile" d="M90 106Q100 113 110 106"/><ellipse class="c-tongue" cx="106.5" cy="109.6" rx="2.8" ry="2.2"/></g>' +
     '<g class="o-round"><circle cx="90" cy="99" r="7.5"/><circle cx="110" cy="99" r="7.5"/><path d="M97.5 98.5Q100 96.5 102.5 98.5"/></g>' +
     '<g class="o-glasses"><rect x="80.5" y="92" width="17.5" height="12" rx="5"/><rect x="102" y="92" width="17.5" height="12" rx="5"/>' +
       '<path class="bridge" d="M98 96.5h4"/><path class="shine" d="M84 95.5l4 -1.6M105.5 95.5l4 -1.6"/></g>' +
@@ -91,7 +94,7 @@
   // arm angles in degrees: 0 hangs down, 90 points out, 170 is straight up; negative reaches inward
   const POSES = {
     rest: [12, 12], listen: [42, 42], think: [12, -62], raise: [12, 148], cheer: [150, 150], wave: [12, 140],
-    cover: [-124, -124], droop: [3, 3], shrug: [66, 66], pet: [32, 32], hold: [12, 74], game: [-58, -58],
+    cover: [-124, -124], droop: [3, 3], shrug: [66, 66], pet: [32, 32], hold: [12, 74], game: [-58, -58], reach: [96, 96],
   };
   // eye shape for each expression: [left, right]
   const EXPR = {
@@ -201,7 +204,7 @@
     const node = {
       rig: $('.rig'), ant: $('.ant'), ears: $('.acc-apps'), bells: $('.acc-time'), hat: $('.hat'), glasses: $('.o-glasses'),
       armL: $('.arm-l'), armR: $('.arm-r'), held: $('.held'), steam: $('.o-steam'), eyeL: $('.eye-l'), eyeR: $('.eye-r'),
-      mouth: $('.mouth'), blades: $('.blades'), halo: $('.o-halo'), tassel: $('.tassel'),
+      mouth: $('.mouth'), smile: $('.smile'), blades: $('.blades'), halo: $('.o-halo'), tassel: $('.tassel'),
       blush: $('.blush'), fx: $('.fx'), badge: $('.x-alert'), listen: $('.x-listen'),
     };
 
@@ -209,7 +212,7 @@
       hop: spring(0, 260, 15), sx: spring(1, 320, 12), sy: spring(1, 320, 12), tilt: spring(0, 120, 11),
       ant: spring(0, 240, 5), acc: spring(0, 180, 7), hat: spring(0, 70, 4.5), glasses: spring(0, 150, 15),
       lantern: spring(0, 45, 2.2), armL: spring(12, 170, 15), armR: spring(12, 170, 15),
-      lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12), mouth: spring(0, 260, 14),
+      lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12), mouth: spring(0, 520, 22),
     };
     const holds = {}; // short overrides: expr, pose, look, tilt -> { v, until }
     const later = []; // steps of a reaction: { at, fn }
@@ -236,6 +239,7 @@
     let boops = [];
     let hungry = false; // a file is hovering over YO: mouth open
     let chompUntil = 0;
+    let smileUntil = 0;
     let music = false; // something is playing: YO bops along
 
     const calm = () => reduced.matches;
@@ -345,7 +349,12 @@
         sp.armL.t = armL + Math.abs(Math.sin(beat)) * 30;
         sp.armR.t = armR + Math.abs(Math.cos(beat)) * 30;
       }
-      sp.mouth.t = hungry ? 1 : clock < chompUntil ? (Math.sin(clock * 34) > 0 ? 1 : 0.15) : 0;
+      // open wide while a file hovers; after the snap, a few small chews
+      sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) : 0;
+      if (hungry) {
+        sp.armL.t += Math.sin(clock * 9) * 8; // "gimme" wiggle
+        sp.armR.t -= Math.sin(clock * 9) * 8;
+      }
 
       // the antenna leans against the motion, ears/bells and hats lag behind it
       sp.ant.t = -sp.tilt.x * 0.9 + sp.hop.v * 0.05;
@@ -395,8 +404,9 @@
       node.eyeR.setAttribute('transform', 'translate(' + (110 + ex) + ' ' + (99 + ey) + ') scale(1 ' + round(lid) + ')');
       node.blush.setAttribute('opacity', String(round(Math.max(0, sp.blush.x) * 0.85)));
       const mouth = Math.max(0, sp.mouth.x);
-      node.mouth.setAttribute('transform', 'translate(100 110) scale(1 ' + round(mouth) + ') translate(-100 -110)');
-      node.mouth.setAttribute('opacity', mouth > 0.05 ? '1' : '0');
+      node.mouth.setAttribute('transform', 'translate(100 98) scale(1 ' + round(Math.min(mouth, 1.1)) + ') translate(-100 -98)');
+      node.mouth.setAttribute('opacity', mouth > 0.04 ? '1' : '0');
+      node.smile.setAttribute('opacity', clock < smileUntil && mouth < 0.1 ? '1' : '0');
       if (hat === 'propeller') node.blades.setAttribute('transform', 'translate(100 47) scale(' + round(still ? 1 : Math.cos(clock * 22)) + ' 1) translate(-100 -47)');
       if (hat === 'halo') node.halo.setAttribute('transform', 'translate(0 ' + round(still ? 0 : Math.sin(clock * 2.2) * 1.6) + ')');
       if (hat === 'grad') node.tassel.setAttribute('transform', 'rotate(' + round(sp.hat.x * 2.2) + ' 125 64)');
@@ -484,12 +494,21 @@
         hold('expr', 'done', 1100);
         kick('hop', -40);
       },
+      // snap shut, belly bulge, a few chews, then a smile and a lick
       eat() {
         hungry = false;
-        chompUntil = clock + 0.55;
-        kick('sy', -4); kick('sx', 3); kick('ant', 380);
-        burst('spark', 6, 100, 112, 35, 0.6);
-        after(560, () => hold('expr', 'done', 900));
+        delete holds.look;
+        sp.mouth.v = -30;
+        chompUntil = clock + 0.75;
+        kick('sx', 9); kick('sy', -7); kick('hop', -60); kick('ant', 420); kick('hat', 300);
+        hold('expr', 'squint', 700);
+        hold('pose', 'rest', 900);
+        burst('spark', 7, 100, 108, 38, 0.6);
+        after(760, () => {
+          smileUntil = clock + 1.3;
+          hold('expr', 'done', 1300);
+          kick('sy', -1.5);
+        });
       },
       equip() {
         hold('expr', 'done', 800);
@@ -561,6 +580,7 @@
         dizzyUntil = 0;
         hungry = false;
         chompUntil = 0;
+        smileUntil = 0;
         clearFx();
       },
       react(name) {
@@ -601,7 +621,17 @@
       setHungry(on) {
         if (Boolean(on) === hungry) return;
         hungry = Boolean(on);
-        if (hungry) { hold('expr', 'listen', 60000); kick('hop', -40); } else delete holds.expr;
+        if (hungry) {
+          // eyes squeeze up into happy arcs, arms reach out: "gimme"
+          hold('expr', 'done', 60000);
+          hold('look', [0, -1], 60000);
+          hold('pose', 'reach', 60000);
+          kick('hop', -45); kick('ant', 300);
+        } else {
+          delete holds.expr;
+          delete holds.look;
+          delete holds.pose;
+        }
       },
       setMusic(on) {
         if (Boolean(on) === music) return;

@@ -43,7 +43,8 @@ again. Opening a program or script file (.exe, .bat, .ps1...) always asks first 
 
 ### Drop things on YO
 
-Drag a file or some text onto YO: it opens its mouth, then eats it.
+Drag a file or some text onto YO: its whole visor becomes a big open mouth ("gimme!"), then it
+snaps shut, chews, and licks its lips.
 
 - A file: copy its path, show it in its folder, or open it (programs still ask first).
 - Text: turn it into a reminder ("remind me in 10 min to ..."), or copy it. A link: open it.
