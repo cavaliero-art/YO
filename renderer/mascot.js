@@ -93,6 +93,8 @@
         '<circle class="o-gold" cx="100" cy="60" r="1.8"/>' +
         '<g class="tassel"><path class="o-goldline" d="M100 60L125 64L125 74"/><rect class="o-gold" x="122.5" y="73" width="5" height="7" rx="1.5"/></g></g>' +
     '</g>' +
+    '<g class="o-book"><path class="o-bookc" d="M84 110L100 113L116 110V125L100 128L84 125Z"/><path class="o-bookp" d="M100 113V128"/>' +
+      '<path class="o-bookl" d="M88 115.5L97 117M88 119L97 120.5M103 117L112 115.5M103 120.5L112 119"/></g>' +
     '<g class="o-pad"><rect class="o-padbody" x="85" y="110" width="30" height="13" rx="6.5"/><path class="o-dpad" d="M90 116.5h5M92.5 114v5"/>' +
       '<circle class="o-btn" cx="107.5" cy="114.8" r="1.6"/><circle class="o-btn2" cx="111" cy="118" r="1.6"/></g>' +
     '<g class="arm arm-l">' + ARM + '</g>' +
@@ -266,6 +268,13 @@
     let hungry = false; // a file is hovering over YO: mouth open
     let chompUntil = 0;
     let smileUntil = 0;
+    // idle life and emotes
+    let nextMoment = 3;
+    let bookUntil = 0;
+    let yawnUntil = 0;
+    let danceUntil = 0;
+    let flipFrom = -9;
+    let spinFrom = -9;
     let music = false; // something is playing: YO bops along
 
     const calm = () => reduced.matches;
@@ -348,12 +357,22 @@
         if (clock >= e.next) { e.fn(); e.next = clock + e.every; }
       }
 
+      const quiet = state === 'idle' && !typingFocus && !sleeping && !petting && !hungry && !music &&
+        clock > danceUntil && !held('expr') && !held('pose') && !held('look');
+      if (quiet && clock > nextMoment) {
+        moment();
+        nextMoment = clock + 5 + Math.random() * 4;
+      } else if (!quiet && nextMoment < clock + 2) {
+        nextMoment = clock + 2 + Math.random() * 2;
+      }
+
       // what YO looks like right now: a short reaction wins over sleep/pet, which win over the state
       const base = BASE[state] || BASE.idle;
       const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : base[0]);
       let pose = held('pose') || (sleeping ? 'droop' : petting ? 'pet' : base[1]);
       if (pose === 'rest' && (item === 'lantern' || item === 'mug')) pose = 'hold'; // holds it out
       if (pose === 'rest' && item === 'controller') pose = 'game'; // both hands on the pad
+      if (clock < bookUntil) pose = 'game'; // holding the little book
       showExpr(expr);
       let [armL, armR] = POSES[pose] || POSES.rest;
       if (pose === 'wave') armR += Math.sin(clock * 14) * 24;
@@ -367,7 +386,7 @@
       sp.sx.t = 1 - (sp.sy.t - 1) * 0.6;
       const tilt = held('tilt');
       sp.tilt.t = tilt !== null ? tilt : clock < dizzyUntil ? Math.sin(clock * 8) * 12 : sleeping ? 7 : state === 'think' ? -4 : 0;
-      if (music && !still && !sleeping && !hungry && (state === 'idle' || state === 'done')) {
+      if ((music || clock < danceUntil) && !still && !sleeping && !hungry && (state === 'idle' || state === 'done')) {
         // bopping to the music, 112 beats a minute
         const beat = clock * Math.PI * (112 / 60);
         sp.hop.t = -Math.abs(Math.sin(beat)) * 2.6;
@@ -376,7 +395,7 @@
         sp.armR.t = armR + Math.abs(Math.cos(beat)) * 30;
       }
       // open wide while a file hovers; after the snap, a few small chews
-      sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) : 0;
+      sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) : clock < yawnUntil ? 0.6 : 0;
       if (hungry) {
         sp.armL.t += Math.sin(clock * 9) * 8; // "gimme" wiggle
         sp.armR.t -= Math.sin(clock * 9) * 8;
@@ -411,8 +430,13 @@
       if (blinkT >= 0) blinkT += dt;
       const lid = BLINKS[shapes[0]] ? lidAt() : 1;
 
+      const flipT = Math.min(1, Math.max(0, (clock - flipFrom) / 0.7));
+      const flip = flipT > 0 && flipT < 1 && !still ? 360 * (flipT < 0.5 ? 2 * flipT * flipT : 1 - Math.pow(-2 * flipT + 2, 2) / 2) : 0;
+      const spinT = (clock - spinFrom) / 0.9;
+      const spin = spinT > 0 && spinT < 1 && !still ? Math.cos(spinT * Math.PI * 4) : 1;
       node.rig.setAttribute('transform',
-        'translate(0 ' + round(sp.hop.x) + ') translate(100 137) scale(' + round(sp.sx.x) + ' ' + round(sp.sy.x) + ') translate(-100 -137) rotate(' + round(sp.tilt.x) + ' 100 104)');
+        'translate(0 ' + round(sp.hop.x) + ') translate(100 137) scale(' + round(sp.sx.x * spin) + ' ' + round(sp.sy.x) + ') translate(-100 -137) rotate(' + round(sp.tilt.x + flip) + ' 100 104)');
+      svg.setAttribute('data-prop', clock < bookUntil ? 'book' : '');
       node.ant.setAttribute('transform', 'rotate(' + round(sp.ant.x) + ' 100 70)');
       node.ears.setAttribute('transform', 'rotate(' + round(sp.acc.x) + ' 100 72)');
       const ring = clock < ringUntil && !still ? Math.sin(clock * 42) * 9 : 0;
@@ -462,6 +486,36 @@
       parts.forEach((p) => p.node.remove());
       parts.length = 0;
       emitters.length = 0;
+    }
+
+    // ---------- idle moments: small things YO does while it waits ----------
+    function moment() {
+      if (calm()) return;
+      const options = ['yawn', 'stretch', 'look', 'hum', 'wink'];
+      if (item === 'none') options.push('read', 'read');
+      const pick = options[Math.floor(Math.random() * options.length)];
+      if (pick === 'yawn') {
+        yawnUntil = clock + 0.9;
+        hold('expr', 'sleepy', 1000);
+        hold('pose', 'cheer', 900);
+      } else if (pick === 'stretch') {
+        hold('pose', 'cheer', 800);
+        hold('expr', 'squint', 700);
+        kick('sy', 3); kick('sx', -2);
+      } else if (pick === 'look') {
+        hold('look', [-0.9, -0.1], 500);
+        after(520, () => hold('look', [0.9, -0.1], 500));
+      } else if (pick === 'hum') {
+        hold('expr', 'done', 1400);
+        stream('hum', 0.45, 1300, () => spawn('note', 122 + Math.random() * 8, 64, 9, -22, 1.3, 0, 0.9));
+        hold('tilt', 6, 700);
+        after(700, () => hold('tilt', -6, 700));
+      } else if (pick === 'wink') {
+        hold('expr', 'wink', 450);
+      } else if (pick === 'read') {
+        bookUntil = clock + 2.8;
+        hold('look', [0, 0.9], 2800);
+      }
     }
 
     // ---------- reactions ----------
@@ -518,6 +572,38 @@
       sleep() {
         sleeping = true;
         stream('z', 1.1, 0, () => spawn('z', 122, 62, 7, -11, 2.2, 0, 1 + Math.random() * 0.4));
+      },
+      // emotes you can ask for
+      dance() {
+        danceUntil = clock + 3.2;
+        hold('expr', 'done', 3200);
+        stream('dance', 0.5, 3000, () => spawn('note', 100 + (Math.random() - 0.5) * 40, 58, (Math.random() - 0.5) * 20, -24, 1.3, 0, 1));
+      },
+      jump() {
+        kick('sy', -5); kick('sx', 3);
+        after(120, () => { kick('hop', -280); kick('ant', 600); kick('hat', 500); kick('cape', 200); });
+        hold('pose', 'cheer', 900);
+        hold('expr', 'done', 1100);
+        after(900, () => { kick('sy', -4); kick('sx', 3); });
+      },
+      flip() {
+        kick('hop', -220);
+        flipFrom = clock + 0.05;
+        hold('expr', 'squint', 800);
+        hold('pose', 'cheer', 800);
+        after(800, () => { burst('star', 5, 100, 60, 40, 0.8); hold('expr', 'proud', 1000); });
+      },
+      spin() {
+        spinFrom = clock;
+        hold('pose', 'cheer', 900);
+        hold('expr', 'done', 1200);
+        burst('spark', 8, 100, 100, 50, 0.7);
+      },
+      love() {
+        hold('expr', 'love', 1600);
+        hold('pose', 'pet', 1400);
+        sp.blush.v += 4;
+        for (let i = 0; i < 6; i += 1) after(i * 140, () => spawn('heart', 88 + Math.random() * 24, 64, (Math.random() - 0.5) * 18, -28, 1.3, 0, 1));
       },
       wave() {
         hold('pose', 'wave', 1500);
@@ -615,6 +701,9 @@
         hungry = false;
         chompUntil = 0;
         smileUntil = 0;
+        bookUntil = 0;
+        yawnUntil = 0;
+        danceUntil = 0;
         clearFx();
       },
       react(name) {

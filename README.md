@@ -74,6 +74,8 @@ YO is drawn and moved in code (`renderer/mascot.js`); nothing is an image file.
 - Hold YO to pet it. Boop its antenna three times and it gets dizzy.
 - Leave the bar open and untouched for 20 seconds and YO dozes off. Move or type to wake it.
 - The first time it shows up each day it says a proper hello.
+- While it waits it lives a little: it yawns, stretches, looks around, hums, winks, or reads a tiny book.
+- Emotes: type `dance`, `jump`, `hi yo`, `flip`, `spin` or `love you` (also in the Fun row of the panel).
 - Seasonal outfits, automatic by date: Ramadan lantern, Eid and New Year party hat, Halloween
   witch hat, winter beanie, summer sunglasses. They only fill what you left empty.
 

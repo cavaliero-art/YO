@@ -17,6 +17,7 @@
   --c-apps: #F0997B;    --c-apps-body: #F5C4B3;
   --c-time: #A99BF0;    --c-time-body: #D6CEFA;
   --c-tools: #E8C24F;
+  --c-fun: #EE8AB2;
 
   /* states */
   --s-listen: #85B7EB;
@@ -78,6 +79,7 @@ html, body {
 .island[data-variant="apps"] { --glow: var(--c-apps); }
 .island[data-variant="time"] { --glow: var(--c-time); }
 .island[data-variant="tools"] { --glow: var(--c-tools); }
+.island[data-variant="fun"] { --glow: var(--c-fun); }
 .island[data-face="listen"] { --glow: var(--s-listen); }
 .island[data-face="think"] { --glow: var(--s-think); }
 .island[data-face="done"] { --glow: var(--s-done); }
@@ -255,6 +257,7 @@ html, body {
 .sug[data-cat="apps"] { --cat: var(--c-apps); }
 .sug[data-cat="time"] { --cat: var(--c-time); }
 .sug[data-cat="tools"] { --cat: var(--c-tools); }
+.sug[data-cat="fun"] { --cat: var(--c-fun); }
 /* a quick answer: the value in mono, its label always visible */
 .sug.answer .ttl {
   flex: 0 1 auto;
@@ -346,6 +349,7 @@ html, body {
 .act[data-cat="apps"] { --cat: var(--c-apps); }
 .act[data-cat="time"] { --cat: var(--c-time); }
 .act[data-cat="tools"] { --cat: var(--c-tools); }
+.act[data-cat="fun"] { --cat: var(--c-fun); }
 .act svg { width: 13px; height: 13px; color: var(--cat); }
 .act:hover, .act:focus-visible {
   color: var(--ink);
@@ -639,6 +643,11 @@ html, body {
 .yo-char .o-pink { fill: #FF7A93; }
 .yo-char .o-pink2 { fill: #E85C7B; }
 .yo-char .o-padbody { fill: #2B2B33; }
+.yo-char .o-book { display: none; }
+.yo-char[data-prop="book"] .o-book { display: inline; }
+.yo-char .o-bookc { fill: #F4F1EA; stroke: #3B82F6; stroke-width: 1.6; stroke-linejoin: round; }
+.yo-char .o-bookp { fill: none; stroke: #3B82F6; stroke-width: 1.2; }
+.yo-char .o-bookl { fill: none; stroke: #9A9890; stroke-width: 1; stroke-linecap: round; }
 .yo-char .o-dpad { fill: none; stroke: #B9B6AD; stroke-width: 1.8; stroke-linecap: round; }
 .yo-char .o-btn { fill: #F26B5B; }
 .yo-char .o-btn2 { fill: #6EC1FF; }

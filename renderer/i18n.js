@@ -20,13 +20,15 @@
         open: 'Open an app, folder or site', remind: 'Remind me', timer: 'Start a timer',
         play: 'Play / pause', next: 'Next track', prev: 'Previous track',
         volup: 'Volume up', voldown: 'Volume down', mute: 'Mute / unmute', lock: 'Lock this PC',
+        dance: 'Dance', jump: 'Jump', wave: 'Wave hello', flip: 'Backflip', spin: 'Spin', love: 'Show some love',
       },
       short: {
         open: 'Open…', remind: 'Remind me…', timer: 'Timer…',
         play: 'Play', next: 'Next', prev: 'Prev', volup: 'Vol +', voldown: 'Vol −', mute: 'Mute',
         lock: 'Lock PC',
+        dance: 'Dance', jump: 'Jump', wave: 'Wave', flip: 'Flip', spin: 'Spin', love: 'Love',
       },
-      cat: { apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', system: 'System' },
+      cat: { apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', fun: 'Fun', system: 'System' },
       tool: { math: 'Calculator', uuid: 'UUID', time: 'Timestamp', color: 'Color', base64: 'Base64', units: 'Units' },
       quick: {
         hex: 'Hex', rgb: 'RGB', hsl: 'HSL', uuid: 'New UUID', unix: 'Unix time', iso: 'ISO 8601', local: 'Local time',
@@ -49,6 +51,7 @@
       example: {
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min',
         play: 'play', next: 'next', prev: 'previous', volup: 'louder', voldown: 'quieter', mute: 'mute', lock: 'lock',
+        dance: 'dance', jump: 'jump', wave: 'hi yo', flip: 'flip', spin: 'spin', love: 'love you',
       },
       lockTitle: 'Lock this PC', lockBody: 'YO wants to lock your workstation.',
       lockedDone: 'PC would lock now (demo)',

@@ -51,7 +51,7 @@
   let openAsk = 0; // latest "open <something>" lookup; older answers are ignored
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
-  const PANEL_ORDER = ['apps', 'time', 'media', 'tools', 'system'];
+  const PANEL_ORDER = ['apps', 'time', 'media', 'tools', 'fun', 'system'];
   let lastActive = Date.now();
   let lastSnore = 0;
   let dozing = false;
@@ -936,6 +936,8 @@
     if (!text && !cmd) return;
     if (text === '/quit') return bridge.quit();
     earn('actions');
+    const fun = cmd && cmd.category === 'fun' ? cmd : !cmd && Y.commands.match(text, 1).find((c) => c.category === 'fun' && Y.commands.leadWord(c, text));
+    if (fun) return emote(fun);
     el.cmd.value = '';
     composing = false;
     s.fg = true;
@@ -953,6 +955,18 @@
     s.card = null;
     s.pendingId = null;
     s.fg = false;
+  }
+
+  // emotes happen right here: YO does it, with a little sound
+  const EMOTE_SOUND = { dance: 'success', jump: 'boop', wave: 'hello', flip: 'equip', spin: 'equip', love: 'pet' };
+  function emote(cmd) {
+    el.cmd.value = '';
+    composing = false;
+    clearCard();
+    s.category = 'fun';
+    render();
+    face.react(cmd.id);
+    Y.sound.play(EMOTE_SOUND[cmd.id] || 'arrive');
   }
 
   // run an action as if it had been typed
