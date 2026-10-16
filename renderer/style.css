@@ -90,7 +90,10 @@ html, body {
 .island[data-mode="listening"] { width: 360px; }
 .island[data-mode="working"] { width: 380px; }
 .island[data-mode="approval"], .island[data-mode="result"] { width: 440px; }
+.island[data-mode="result"][data-wide="true"] { width: 540px; }
 .island[data-vis="hidden"] { opacity: 0; visibility: hidden; }
+/* hidden YO costs nothing: no animation keeps running behind the scenes */
+.island[data-vis="hidden"], .island[data-vis="hidden"] * { animation: none !important; transition: none !important; }
 
 .shell {
   position: relative;

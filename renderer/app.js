@@ -116,7 +116,16 @@
     bridge.reportPrefs({ sound: prefs.sound, position: prefs.pill.position, size: prefs.pill.size });
   }
 
-  function setPref(key, value) {
+  function setPref(key, value, pref) {
+    if (key === 'shortcut') {
+      shortcut = value;
+      const taken = pref && pref.wanted && pref.wanted !== value;
+      onEvent({
+        type: 'message', category: 'system', tone: taken ? 'info' : 'ok', ms: 4200,
+        text: (taken ? t('shortcutTaken').replace('{wanted}', pref.wanted) + ' ' : '') + t('shortcutNow').replace('{key}', value),
+      });
+      return true;
+    }
     if (key !== 'sound') return false;
     prefs.sound = Boolean(value);
     savePrefs();
@@ -201,6 +210,7 @@
         syncUnread();
       }
       el.bCopy.hidden = !card.copyable || Boolean(card.actions);
+      el.bClose.hidden = Boolean(card.noClose); // the card has its own way out
       el.rMore.replaceChildren(...(card.actions || []).map((action) => {
         const button = document.createElement('button');
         button.type = 'button';
@@ -227,6 +237,7 @@
     if (vis !== 'leaving') {
       el.island.dataset.mode = mode;
       el.island.dataset.app = miniapp || '';
+      el.island.dataset.wide = String(Boolean(s.card && s.card.wide));
       el.island.dataset.variant = variant();
       el.island.dataset.face = faceState;
       face.setState(faceState);
@@ -1737,7 +1748,7 @@
 
   // Sounds on/off from the tray menu
   bridge.onPref((pref) => {
-    if (pref) setPref(pref.key, pref.value);
+    if (pref) setPref(pref.key, pref.value, pref);
   });
 
   // English only for now: the FR/AR strings stay in i18n.js but are no longer offered
@@ -1747,8 +1758,40 @@
   applyStrings();
   bridge.getInfo().then((info) => {
     if (info && info.shortcut) shortcut = info.shortcut;
+    if (info && info.atLogin) return; // Windows just started: YO waits quietly in the tray
+    if (firstRun()) return showWelcome();
     onEvent({ type: 'message', category: 'system', text: t('welcome').replace('{key}', shortcut), ms: 4600 });
   });
+
+  // the very first time: one card with the few things worth knowing
+  function firstRun() {
+    try {
+      if (localStorage.getItem('yo.welcomed')) return false;
+      localStorage.setItem('yo.welcomed', String(Date.now()));
+    } catch (err) { /* no storage: show it */ }
+    return true;
+  }
+
+  function showWelcome() {
+    clearTimeout(s.timer);
+    s.state = 'result';
+    s.fg = true;
+    s.category = 'system';
+    s.label = t('welcomeCard.label');
+    s.card = {
+      title: t('welcomeCard.title'),
+      body: t('welcomeCard.body').replace('{key}', shortcut),
+      actions: [
+        { label: t('welcomeCard.apps'), primary: true, run: () => { clearCard(); expand(''); setPanel(true); } },
+        { label: t('welcomeCard.ok'), run: () => dismiss() },
+      ],
+      wide: true,
+      noClose: true,
+    };
+    feel({ type: 'result' });
+    render();
+    showIsland(false);
+  }
 
   Y.app = {
     onEvent,

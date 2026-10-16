@@ -9,12 +9,16 @@ const apps = require('./main/apps');
 const watch = require('./main/watch');
 const clips = require('./main/clipboard');
 const translator = require('./main/translate');
+const store = require('./main/store');
 
 const WIN_W = 720; // room for the large pill size
 const WIN_H = 600;
 const EDGE = 8; // gap from the screen side when the pill sits left or right
-// Ctrl+Space takes over IDE autocomplete while YO runs; Stage 4 adds a shortcut picker in the tray
-const SHORTCUTS = ['Control+Space', 'Control+Alt+Y'];
+// the shortcuts you can pick in the tray; if yours is taken by another app, the next free one is used
+const SHORTCUTS = ['Control+Space', 'Control+Shift+Space', 'Control+Alt+Y', 'Alt+Shift+Y'];
+const SHORTCUT_NOTES = { 'Control+Space': ' (also IDE autocomplete)' };
+const LOGIN_NAME = 'YO'; // the name of YO's "start with Windows" entry
+const AT_LOGIN = process.argv.includes('--login'); // started by Windows: no hello, just wait in the tray
 const POINTER_MS = 33; // pointer checks while a YO window is on screen: eyes follow it, clicks reach YO
 const HIT_MARGIN = 4;
 const MEDIA_MS = 2500; // what's playing, asked only while the pill is on screen
@@ -97,14 +101,48 @@ function summon() {
   win.webContents.send('hotkey');
 }
 
-function registerHotkey() {
-  for (const combo of SHORTCUTS) {
-    if (globalShortcut.register(combo, summon)) {
-      activeShortcut = combo;
-      return;
-    }
-  }
+const pretty = (combo) => (combo ? combo.replace('Control', 'Ctrl') : 'none');
+
+// your pick first, then the others; returns the one that worked
+function registerHotkey(wanted) {
+  if (activeShortcut) globalShortcut.unregister(activeShortcut);
   activeShortcut = null;
+  const order = [wanted].concat(SHORTCUTS).filter((c, i, all) => SHORTCUTS.includes(c) && all.indexOf(c) === i);
+  for (const combo of order) {
+    try {
+      if (globalShortcut.register(combo, summon)) {
+        activeShortcut = combo;
+        break;
+      }
+    } catch (err) { /* not a valid accelerator here: try the next */ }
+  }
+  return activeShortcut;
+}
+
+// settings.json is shared with the agent ("Always" choices): read it again before writing
+function saveSetting(key, value) {
+  store.save('settings', Object.assign(store.load('settings', {}), { [key]: value }));
+}
+
+function pickShortcut(combo) {
+  const got = registerHotkey(combo);
+  saveSetting('shortcut', combo);
+  buildMenu();
+  if (win) win.webContents.send('pref', { key: 'shortcut', value: pretty(got), wanted: pretty(combo) });
+}
+
+// start with Windows: when running from source (npm start), Electron needs the app folder too
+function loginArgs() {
+  return app.isPackaged ? ['--login'] : [path.resolve(__dirname), '--login'];
+}
+
+function startsWithWindows() {
+  return app.getLoginItemSettings({ path: process.execPath, args: loginArgs() }).openAtLogin;
+}
+
+function setStartWithWindows(on) {
+  app.setLoginItemSettings({ openAtLogin: on, path: process.execPath, args: loginArgs(), name: LOGIN_NAME });
+  buildMenu();
 }
 
 // ---------- the pointer, while YO is on screen ----------
@@ -183,6 +221,16 @@ function buildMenu() {
     Menu.buildFromTemplate([
       { label: 'Open YO', click: summon },
       { type: 'separator' },
+      { label: 'Start with Windows', type: 'checkbox', checked: startsWithWindows(), click: (item) => setStartWithWindows(item.checked) },
+      {
+        label: 'Shortcut: ' + pretty(activeShortcut),
+        submenu: SHORTCUTS.map((combo) => ({
+          label: pretty(combo) + (SHORTCUT_NOTES[combo] || ''),
+          type: 'radio',
+          checked: combo === activeShortcut,
+          click: () => pickShortcut(combo),
+        })),
+      },
       { label: 'Sounds', type: 'checkbox', checked: prefs.sound, click: (item) => setPref('sound', item.checked) },
       { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
@@ -192,7 +240,7 @@ function buildMenu() {
 
 function createTray() {
   try {
-    tray = new Tray(path.join(__dirname, 'assets', 'tray.png'));
+    tray = new Tray(path.join(__dirname, 'assets', 'tray.png')); // tray@2x.png is used on sharper screens
     tray.setToolTip('YO');
     tray.on('click', summon);
     buildMenu();
@@ -286,7 +334,11 @@ ipcMain.handle('translate', (event, request) => {
 });
 
 const CLIP_ACTIONS = new Set(['pin', 'remove', 'clear', 'copy', 'pause', 'resume']);
-ipcMain.handle('clips', (event) => (fromMainWindow(event) ? clips.list() : null));
+ipcMain.handle('clips', (event) => {
+  if (!fromMainWindow(event)) return null;
+  keys.warm(); // the Clipboard app is open: get the paste key ready (PowerShell takes ~1.7 s to start)
+  return clips.list();
+});
 ipcMain.handle('clip', (event, action, id) => {
   if (!fromMainWindow(event) || !CLIP_ACTIONS.has(action) || (id !== undefined && typeof id !== 'string')) return false;
   return clips.act(action, id);
@@ -300,8 +352,9 @@ ipcMain.handle('get-info', (event) => {
   if (!fromMainWindow(event)) return null;
   return {
     locale: app.getLocale(),
-    shortcut: activeShortcut ? activeShortcut.replace('Control', 'Ctrl') : null,
+    shortcut: activeShortcut ? pretty(activeShortcut) : null,
     platform: process.platform,
+    atLogin: AT_LOGIN,
   };
 });
 
@@ -310,12 +363,12 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.whenReady().then(() => {
+    app.setAppUserModelId('com.cavaliero.yo');
     createWindow();
-    registerHotkey();
+    registerHotkey(store.load('settings', {}).shortcut);
     createTray();
     screen.on('display-metrics-changed', placeWindow);
-    // get ready in the background: the paste key (~1.7 s) and the list of installed apps (~4 s)
-    setTimeout(() => keys.warm(), 2000);
+    // get ready in the background: the list of installed apps (~4 s). The paste key starts with the Clipboard app.
     setTimeout(() => apps.refresh(), 3000);
     clips.start(() => { if (win && !win.isDestroyed()) win.webContents.send('clips'); });
   });

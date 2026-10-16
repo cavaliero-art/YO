@@ -1,4 +1,4 @@
-# YO v0.6: a little robot with real hands
+# YO v0.7: a little robot with real hands
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
@@ -6,7 +6,27 @@ It has small daily apps built in (Translate, Calculator, Clipboard history), ope
 folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
 already does well (media keys, Win+L).
 
-## Run it (Windows)
+## Install it (Windows 10/11)
+
+Run `YO Setup 0.7.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
+starts it. The first time, a welcome card shows the few things worth knowing.
+
+Windows may say "Windows protected your PC", because the installer isn't signed yet (a code-signing
+certificate costs money every year). Click *More info*, then *Run anyway*.
+
+Uninstall from Settings > Apps like any app. Your looks and settings in %APPDATA%\YO are kept, in
+case you install YO again; delete that folder to remove them too.
+
+### The tray menu (right-click YO's icon, bottom right)
+
+- Open YO
+- Start with Windows: YO starts quietly in the tray when you log in.
+- Shortcut: Ctrl+Space, Ctrl+Shift+Space, Ctrl+Alt+Y or Alt+Shift+Y. If another app already uses
+  the one you pick, YO takes the next free one and tells you.
+- Sounds on or off
+- Quit
+
+## Run it from the code
 
 1. Install Node.js LTS from https://nodejs.org
 2. In this folder:
@@ -14,7 +34,20 @@ already does well (media keys, Win+L).
        npm install
        npm start
 
-YO slides down once to say hello, then hides in the tray (bottom right).
+## Make the installer
+
+       npm run icons    (only after changing YO's look: redraws build/icon.png and the tray icons)
+       npm run dist     (writes dist/YO Setup <version>.exe)
+
+Release checklist:
+
+1. Bump "version" in package.json and the title of this README.
+2. `npm test` passes.
+3. `npm run dist`, then install the new exe on a normal (non-admin) account.
+4. Try: the shortcut, every tile of the home panel, a reminder in 1 min, Clipboard paste,
+   Translate (online), Customize, Start with Windows (sign out and in), the tray menu.
+5. Uninstall: YO is gone from the Start menu and from Startup apps.
+6. Commit, tag (`git tag v0.7.0`), push, and attach the exe to a GitHub release.
 
 ## How it behaves
 
@@ -148,6 +181,8 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 
 - English only for now (French and Arabic strings are kept in `i18n.js` for later).
 - Quit with `/quit` in the bar or from the tray menu.
+- Hidden, YO uses almost nothing: about 0.2% of one CPU core (no animation runs while it's hidden)
+  and about 150 MB of memory. The paste helper for the Clipboard app starts only when you open it.
 - The mic button only shows the listening look for 3 seconds. Real voice comes later.
 - A popup never steals focus from the app you are typing in.
 - "Reduce motion" in Windows replaces the animations with short fades.
@@ -165,6 +200,8 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
                        miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard)
+    scripts/           make-icons.js (draws the icons from the real YO)
+    build/             icon.png and installer.nsh (installer settings)
     tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)
 
 YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
@@ -172,6 +209,5 @@ apps.json (the installed apps it found), clips.json (clipboard items you kept wi
 
 ## Next
 
-- Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
 - More mini apps (text tools, images, notes, QR, focus) once the first three have been tried.
 

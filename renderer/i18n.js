@@ -8,6 +8,17 @@
       dir: 'ltr', chip: 'EN',
       placeholder: 'Open, translate, calc, remind me…',
       welcome: "Hi, I'm YO. Press {key} to call me.",
+      shortcutNow: 'Shortcut: {key}', shortcutTaken: '{wanted} is used by another app.',
+      welcomeCard: {
+        label: 'Welcome!',
+        title: "Hi, I'm YO 👋",
+        body: '•  Press {key} to call me, from anywhere.\n' +
+          '•  The grid button has my apps: Translate, Calculator, Clipboard history.\n' +
+          '•  Type what you want: "open spotify", "remind me in 10 min to stretch".\n' +
+          '•  Right-click me to change my look. Drop a file or some text on me.\n' +
+          'When you don\'t need me, I wait in the tray (bottom right). Its menu has Start with Windows and the shortcut.',
+        apps: 'Show me the apps', ok: 'Got it',
+      },
       noMatch: 'Nothing for that yet',
       noMatchHint: 'press ↓ to see everything',
       browse: 'All actions',
