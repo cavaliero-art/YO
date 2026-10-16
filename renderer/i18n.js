@@ -72,8 +72,19 @@
       custom: {
         color: 'Color', eyes: 'Eyes', hat: 'Hat', glasses: 'Glasses', item: 'Holding',
         seasonal: 'Seasonal', voice: 'Voice', volume: 'Volume', tip: 'Antenna', sticker: 'Sticker', neck: 'Neck',
+        pillStyle: 'Style', position: 'Position', size: 'Size',
       },
-      tab: { body: 'Body', outfit: 'Outfit', sound: 'Sound', saved: 'Saved' },
+      tab: { body: 'Body', outfit: 'Outfit', pill: 'Pill', sound: 'Sound', saved: 'Saved' },
+      pill: {
+        pillStyle: { dark: 'Dark', smoke: 'Smoke', tint: 'Tinted', light: 'Light' },
+        position: { left: 'Left', center: 'Center', right: 'Right' },
+        size: { small: 'Small', normal: 'Normal', large: 'Large' },
+      },
+      saved: {
+        empty: 'Empty', save: 'Save current', wear: 'Wear', replace: 'Save here', done: 'Saved!',
+        wearing: 'Looking good!', code: 'Code', paste: 'Paste a code', apply: 'Use', applied: 'New look!',
+        bad: "That code doesn't look right", locked: 'Some of it is still locked',
+      },
       look: {
         color: { mint: 'Mint', sky: 'Sky', coral: 'Coral', lilac: 'Lilac', lemon: 'Lemon', bubblegum: 'Bubblegum', snow: 'Snow', graphite: 'Graphite', gold: 'Gold' },
         eyeColor: { mint: 'Mint eyes', white: 'White eyes', amber: 'Amber eyes', pink: 'Pink eyes', cyan: 'Cyan eyes' },

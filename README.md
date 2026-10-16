@@ -108,14 +108,15 @@ Locked items show a lock in Customize; click one to see how far you are.
 
 A live preview on the left, choices on the right. Everything saves as you click:
 
-Three tabs:
-
 - Body: 8 colors (and gold, to earn); eyes classic, round or pixel in 5 colors; antenna tip
   (ball, heart, star, bolt, flower); a sticker (freckles, stripes, bolt, heart).
 - Outfit: hat (beanie, party, witch, crown, cap, headphones, bow, plus the ones to earn); neck
   (scarf with a swinging tail, bow tie, a cape that flutters); glasses (sunglasses, round);
   holding (lantern, coffee mug, game controller); seasonal outfits.
+- Pill: style (dark, smoke, tinted with YO's color, light), position (left, center, right), size.
 - Sound: voice and volume.
+- Saved: three outfit slots, and a look code (like `YO-3RF`) to share your YO with friends:
+  paste one to wear it (anything you haven't unlocked yet falls back to the default).
 - Seasonal outfits on or off, with what's on today and what comes next.
 - Voice: Robot, Soft or Retro (8-bit), or Off; volume low, mid or high.
 - "Surprise me" picks a random look; Reset goes back to the start.

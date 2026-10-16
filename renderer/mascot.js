@@ -641,6 +641,7 @@
     };
 
     return {
+      element: svg,
       setState(next) {
         if (!BASE[next] || next === state) return;
         state = next;

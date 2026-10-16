@@ -8,8 +8,9 @@ const keys = require('./main/keys');
 const apps = require('./main/apps');
 const watch = require('./main/watch');
 
-const WIN_W = 640;
-const WIN_H = 560;
+const WIN_W = 720; // room for the large pill size
+const WIN_H = 600;
+const EDGE = 8; // gap from the screen side when the pill sits left or right
 // Ctrl+Space takes over IDE autocomplete while YO runs; Stage 4 adds a shortcut picker in the tray
 const SHORTCUTS = ['Control+Space', 'Control+Alt+Y'];
 const POINTER_MS = 33; // pointer checks while a YO window is on screen: eyes follow it, clicks reach YO
@@ -24,7 +25,7 @@ let pointerTimer = null;
 let mediaTimer = null;
 let lastMedia = '';
 // mirrored from the page, which keeps it; the tray menu shows and changes it
-let prefs = { sound: true };
+let prefs = { sound: true, position: 'center' };
 
 // YO's sounds play without a click first (it speaks when it arrives)
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -33,8 +34,11 @@ app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 function placeWindow() {
   if (!win) return;
   const { bounds } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const x = prefs.position === 'left' ? bounds.x + EDGE
+    : prefs.position === 'right' ? bounds.x + bounds.width - WIN_W - EDGE
+      : bounds.x + (bounds.width - WIN_W) / 2;
   win.setBounds({
-    x: Math.round(bounds.x + (bounds.width - WIN_W) / 2),
+    x: Math.round(x),
     y: bounds.y,
     width: WIN_W,
     height: WIN_H,
@@ -227,8 +231,11 @@ ipcMain.on('release-focus', (event) => {
 
 ipcMain.on('prefs', (event, next) => {
   if (!fromMainWindow(event) || !next || typeof next !== 'object') return;
-  prefs = { sound: next.sound !== false };
+  const position = ['left', 'center', 'right'].includes(next.position) ? next.position : 'center';
+  const moved = position !== prefs.position;
+  prefs = { sound: next.sound !== false, position };
   buildMenu();
+  if (moved) placeWindow(); // the pill moves to its new side right away
 });
 
 // ---------- something dropped on YO: only real, absolute paths ----------

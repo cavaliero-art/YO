@@ -26,7 +26,7 @@
   };
 
   const el = {
-    island: $('island'), bar: $('bar'), hero: $('hero'), face: $('face'), label: $('label'),
+    island: $('island'), stage: $('stage'), bar: $('bar'), hero: $('hero'), face: $('face'), label: $('label'),
     cmd: $('cmd'), mic: $('mic'), stop: $('stop'), suggest: $('suggest'), panel: $('panel'), browse: $('browse'),
     bubble: $('bubble'), risk: $('risk'), announce: $('announce'),
     aTitle: $('aTitle'), aBody: $('aBody'), rTitle: $('rTitle'), rBody: $('rBody'),
@@ -63,7 +63,12 @@
   let preview = null; // the big YO in that panel
 
   // ---------- preferences: YO's look and sound (kept in this window's storage until Stage 3 saves settings) ----------
-  const DEFAULT_PREFS = { sound: true, voice: 'robot', volume: 2, seasonal: true, look: Object.assign({}, Y.mascot.DEFAULT_LOOK) };
+  const DEFAULT_PREFS = {
+    sound: true, voice: 'robot', volume: 2, seasonal: true, look: Object.assign({}, Y.mascot.DEFAULT_LOOK),
+    pill: { pillStyle: 'dark', position: 'center', size: 'normal' },
+    saved: [null, null, null],
+  };
+  const PILL = { pillStyle: ['dark', 'smoke', 'tint', 'light'], position: ['left', 'center', 'right'], size: ['small', 'normal', 'large'] };
   const prefs = loadPrefs();
 
   function loadPrefs() {
@@ -72,6 +77,10 @@
       const saved = JSON.parse(localStorage.getItem('yo.prefs') || '{}');
       ['sound', 'voice', 'volume', 'seasonal'].forEach((key) => { if (key in saved) base[key] = saved[key]; });
       Object.assign(base.look, saved.look || {});
+      Object.keys(PILL).forEach((key) => {
+        if (saved.pill && PILL[key].indexOf(saved.pill[key]) !== -1) base.pill[key] = saved.pill[key];
+      });
+      if (Array.isArray(saved.saved)) base.saved = [0, 1, 2].map((i) => (saved.saved[i] && typeof saved.saved[i] === 'object' ? saved.saved[i] : null));
     } catch (err) { /* start from the defaults */ }
     return base;
   }
@@ -90,7 +99,13 @@
     const look = effectiveLook();
     face.setLook(look);
     if (preview) preview.setLook(look);
-    bridge.reportPrefs({ sound: prefs.sound });
+    // the pill: style, size, and which side of the screen
+    el.island.dataset.pill = prefs.pill.pillStyle;
+    el.island.dataset.size = prefs.pill.size;
+    el.stage.dataset.position = prefs.pill.position;
+    const body = getComputedStyle(face.element).getPropertyValue('--body').trim();
+    if (body) el.island.style.setProperty('--tint', body);
+    bridge.reportPrefs({ sound: prefs.sound, position: prefs.pill.position, size: prefs.pill.size });
   }
 
   function setPref(key, value) {
@@ -761,7 +776,9 @@
   const CUSTOM_TABS = {
     body: [['custom.color', 'color'], ['custom.eyes', 'eyes', 'eyeColor'], ['custom.tip', 'tip'], ['custom.sticker', 'sticker']],
     outfit: [['custom.hat', 'hat'], ['custom.neck', 'neck'], ['custom.glasses', 'glasses'], ['custom.item', 'item'], ['custom.seasonal', 'seasonal']],
+    pill: [['custom.pillStyle', 'pillStyle'], ['custom.position', 'position'], ['custom.size', 'size']],
     sound: [['custom.voice', 'voice'], ['custom.volume', 'volume']],
+    saved: [],
   };
   let customTab = 'body';
   const SWATCHES = { color: true, eyeColor: true };
@@ -770,6 +787,7 @@
     if (group === 'seasonal') return [true, false];
     if (group === 'voice') return Y.sound.VOICES.concat('off');
     if (group === 'volume') return [1, 2, 3];
+    if (PILL[group]) return PILL[group];
     return Y.mascot.LOOKS[group];
   }
 
@@ -777,6 +795,7 @@
     if (group === 'seasonal') return t(value ? 'seasonOn' : 'seasonOff');
     if (group === 'voice') return t('voice.' + value);
     if (group === 'volume') return t('volume.' + value);
+    if (PILL[group]) return t('pill.' + group + '.' + value);
     return t('look.' + group + '.' + value);
   }
 
@@ -784,6 +803,7 @@
     if (group === 'seasonal') return prefs.seasonal === value;
     if (group === 'voice') return value === 'off' ? !prefs.sound : prefs.sound && prefs.voice === value;
     if (group === 'volume') return prefs.volume === value;
+    if (PILL[group]) return prefs.pill[group] === value;
     return prefs.look[group] === value;
   }
 
@@ -806,6 +826,11 @@
       });
       tabs.append(button);
     });
+    stopSavedFaces();
+    if (customTab === 'saved') {
+      el.cOpts.replaceChildren(tabs, savedView());
+      return;
+    }
     const rows = CUSTOM_TABS[customTab].map(([labelKey, ...groups]) => {
       const row = document.createElement('div');
       const name = document.createElement('span');
@@ -889,6 +914,7 @@
       prefs.sound = value !== 'off';
       if (value !== 'off') prefs.voice = value;
     } else if (group === 'volume') prefs.volume = value;
+    else if (PILL[group]) prefs.pill[group] = value;
     else prefs.look[group] = value;
     savePrefs();
     applyPrefs();
@@ -897,6 +923,9 @@
     if (group === 'voice' || group === 'volume') {
       preview.react('success');
       Y.sound.play('hello');
+    } else if (PILL[group]) {
+      Y.sound.play('tick');
+      reportHit();
     } else {
       preview.react('equip');
       Y.sound.play('equip');
@@ -950,9 +979,162 @@
     setTimeout(() => { if (customizing) preview.react('land'); }, 120);
   }
 
+  // ---------- saved looks and look codes ----------
+  const CODE_KEYS = ['color', 'eyeColor', 'eyes', 'hat', 'glasses', 'item', 'neck', 'tip', 'sticker'];
+  let savedFaces = [];
+
+  function stopSavedFaces() {
+    savedFaces.forEach((f) => f.setActive(false));
+    savedFaces = [];
+  }
+
+  const lookOf = (look) => {
+    const out = {};
+    CODE_KEYS.forEach((key) => { out[key] = look[key]; });
+    return out;
+  };
+
+  // a look as a short code: each choice is a digit in a mixed-radix number, written in base 36
+  function encodeLook(look) {
+    let n = 0;
+    CODE_KEYS.forEach((key) => {
+      const list = Y.mascot.LOOKS[key];
+      n = n * list.length + Math.max(0, list.indexOf(look[key]));
+    });
+    return 'YO-' + n.toString(36).toUpperCase();
+  }
+
+  function decodeLook(code) {
+    const m = /^\s*YO-([0-9A-Z]{1,8})\s*$/i.exec(code || '');
+    if (!m) return null;
+    let n = parseInt(m[1], 36);
+    const max = CODE_KEYS.reduce((acc, key) => acc * Y.mascot.LOOKS[key].length, 1);
+    if (!Number.isFinite(n) || n < 0 || n >= max) return null;
+    const look = {};
+    CODE_KEYS.slice().reverse().forEach((key) => {
+      const list = Y.mascot.LOOKS[key];
+      look[key] = list[n % list.length];
+      n = Math.floor(n / list.length);
+    });
+    return look;
+  }
+
+  // wear a look; anything still locked falls back to the default
+  function wear(look, message) {
+    let locked = false;
+    CODE_KEYS.forEach((key) => {
+      if (look[key] === undefined) return;
+      if (Y.unlocks.isUnlocked(key, look[key])) prefs.look[key] = look[key];
+      else { locked = true; prefs.look[key] = Y.mascot.DEFAULT_LOOK[key]; }
+    });
+    savePrefs();
+    applyPrefs();
+    preview.react('equip');
+    Y.sound.play('equip');
+    flashHint(locked ? t('saved.locked') : message);
+  }
+
+  function flashHint(text) {
+    customHint = text;
+    render();
+    clearTimeout(flashHint.timer);
+    flashHint.timer = setTimeout(() => { customHint = ''; render(); }, 2600);
+  }
+
+  function savedView() {
+    const wrap = document.createElement('div');
+    wrap.className = 'saved';
+    const slots = document.createElement('div');
+    slots.className = 'slots';
+    prefs.saved.forEach((look, i) => {
+      const slot = document.createElement('div');
+      const mini = document.createElement('div');
+      const buttons = document.createElement('div');
+      slot.className = 'slot' + (look ? '' : ' empty');
+      mini.className = 'mini-yo';
+      buttons.className = 'slot-actions';
+      if (look) {
+        const f = Y.mascot.mount(mini, 62);
+        f.setLook(look);
+        f.setActive(true);
+        savedFaces.push(f);
+        buttons.append(
+          smallButton(t('saved.wear'), true, () => wear(look, t('saved.wearing'))),
+          smallButton(t('saved.replace'), false, () => saveSlot(i))
+        );
+      } else {
+        mini.textContent = t('saved.empty');
+        buttons.append(smallButton(t('saved.save'), true, () => saveSlot(i)));
+      }
+      slot.append(mini, buttons);
+      slots.append(slot);
+    });
+
+    // share: your look as a code, and a box to use someone else's
+    const share = document.createElement('div');
+    share.className = 'share';
+    const code = encodeLook(prefs.look);
+    const mine = document.createElement('span');
+    mine.className = 'code';
+    mine.textContent = code;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'code-in';
+    input.placeholder = t('saved.paste');
+    input.spellcheck = false;
+    input.maxLength = 16;
+    const useCode = () => {
+      const look = decodeLook(input.value);
+      if (!look) { flashHint(t('saved.bad')); Y.sound.play('info'); return; }
+      input.value = '';
+      wear(look, t('saved.applied'));
+      drawCustom();
+    };
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); useCode(); }
+      event.stopPropagation(); // typing here is not the command bar
+    });
+    share.append(
+      label(t('saved.code')), mine,
+      smallButton(t('copy'), false, () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
+        flashHint(t('copied').replace('{v}', code));
+        Y.sound.play('tick');
+      }),
+      input, smallButton(t('saved.apply'), false, useCode)
+    );
+    wrap.append(slots, share);
+    return wrap;
+  }
+
+  function saveSlot(i) {
+    prefs.saved[i] = lookOf(prefs.look);
+    savePrefs();
+    Y.sound.play('equip');
+    flashHint(t('saved.done'));
+    drawCustom();
+  }
+
+  function smallButton(text, primary, run) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn small' + (primary ? ' ok' : '');
+    button.textContent = text;
+    button.addEventListener('click', run);
+    return button;
+  }
+
+  function label(text) {
+    const span = document.createElement('span');
+    span.className = 'olabel';
+    span.textContent = text;
+    return span;
+  }
+
   function closeCustom() {
     if (!customizing) return;
     customizing = false;
+    stopSavedFaces();
     preview.setActive(false);
     preview.reset();
     render();
