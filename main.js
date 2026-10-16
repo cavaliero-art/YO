@@ -7,6 +7,8 @@ const Agent = require('./main/agent');
 const keys = require('./main/keys');
 const apps = require('./main/apps');
 const watch = require('./main/watch');
+const clips = require('./main/clipboard');
+const translator = require('./main/translate');
 
 const WIN_W = 720; // room for the large pill size
 const WIN_H = 600;
@@ -16,6 +18,7 @@ const SHORTCUTS = ['Control+Space', 'Control+Alt+Y'];
 const POINTER_MS = 33; // pointer checks while a YO window is on screen: eyes follow it, clicks reach YO
 const HIT_MARGIN = 4;
 const MEDIA_MS = 2500; // what's playing, asked only while the pill is on screen
+const PASTE_DELAY_MS = 180; // after YO hides, the window you were in has focus again
 
 let win = null;
 let tray = null;
@@ -221,8 +224,11 @@ ipcMain.handle('show-window', (event, focus) => {
   return true;
 });
 
-ipcMain.on('hide-window', (event) => {
-  if (fromMainWindow(event)) win.hide();
+ipcMain.on('hide-window', (event, after) => {
+  if (!fromMainWindow(event)) return;
+  win.hide();
+  // Clipboard app: what you picked is already on the clipboard; paste it where you were
+  if (after === 'paste') setTimeout(() => { try { keys.paste(); } catch (err) { /* copied, not pasted */ } }, PASTE_DELAY_MS);
 });
 
 ipcMain.on('release-focus', (event) => {
@@ -273,6 +279,19 @@ ipcMain.handle('suggest-open', (event, arg) => {
   return agent.suggestOpen(arg.slice(0, 120));
 });
 
+// ---------- mini apps ----------
+ipcMain.handle('translate', (event, request) => {
+  if (!fromMainWindow(event) || !request || typeof request !== 'object' || typeof request.text !== 'string') return { error: 'service' };
+  return translator.translate(request.text, String(request.from), String(request.to));
+});
+
+const CLIP_ACTIONS = new Set(['pin', 'remove', 'clear', 'copy', 'pause', 'resume']);
+ipcMain.handle('clips', (event) => (fromMainWindow(event) ? clips.list() : null));
+ipcMain.handle('clip', (event, action, id) => {
+  if (!fromMainWindow(event) || !CLIP_ACTIONS.has(action) || (id !== undefined && typeof id !== 'string')) return false;
+  return clips.act(action, id);
+});
+
 ipcMain.on('quit', (event) => {
   if (fromMainWindow(event)) app.quit();
 });
@@ -298,6 +317,7 @@ if (!app.requestSingleInstanceLock()) {
     // get ready in the background: media keys (~1.7 s) and the list of installed apps (~4 s)
     setTimeout(() => keys.warm(), 2000);
     setTimeout(() => apps.refresh(), 3000);
+    clips.start(() => { if (win && !win.isDestroyed()) win.webContents.send('clips'); });
   });
 
   app.on('second-instance', summon);
@@ -305,6 +325,7 @@ if (!app.requestSingleInstanceLock()) {
     globalShortcut.unregisterAll();
     keys.stop();
     watch.stop();
+    clips.stop();
   });
   app.on('window-all-closed', () => app.quit());
 }

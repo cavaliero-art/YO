@@ -39,9 +39,16 @@ function tap(name, times) {
   shell().stdin.write(new Array(times || 1).fill(press).join('; ') + '\n');
 }
 
+// Ctrl+V in whatever window has focus (after YO hides, that's the one you were in)
+function paste() {
+  if (process.platform !== 'win32') throw new Error('Paste needs Windows');
+  const key = (vk, flags) => '[Yo.Keys]::keybd_event(' + vk + ',0,' + flags + ',[UIntPtr]::Zero)';
+  shell().stdin.write([key(0x11, 0), key(0x56, 0), key(0x56, 2), key(0x11, 2)].join('; ') + '\n');
+}
+
 function stop() {
   if (ps) ps.kill();
   ps = null;
 }
 
-module.exports = { tap, warm, stop, KEYS: Object.keys(VK) };
+module.exports = { tap, paste, warm, stop, KEYS: Object.keys(VK) };

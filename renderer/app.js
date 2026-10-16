@@ -32,6 +32,7 @@
     aTitle: $('aTitle'), aBody: $('aBody'), rTitle: $('rTitle'), rBody: $('rBody'),
     bDeny: $('bDeny'), bAllow: $('bAllow'), bAlways: $('bAlways'), bCopy: $('bCopy'), bClose: $('bClose'),
     preview: $('preview'), cOpts: $('cOpts'), cDone: $('cDone'), cRandom: $('cRandom'), cReset: $('cReset'), rMore: $('rMore'),
+    aBack: $('aBack'), aClose: $('aClose'), appBody: $('appBody'),
   };
 
   const face = Y.mascot.mount(el.face, 46);
@@ -61,6 +62,9 @@
   let dragDepth = 0;
   let histIndex = -1; // browsing past commands with ↑ / ↓
   let preview = null; // the big YO in that panel
+  let miniapp = null; // id of the open mini app (Translate, Calculator, Clipboard)
+  const appViews = {}; // each mini app is built the first time it opens, then kept
+  let appHint = ''; // shown in the app's title for a moment ("Copied!")
 
   // ---------- preferences: YO's look and sound (kept in this window's storage until Stage 3 saves settings) ----------
   const DEFAULT_PREFS = {
@@ -130,6 +134,7 @@
   // ---------- what the island should look like right now ----------
   function derive() {
     if (customizing) return 'custom';
+    if (miniapp) return 'app';
     if (composing) return 'command';
     if (s.state === 'listening') return 'listening';
     if (s.state === 'working') return 'working';
@@ -139,7 +144,7 @@
   }
 
   function busy() {
-    return composing || customizing || s.state === 'working' || s.state === 'listening' || s.state === 'approval' ||
+    return composing || customizing || Boolean(miniapp) || s.state === 'working' || s.state === 'listening' || s.state === 'approval' ||
       (s.state === 'result' && s.fg);
   }
 
@@ -205,6 +210,7 @@
 
   // while typing, YO wears the look of the highlighted action
   function variant() {
+    if (miniapp) return 'tools';
     if (composing && panel && hoverCat) return hoverCat;
     if (composing && !panel && matches[pick]) return matches[pick].category;
     return s.category;
@@ -216,6 +222,7 @@
 
     if (vis !== 'leaving') {
       el.island.dataset.mode = mode;
+      el.island.dataset.app = miniapp || '';
       el.island.dataset.variant = variant();
       el.island.dataset.face = faceState;
       face.setState(faceState);
@@ -226,6 +233,7 @@
       else if (mode === 'approval') text = t('needsOk');
       else if (mode === 'result') text = s.label || t('done');
       else if (mode === 'custom') text = customHint || t('customize');
+      else if (mode === 'app') text = appHint || t('cmd.' + miniapp);
       el.label.textContent = text;
       setBubble(mode === 'peek' ? bubbleFor() : '');
       announce(text || bubbleText);
@@ -246,6 +254,9 @@
     el.hero.setAttribute('aria-label', 'YO');
     el.hero.title = t('heroTip');
     el.cDone.textContent = t('done');
+    el.aBack.textContent = '← ' + t('app.back');
+    el.aClose.setAttribute('aria-label', t('app.close'));
+    el.aClose.title = t('app.close');
     el.cRandom.textContent = t('surprise');
     el.cReset.textContent = t('reset');
     el.suggest.setAttribute('aria-label', t('actions'));
@@ -335,7 +346,7 @@
       name.textContent = t('cat.' + cat);
       chips.className = 'chips';
       if (cat === 'tools') {
-        Y.quick.TOOLS.forEach((tool) => chips.append(toolChip(tool)));
+        Y.quick.TOOLS.filter((tool) => tool.id !== 'math').forEach((tool) => chips.append(toolChip(tool))); // the calculator is an app now
         row.append(name, chips);
         return row;
       }
@@ -359,7 +370,37 @@
       return row;
     });
     const recent = recentRow();
-    el.panel.replaceChildren(...(recent ? [recent] : []), ...rows);
+    el.panel.replaceChildren(appTiles(), ...(recent ? [recent] : []), ...rows);
+  }
+
+  // the mini apps, as big tiles at the top of the panel
+  function appTiles() {
+    const grid = document.createElement('div');
+    grid.className = 'tiles';
+    Y.commands.LIST.filter((cmd) => cmd.app).forEach((cmd) => {
+      const tile = document.createElement('button');
+      const ico = document.createElement('span');
+      const text = document.createElement('span');
+      const name = document.createElement('span');
+      const sub = document.createElement('span');
+      tile.type = 'button';
+      tile.className = 'tile';
+      tile.dataset.cat = cmd.tint;
+      ico.className = 'tico';
+      ico.innerHTML = cmd.icon; // static markup from commands.js
+      text.className = 'ttxt';
+      name.className = 'tname';
+      name.textContent = t('short.' + cmd.id);
+      sub.className = 'tsub';
+      sub.textContent = t('app.sub.' + cmd.id);
+      text.append(name, sub);
+      tile.append(ico, text);
+      tile.addEventListener('mousedown', (event) => event.preventDefault()); // keep focus in the bar
+      tile.addEventListener('mouseenter', () => previewCat('tools'));
+      tile.addEventListener('click', () => fromPanel(cmd));
+      grid.append(tile);
+    });
+    return grid;
   }
 
   // what you ran lately, pinned ones first (right-click a chip to pin it)
@@ -585,7 +626,7 @@
     }, ENTER_MS);
   }
 
-  function hideIsland() {
+  function hideIsland(after) {
     if (vis === 'hidden' || vis === 'leaving') return;
     clearTimeout(peekTimer);
     Y.sound.play('leave');
@@ -601,13 +642,13 @@
       face.reset();
       dozing = false;
       reportHit();
-      bridge.hide();
+      bridge.hide(after);
     }, LEAVE_MS);
   }
 
   // nothing going on: deliver waiting news first, otherwise leave
   function maybeHide() {
-    if (composing || customizing || s.state !== 'idle') return;
+    if (composing || customizing || miniapp || s.state !== 'idle') return;
     if (later.length) return onEvent(later.shift());
     hideIsland();
   }
@@ -966,6 +1007,7 @@
 
   function openCustom() {
     if (customizing) return;
+    if (miniapp) shutApp();
     customizing = true;
     composing = false;
     panel = false;
@@ -1142,6 +1184,93 @@
     maybeHide();
   }
 
+  // ---------- mini apps: Translate, Calculator, Clipboard (renderer/apps/) ----------
+  // what every app gets from YO
+  const host = {
+    t,
+    bridge,
+    sound: (name) => Y.sound.play(name),
+    react: (move) => face.react(move),
+    toast: flashApp,
+    copy(text) {
+      const fail = () => flashApp(t('copyFailed'));
+      if (!navigator.clipboard) return fail();
+      navigator.clipboard.writeText(text).then(() => {
+        flashApp(t('app.copied'));
+        face.react('success');
+        Y.sound.play('success');
+        earn('answers');
+      }, fail);
+    },
+    close: () => closeApp(),
+    // Clipboard app: YO steps aside, then the main process presses Ctrl+V in the window you were in
+    pasteBack() {
+      shutApp();
+      render();
+      hideIsland('paste');
+    },
+    // the text you copied in the last few moments (Translate starts with it)
+    recentCopy(ms) {
+      if (!bridge.clips) return Promise.resolve('');
+      return bridge.clips().then((data) => {
+        const items = (data && data.items) || [];
+        const fresh = items.filter((c) => Date.now() - c.at < ms).sort((a, b) => b.at - a.at)[0];
+        return fresh ? fresh.text : '';
+      }, () => '');
+    },
+  };
+
+  function flashApp(text) {
+    appHint = text;
+    render();
+    clearTimeout(flashApp.timer);
+    flashApp.timer = setTimeout(() => { appHint = ''; render(); }, 2200);
+  }
+
+  function openApp(id, seed) {
+    const mount = Y.miniapps.get(id);
+    if (!mount) return;
+    const fresh = miniapp !== id;
+    if (miniapp && fresh) shutApp();
+    miniapp = id;
+    if (customizing) {
+      customizing = false;
+      stopSavedFaces();
+      preview.setActive(false);
+      preview.reset();
+    }
+    composing = false;
+    panel = false;
+    el.cmd.value = '';
+    if (s.state === 'done') { clearTimeout(s.timer); s.state = 'idle'; s.fg = false; }
+    if (!appViews[id]) {
+      appViews[id] = mount(host);
+      el.appBody.append(appViews[id].root);
+    }
+    Object.keys(appViews).forEach((key) => { appViews[key].root.hidden = key !== id; });
+    appHint = '';
+    render();
+    showIsland(true);
+    appViews[id].open(seed || '');
+    if (fresh) Y.sound.play('drawer');
+  }
+
+  // close the app and nothing else (something else takes over)
+  function shutApp() {
+    if (!miniapp) return;
+    const view = appViews[miniapp];
+    miniapp = null;
+    if (view && view.close) view.close();
+  }
+
+  function closeApp() {
+    if (!miniapp) return;
+    shutApp();
+    render();
+    Y.sound.play('close');
+    maybeHide();
+  }
+
   // ---------- what the user does ----------
   function expand(seed) {
     histIndex = -1;
@@ -1178,6 +1307,8 @@
     earn('actions');
     Y.memory.history.add(text || (cmd ? cmd.words[0] : ''), cmd && cmd.id);
     if (cmd) Y.memory.usage.bump(cmd.id);
+    const appCmd = cmd && cmd.app ? cmd : !cmd ? Y.commands.LIST.find((c) => c.app && Y.commands.leadWord(c, text)) : null;
+    if (appCmd) return openApp(appCmd.app, Y.commands.argOf(appCmd, text));
     if ((cmd && cmd.id === 'inbox') || (!cmd && Y.commands.leadWord(Y.commands.byId('inbox'), text))) return showInbox();
     const fun = cmd && cmd.category === 'fun' ? cmd : !cmd && Y.commands.match(text, 1).find((c) => c.category === 'fun' && Y.commands.leadWord(c, text));
     if (fun) return emote(fun);
@@ -1273,6 +1404,11 @@
 
   function escape() {
     if (customizing) return closeCustom();
+    if (miniapp) {
+      const view = appViews[miniapp];
+      if (view.escape && view.escape()) return; // the app used it (closed its picker, cleared its search)
+      return closeApp();
+    }
     if (composing && panel) return setPanel(false); // first Esc closes the panel
     if (composing) {
       composing = false;
@@ -1336,6 +1472,12 @@
     openCustom();
   });
   el.cDone.addEventListener('click', closeCustom);
+  el.aClose.addEventListener('click', () => closeApp());
+  el.aBack.addEventListener('click', () => {
+    shutApp();
+    expand('');
+    setPanel(true);
+  });
   el.cRandom.addEventListener('click', surprise);
   el.cReset.addEventListener('click', resetLook);
   el.island.addEventListener('mouseenter', () => { hovering = true; });
@@ -1440,6 +1582,14 @@
     const text = files.length ? '' : (data.getData('text/plain') || '').trim();
     face.setHungry(false);
     if (!paths.length && !text) return;
+    // an open app may want it (text into Translate or the Calculator)
+    const view = miniapp && appViews[miniapp];
+    if (view && text && view.drop && view.drop(text)) {
+      face.react('eat');
+      Y.sound.play('gulp');
+      return;
+    }
+    if (miniapp) shutApp();
     if (customizing) closeCustom();
     face.react('eat');
     Y.sound.play('gulp');
@@ -1520,6 +1670,7 @@
 
   bridge.onHotkey(() => {
     if (customizing) return closeCustom();
+    if (miniapp) return closeApp();
     if (vis === 'hidden' || vis === 'leaving') {
       composing = false;
       render();
@@ -1580,6 +1731,7 @@
     onEvent,
     session: s,
     mascot: face,
-    view: () => ({ composing, vis, mode: el.island.dataset.mode, bubble: bubbleText, variant: el.island.dataset.variant, queued: later.length }),
+    openApp,
+    view: () => ({ composing, vis, app: miniapp, mode: el.island.dataset.mode, bubble: bubbleText, variant: el.island.dataset.variant, queued: later.length }),
   };
 })((window.Yo = window.Yo || {}));

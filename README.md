@@ -1,4 +1,4 @@
-# YO v0.5: a little robot with real hands
+# YO v0.6: a little robot with real hands
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
@@ -46,6 +46,26 @@ Safety: the page never runs anything itself. It asks the main process, which che
 again. Opening a program or script file (.exe, .bat, .ps1...) always asks first and never offers
 "Always". Sites open only as http/https.
 
+### Mini apps
+
+The top of the actions panel has three app tiles. Each one opens inside the pill, with YO in the
+corner, `← All apps` to go back and `Esc` to close. You can also type their name; what you type after
+it fills the app in.
+
+- Translate: `tr hola to english`, `translate bonjour`, or open it right after copying some text and
+  it starts with that. Pick languages from chips (From can detect the language); `⇄` swaps.
+  `Ctrl+Enter` copies. The text is sent to MyMemory (a free translation service, no account) and
+  needs internet; nothing else is sent.
+- Calculator: type or tap; the answer shows as you go and `Enter` keeps it in the history.
+  `84 + 20%` = 100.8 like a real calculator, and it also does `20% of 150`, `5 km in miles`.
+  `Ctrl+C` with nothing selected copies the answer.
+- Clipboard: everything you copied (text), newest first, searchable. `Enter` pastes it into the
+  window you were in, `Ctrl+Enter` only copies it, ★ keeps one. Kept in memory only and cleared when YO
+  quits, except ★ ones (saved in clips.json). Text a password manager marks as private is skipped,
+  like Windows does. Pause it any time.
+
+Dropping text on YO while Translate or the Calculator is open puts it in there.
+
 ### Drop things on YO
 
 Drag a file or some text onto YO: its whole visor becomes a big open mouth ("gimme!"), then it
@@ -57,7 +77,7 @@ snaps shut, chews, and licks its lips.
 ### Quick answers
 
 Type and the answer shows up as the first row; `Enter` copies it. They're also in the Tools row of the
-actions panel.
+actions panel (the Calculator app does math with a history).
 
 - Math: `12*7`, `= sqrt(16) + 2`, `2^10`, `20% of 150` (worked out by YO's own parser; nothing you type is run as code)
 - Units: `5 km in miles`, `100 f to c`, `3 kg in lb`, `1 gb in mb`, `60 mph in km/h`
@@ -138,18 +158,21 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
                        apps.js (installed apps), keys.js (media keys), store.js (JSON files),
-                       watch.js (what's playing)
+                       watch.js (what's playing), clipboard.js (clipboard history),
+                       translate.js (asks MyMemory)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
-                       agent.js (asks the main process), mock-agent.js (demo, for a plain browser)
+                       agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
+                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard)
     tests/             npm test (nothing real happens: Electron, keys, launching and lock are faked)
 
 YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
-apps.json (the installed apps it found). Your look and sound choices are in the same folder.
+apps.json (the installed apps it found), clips.json (clipboard items you kept with ★). Your look and sound choices are in the same folder.
 
 ## Next
 
 - Stage 4: tray settings (start at login, shortcut picker), Windows installer, tests.
+- More mini apps (text tools, images, notes, QR, focus) once the first three have been tried.
 

@@ -18,4 +18,21 @@ module.exports = {
     openExternal: async (url) => { calls.push(['openExternal', url]); },
     openPath: async (target) => { calls.push(['openPath', target]); return ''; },
   },
+  // a clipboard a test can set; formats are the private markers password managers add
+  clipboard: {
+    text: '',
+    formats: new Map(),
+    readText() { return this.text; },
+    writeText(text) { this.text = text; this.formats = new Map(); },
+    has(format) { return this.formats.has(format); },
+    readBuffer(format) { return this.formats.get(format) || Buffer.alloc(0); },
+  },
+  // net.fetch answers with whatever the test puts in reply(url)
+  net: {
+    reply: () => ({ ok: false, status: 500, json: async () => ({}) }),
+    fetch(url) {
+      calls.push(['fetch', url]);
+      return new Promise((resolve) => resolve(this.reply(url)));
+    },
+  },
 };

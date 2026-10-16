@@ -47,7 +47,13 @@
 
     function expr() {
       let v = term();
-      while (peek() === '+' || peek() === '-') v = next() === '+' ? v + term() : v - term();
+      while (peek() === '+' || peek() === '-') {
+        const op = next();
+        const start = i;
+        let r = term();
+        if (i - start === 2 && tokens[i - 1] === '%') r *= v; // "84 + 20%" adds 20% of 84, like a calculator
+        v = op === '+' ? v + r : v - r;
+      }
       return v;
     }
     function term() {

@@ -34,6 +34,10 @@
             <span id="wave" class="wave" data-for="listening" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
             <button id="stop" class="link" data-for="working" type="button"></button>
             <button id="cDone" class="btn small ok" data-for="custom" type="button"></button>
+            <button id="aBack" class="link" data-for="app" type="button"></button>
+            <button id="aClose" class="icon" data-for="app" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
           </div>
         </div>
         <div class="fold suggestfold"><div class="fold-in">
@@ -50,6 +54,7 @@
           </div>
           <div id="cOpts" class="opts"></div>
         </div></div></div>
+        <div class="fold appfold"><div class="fold-in"><div id="appBody" class="appbody"></div></div></div>
         <div class="fold cardfold"><div class="fold-in"><div class="cardbody">
           <div class="blk" data-for="approval">
             <div class="c-head"><div class="c-title" id="aTitle"></div><span id="risk" class="chip risk"></span></div>
@@ -79,6 +84,10 @@
   <script src="mascot.js"></script>
   <script src="commands.js"></script>
   <script src="quick.js"></script>
+  <script src="miniapps.js"></script>
+  <script src="apps/translate.js"></script>
+  <script src="apps/calc.js"></script>
+  <script src="apps/clipboard.js"></script>
   <script src="mock-agent.js"></script>
   <script src="agent.js"></script>
   <script src="unlocks.js"></script>

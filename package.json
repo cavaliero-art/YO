@@ -1,12 +1,12 @@
 {
   "name": "yo",
   "productName": "YO",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "YO: a small desktop companion that hangs from the top of your screen and does quick things for you.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js"
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js"
   },
   "license": "MIT",
   "devDependencies": {

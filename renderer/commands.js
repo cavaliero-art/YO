@@ -40,6 +40,16 @@
   };
   LIST.push({ id: 'inbox', category: 'system', words: ['inbox', 'messages', 'notifications', 'missed'],
     icon: svg('<path d="M4 13l2.5-7.5h11L20 13v5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><path d="M4 13h4.5l1 2h5l1-2H20"/>') });
+  // mini apps: each opens inside the pill (renderer/apps/); what you type after the word fills it in
+  //   tint: the app's color (a category color)
+  LIST.push(
+    { id: 'translate', category: 'tools', app: 'translate', tint: 'media', words: ['translate', 'translator', 'tr'],
+      icon: svg('<path d="M4 5h8M8 3v2M5.5 5c.8 3.4 3.2 6 6.5 7M10.5 5c-.8 3.4-3.2 6-6.5 7"/><path d="M12.5 21l4-10 4 10M14 17.5h5"/>') },
+    { id: 'calc', category: 'tools', app: 'calc', tint: 'tools', words: ['calculator', 'calculate', 'calc'],
+      icon: svg('<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 13h.01M12 13h.01M15 13h.01M9 17h.01M12 17h.01M15 17h.01"/>') },
+    { id: 'clipboard', category: 'tools', app: 'clipboard', tint: 'time', words: ['clipboard', 'paste history', 'clips', 'clip'],
+      icon: svg('<rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5M9 10h6M9 13.5h6M9 17h3.5"/>') }
+  );
   // emotes: YO does them right away, nothing leaves the page
   LIST.push(
     { id: 'dance', category: 'fun', words: ['dance', 'boogie'], icon: svg('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>') },

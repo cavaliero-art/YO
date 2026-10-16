@@ -6,7 +6,7 @@
   const dict = {
     en: {
       dir: 'ltr', chip: 'EN',
-      placeholder: 'Open, play, lock, remind me…',
+      placeholder: 'Open, translate, calc, remind me…',
       welcome: "Hi, I'm YO. Press {key} to call me.",
       noMatch: 'Nothing for that yet',
       noMatchHint: 'press ↓ to see everything',
@@ -21,13 +21,37 @@
         play: 'Play / pause', next: 'Next track', prev: 'Previous track',
         volup: 'Volume up', voldown: 'Volume down', mute: 'Mute / unmute', lock: 'Lock this PC',
         dance: 'Dance', jump: 'Jump', wave: 'Wave hello', flip: 'Backflip', spin: 'Spin', love: 'Show some love',
-        inbox: 'Inbox',
+        inbox: 'Inbox', translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard history',
       },
       short: {
         open: 'Open…', remind: 'Remind me…', timer: 'Timer…',
         play: 'Play', next: 'Next', prev: 'Prev', volup: 'Vol +', voldown: 'Vol −', mute: 'Mute',
         lock: 'Lock PC',
         dance: 'Dance', jump: 'Jump', wave: 'Wave', flip: 'Flip', spin: 'Spin', love: 'Love', inbox: 'Inbox',
+        translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard',
+      },
+      // mini apps (renderer/apps/)
+      app: {
+        back: 'All apps', close: 'Close', copied: 'Copied!',
+        sub: { translate: 'Any language', calc: 'Math, units, %', clipboard: 'What you copied' },
+        translate: {
+          detect: 'Detect', swap: 'Swap languages', placeholder: 'Type or paste text…', from: 'From', to: 'To',
+          detected: 'Detected: {lang}', working: 'Translating…', fromClip: 'From your clipboard', cut: 'Only the first 500 characters',
+          note: 'Sent to MyMemory to translate · needs internet', recent: 'Recent',
+          error: {
+            net: "Can't reach the translator. Are you online?", quota: 'Daily limit reached, try again tomorrow',
+            service: "The translator couldn't do that one", lang: 'Pick a language', app: 'Translate works in the YO app',
+          },
+        },
+        calc: { placeholder: '12 × 7, 20% of 150, 5 km in miles', history: 'History', empty: 'Press Enter to keep a result here', clear: 'Clear', bad: "Can't work that out" },
+        clipboard: {
+          search: 'Search what you copied…', pause: 'Pause', resume: 'Resume', clear: 'Clear', empty: 'Copy some text and it shows up here',
+          none: 'Nothing matches', paused: 'Paused: new copies are not kept', hint: 'Enter pastes · Ctrl+Enter copies · ★ keeps it',
+          privacy: 'Text only, on this PC. Cleared when YO quits, except ★. Passwords are skipped.',
+          pin: 'Keep (★)', unpin: 'Unpin', remove: 'Remove', app: 'Clipboard history works in the YO app', full: 'Up to 20 ★',
+          kind: { link: 'Link', color: 'Color', email: 'Email', number: 'Number', code: 'Code', text: 'Text' },
+          now: 'now',
+        },
       },
       cat: { recent: 'Recent', apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', fun: 'Fun', system: 'System' },
       pinTip: 'Click to run · Right-click to pin',
@@ -55,6 +79,7 @@
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min',
         play: 'play', next: 'next', prev: 'previous', volup: 'louder', voldown: 'quieter', mute: 'mute', lock: 'lock',
         dance: 'dance', jump: 'jump', wave: 'hi yo', flip: 'flip', spin: 'spin', love: 'love you', inbox: 'inbox',
+        translate: 'tr hola to english', calc: 'calc 12*7', clipboard: 'clip',
       },
       lockTitle: 'Lock this PC', lockBody: 'YO wants to lock your workstation.',
       lockedDone: 'PC would lock now (demo)',
