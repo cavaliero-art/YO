@@ -65,8 +65,9 @@
       heroTip: 'Click to type · Hold to pet · Right-click to customize',
       custom: {
         color: 'Color', eyes: 'Eyes', hat: 'Hat', glasses: 'Glasses', item: 'Holding',
-        seasonal: 'Seasonal', voice: 'Voice', volume: 'Volume',
+        seasonal: 'Seasonal', voice: 'Voice', volume: 'Volume', tip: 'Antenna', sticker: 'Sticker', neck: 'Neck',
       },
+      tab: { body: 'Body', outfit: 'Outfit', sound: 'Sound', saved: 'Saved' },
       look: {
         color: { mint: 'Mint', sky: 'Sky', coral: 'Coral', lilac: 'Lilac', lemon: 'Lemon', bubblegum: 'Bubblegum', snow: 'Snow', graphite: 'Graphite', gold: 'Gold' },
         eyeColor: { mint: 'Mint eyes', white: 'White eyes', amber: 'Amber eyes', pink: 'Pink eyes', cyan: 'Cyan eyes' },
@@ -77,6 +78,9 @@
         },
         glasses: { none: 'None', sun: 'Sunglasses', round: 'Round' },
         item: { none: 'Nothing', lantern: 'Lantern', mug: 'Mug', controller: 'Controller' },
+        neck: { none: 'None', scarf: 'Scarf', bowtie: 'Bow tie', cape: 'Cape' },
+        tip: { ball: 'Ball', heart: 'Heart', star: 'Star', bolt: 'Bolt', flower: 'Flower' },
+        sticker: { none: 'None', freckles: 'Freckles', stripes: 'Stripes', bolt: 'Bolt', heart: 'Heart' },
       },
       voice: { robot: 'Robot', soft: 'Soft', retro: 'Retro', off: 'Off' },
       volume: { 1: 'Low', 2: 'Mid', 3: 'High' },

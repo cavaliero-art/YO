@@ -700,16 +700,13 @@
 
   // ---------- Customize: right-click YO ----------
   // each row: [label key, pref group, values]; swatches for colors, chips for the rest
-  const CUSTOM_ROWS = [
-    ['custom.color', 'color'],
-    ['custom.eyes', 'eyes', 'eyeColor'],
-    ['custom.hat', 'hat'],
-    ['custom.glasses', 'glasses'],
-    ['custom.item', 'item'],
-    ['custom.seasonal', 'seasonal'],
-    ['custom.voice', 'voice'],
-    ['custom.volume', 'volume'],
-  ];
+  // tabs keep the panel short: each one has its rows
+  const CUSTOM_TABS = {
+    body: [['custom.color', 'color'], ['custom.eyes', 'eyes', 'eyeColor'], ['custom.tip', 'tip'], ['custom.sticker', 'sticker']],
+    outfit: [['custom.hat', 'hat'], ['custom.neck', 'neck'], ['custom.glasses', 'glasses'], ['custom.item', 'item'], ['custom.seasonal', 'seasonal']],
+    sound: [['custom.voice', 'voice'], ['custom.volume', 'volume']],
+  };
+  let customTab = 'body';
   const SWATCHES = { color: true, eyeColor: true };
 
   function optionsFor(group) {
@@ -734,12 +731,29 @@
   }
 
   function drawCustom() {
-    const rows = CUSTOM_ROWS.map(([labelKey, ...groups]) => {
+    const tabs = document.createElement('div');
+    tabs.className = 'ctabs';
+    tabs.setAttribute('role', 'tablist');
+    Object.keys(CUSTOM_TABS).forEach((tab) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ctab';
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-selected', String(tab === customTab));
+      button.textContent = t('tab.' + tab);
+      button.addEventListener('click', () => {
+        if (tab === customTab) return;
+        customTab = tab;
+        drawCustom();
+        Y.sound.play('tick');
+      });
+      tabs.append(button);
+    });
+    const rows = CUSTOM_TABS[customTab].map(([labelKey, ...groups]) => {
       const row = document.createElement('div');
       const name = document.createElement('span');
       const opts = document.createElement('div');
       row.className = 'orow';
-      if (groups[0] === 'voice') row.classList.add('sep');
       name.className = 'olabel';
       name.textContent = t(labelKey);
       opts.className = 'ochips';
@@ -773,7 +787,7 @@
       if (groups[0] === 'seasonal') row.append(seasonInfo());
       return row;
     });
-    el.cOpts.replaceChildren(...rows);
+    el.cOpts.replaceChildren(tabs, ...rows);
     syncCustom();
   }
 
@@ -843,6 +857,9 @@
       hat: Math.random() < 0.8 ? pick(L.hat) : 'none',
       glasses: Math.random() < 0.4 ? pick(L.glasses) : 'none',
       item: Math.random() < 0.5 ? pick(L.item) : 'none',
+      neck: Math.random() < 0.5 ? pick(L.neck) : 'none',
+      tip: Math.random() < 0.5 ? pick(L.tip) : 'ball',
+      sticker: Math.random() < 0.4 ? pick(L.sticker) : 'none',
     };
     savePrefs();
     applyPrefs();

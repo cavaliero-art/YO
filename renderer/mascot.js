@@ -28,21 +28,35 @@
 
   const MARKUP =
     '<svg class="yo-char" viewBox="-16 -12 120 104" data-state="idle" data-variant="system" data-color="mint" ' +
-    'data-eye="mint" data-eyes="classic" data-hat="none" data-glasses="none" data-item="none" data-moon="false" aria-hidden="true">' +
+    'data-eye="mint" data-eyes="classic" data-hat="none" data-glasses="none" data-item="none" data-moon="false" ' +
+    'data-neck="none" data-tip="ball" data-sticker="none" aria-hidden="true">' +
     '<g transform="translate(-60,-48)"><g class="rig">' +
     '<g class="acc acc-apps"><polygon class="c-body" points="76,78 77,60 93,72"/><polygon class="c-body" points="124,78 123,60 107,72"/></g>' +
     '<g class="acc acc-time"><circle class="c-foot" cx="76" cy="68" r="7"/><circle class="c-foot" cx="124" cy="68" r="7"/></g>' +
     '<g class="ant">' +
       '<line class="c-ant" x1="100" y1="72" x2="100" y2="58" stroke-width="3" stroke-linecap="round"/>' +
       '<circle class="c-ring acc acc-media" cx="100" cy="53" r="9"/>' +
-      '<circle class="dot" cx="100" cy="53" r="5"/>' +
+      '<g class="tip"><circle class="dot" cx="100" cy="53" r="5"/>' +
+        '<path class="t-heart" d="M100 58C91 52.5 93.5 45 100 49C106.5 45 109 52.5 100 58Z"/>' +
+        '<path class="t-star" transform="translate(100 53) scale(1.15)" d="' + STAR + '"/>' +
+        '<path class="t-bolt" d="M101.5 45L95 54H100L98 61.5L105.5 51.5H100.5Z"/>' +
+        '<g class="t-flower"><circle cx="100" cy="48.5" r="3"/><circle cx="104.3" cy="51.6" r="3"/><circle cx="102.6" cy="56.6" r="3"/>' +
+          '<circle cx="97.4" cy="56.6" r="3"/><circle cx="95.7" cy="51.6" r="3"/><circle class="t-center" cx="100" cy="53" r="2.2"/></g></g>' +
       '<path class="o-moon" d="M103 45.5a7.5 7.5 0 1 0 0 15a9 9 0 0 1 0 -15z"/>' +
       '<circle class="hit-ant" cx="100" cy="54" r="12"/>' +
     '</g>' +
+    '<g class="o-cape"><path class="o-capec" d="M72 84Q100 77 128 84L141 136Q121 143 100 138Q79 143 59 136Z"/></g>' +
     '<rect class="c-foot" x="80" y="130" width="14" height="7" rx="3"/>' +
     '<rect class="c-foot" x="106" y="130" width="14" height="7" rx="3"/>' +
     '<rect class="c-body" x="68" y="70" width="64" height="60" rx="22"/>' +
     '<rect class="c-visor" x="76" y="84" width="48" height="30" rx="12"/>' +
+    '<g class="stickers">' +
+      '<g class="s-freckles"><circle cx="77.5" cy="116.5" r="1"/><circle cx="81" cy="119.5" r="1"/><circle cx="76.5" cy="121.5" r="1"/>' +
+        '<circle cx="122.5" cy="116.5" r="1"/><circle cx="119" cy="119.5" r="1"/><circle cx="123.5" cy="121.5" r="1"/></g>' +
+      '<path class="s-stripes" d="M80 121H120M82 125.5H118"/>' +
+      '<path class="s-bolt" d="M101.5 115L95 123H100L98 130L105.5 121.5H100.5Z"/>' +
+      '<path class="s-heart" d="M100 128.5C93.5 124.5 95 119 100 121.8C105 119 106.5 124.5 100 128.5Z"/>' +
+    '</g>' +
     '<g class="blush"><ellipse cx="81" cy="119" rx="4.5" ry="2.2"/><ellipse cx="119" cy="119" rx="4.5" ry="2.2"/></g>' +
     '<g class="eye eye-l">' + EYE + '</g><g class="eye eye-r">' + EYE + '</g>' +
     '<g class="mouth"><rect class="c-jaw" x="79" y="98" width="42" height="14.5" rx="7"/>' +
@@ -52,6 +66,10 @@
     '<g class="o-round"><circle cx="90" cy="99" r="7.5"/><circle cx="110" cy="99" r="7.5"/><path d="M97.5 98.5Q100 96.5 102.5 98.5"/></g>' +
     '<g class="o-glasses"><rect x="80.5" y="92" width="17.5" height="12" rx="5"/><rect x="102" y="92" width="17.5" height="12" rx="5"/>' +
       '<path class="bridge" d="M98 96.5h4"/><path class="shine" d="M84 95.5l4 -1.6M105.5 95.5l4 -1.6"/></g>' +
+    '<g class="o-scarf"><path class="o-scarfc" d="M69 115Q100 124 131 115L131 124Q100 133 69 124Z"/>' +
+      '<path class="o-scarfs" d="M80 119V127M92 121V129.5M108 121V129.5M120 119V127"/>' +
+      '<g class="scarf-tail"><rect class="o-scarfc" x="111.5" y="121" width="9" height="19" rx="3"/><path class="o-scarfs" d="M111.5 134H120.5M111.5 137.5H120.5"/></g></g>' +
+    '<g class="o-bowtie"><path class="o-tie" d="M100 121.5L89.5 115.5V127.5Z"/><path class="o-tie" d="M100 121.5L110.5 115.5V127.5Z"/><circle class="o-tie2" cx="100" cy="121.5" r="2.6"/></g>' +
     '<g class="hat">' +
       '<g class="o-winter"><path class="o-red" d="M70 78Q70 50 100 50Q130 50 130 78Z"/><rect class="o-white" x="67" y="70" width="66" height="9" rx="4.5"/><circle class="o-white" cx="100" cy="47.5" r="5.5"/></g>' +
       '<g class="o-party"><path class="o-violet" d="M75 72L98 70L84 39Z"/><path class="o-stripe" d="M79.5 62.5L94.5 61.3M82 53L90.5 52.3"/><circle class="o-yellow" cx="84" cy="38" r="3.6"/></g>' +
@@ -119,8 +137,14 @@
     hat: ['none', 'winter', 'party', 'witch', 'crown', 'cap', 'headphones', 'bow', 'propeller', 'nightcap', 'halo', 'grad'],
     glasses: ['none', 'sun', 'round'],
     item: ['none', 'lantern', 'mug', 'controller'],
+    neck: ['none', 'scarf', 'bowtie', 'cape'],
+    tip: ['ball', 'heart', 'star', 'bolt', 'flower'],
+    sticker: ['none', 'freckles', 'stripes', 'bolt', 'heart'],
   };
-  const DEFAULT_LOOK = { color: 'mint', eyeColor: 'mint', eyes: 'classic', hat: 'none', glasses: 'none', item: 'none', moon: false };
+  const DEFAULT_LOOK = {
+    color: 'mint', eyeColor: 'mint', eyes: 'classic', hat: 'none', glasses: 'none', item: 'none',
+    neck: 'none', tip: 'ball', sticker: 'none', moon: false,
+  };
   // eye style: [x, y, width, height, corner] of the open and the wide eye
   const EYE_STYLE = {
     classic: { open: [-4, -5, 8, 10, 3], wide: [-5, -7, 10, 14, 3.5] },
@@ -204,7 +228,7 @@
     const node = {
       rig: $('.rig'), ant: $('.ant'), ears: $('.acc-apps'), bells: $('.acc-time'), hat: $('.hat'), glasses: $('.o-glasses'),
       armL: $('.arm-l'), armR: $('.arm-r'), held: $('.held'), steam: $('.o-steam'), eyeL: $('.eye-l'), eyeR: $('.eye-r'),
-      mouth: $('.mouth'), smile: $('.smile'), blades: $('.blades'), halo: $('.o-halo'), tassel: $('.tassel'),
+      mouth: $('.mouth'), smile: $('.smile'), blades: $('.blades'), cape: $('.o-cape'), tail: $('.scarf-tail'), halo: $('.o-halo'), tassel: $('.tassel'),
       blush: $('.blush'), fx: $('.fx'), badge: $('.x-alert'), listen: $('.x-listen'),
     };
 
@@ -213,6 +237,7 @@
       ant: spring(0, 240, 5), acc: spring(0, 180, 7), hat: spring(0, 70, 4.5), glasses: spring(0, 150, 15),
       lantern: spring(0, 45, 2.2), armL: spring(12, 170, 15), armR: spring(12, 170, 15),
       lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12), mouth: spring(0, 520, 22),
+      cape: spring(0, 55, 4.5), tail: spring(0, 80, 5),
     };
     const holds = {}; // short overrides: expr, pose, look, tilt -> { v, until }
     const later = []; // steps of a reaction: { at, fn }
@@ -221,6 +246,7 @@
     let state = 'idle';
     let hat = 'none';
     let item = 'none';
+    let neck = 'none';
     let raf = 0;
     let last = 0;
     let clock = 0;
@@ -362,6 +388,8 @@
       sp.hat.t = -sp.tilt.x * 1.2 + sp.hop.v * 0.07 + sp.ant.x * 0.12;
       sp.lantern.t = -sp.armR.v * 0.05 - sp.tilt.x;
       sp.glasses.t = expr === 'idle' || expr === 'think' ? 0 : -16; // sunglasses go up when YO emotes
+      sp.cape.t = -sp.hop.v * 0.12 - sp.tilt.x * 0.7 + (still ? 0 : Math.sin(clock * 2.6) * 1.8);
+      sp.tail.t = -sp.tilt.x * 1.3 - sp.hop.v * 0.06 + sp.ant.x * 0.15;
       sp.blush.t = petting || expr === 'done' || expr === 'love' || expr === 'wink' ? 1 : 0;
 
       const [lx, ly] = lookTarget();
@@ -409,6 +437,8 @@
       node.smile.setAttribute('opacity', clock < smileUntil && mouth < 0.1 ? '1' : '0');
       if (hat === 'propeller') node.blades.setAttribute('transform', 'translate(100 47) scale(' + round(still ? 1 : Math.cos(clock * 22)) + ' 1) translate(-100 -47)');
       if (hat === 'halo') node.halo.setAttribute('transform', 'translate(0 ' + round(still ? 0 : Math.sin(clock * 2.2) * 1.6) + ')');
+      if (neck === 'cape') node.cape.setAttribute('transform', 'translate(100 82) skewX(' + round(sp.cape.x) + ') translate(-100 -82)');
+      if (neck === 'scarf') node.tail.setAttribute('transform', 'rotate(' + round(sp.tail.x) + ' 116 121)');
       if (hat === 'grad') node.tassel.setAttribute('transform', 'rotate(' + round(sp.hat.x * 2.2) + ' 125 64)');
       node.badge.setAttribute('transform', state === 'alert' && !still ? 'translate(128 64) scale(' + round(1 + Math.sin(clock * 6) * 0.08) + ') translate(-128 -64)' : '');
       node.listen.setAttribute('opacity', state === 'listen' ? String(round(0.55 + Math.sin(clock * 6) * 0.45)) : '0');
@@ -513,7 +543,7 @@
       equip() {
         hold('expr', 'done', 800);
         hold('pose', 'cheer', 450);
-        kick('hop', -70); kick('ant', 450); kick('hat', 420); kick('lantern', 260);
+        kick('hop', -70); kick('ant', 450); kick('hat', 420); kick('lantern', 260); kick('cape', 160); kick('tail', 200);
         burst('star', 5, 100, 58, 45, 0.9);
       },
       wake() {
@@ -546,8 +576,12 @@
         svg.setAttribute('data-glasses', next.glasses);
         svg.setAttribute('data-item', next.item);
         svg.setAttribute('data-moon', String(Boolean(next.moon)));
+        svg.setAttribute('data-neck', next.neck);
+        svg.setAttribute('data-tip', next.tip);
+        svg.setAttribute('data-sticker', next.sticker);
         hat = next.hat;
         item = next.item;
+        neck = next.neck;
         node.hat.removeAttribute('transform');
         const style = EYE_STYLE[next.eyes];
         [node.eyeL, node.eyeR].forEach((eye) => {

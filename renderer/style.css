@@ -385,7 +385,21 @@ html, body {
 .btn.small { padding: 5px 10px; font-size: 12px; border-radius: 9px; }
 .opts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; padding-top: 2px; }
 .orow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.orow.sep { margin-top: 3px; padding-top: 9px; border-top: .5px solid var(--line); }
+.ctabs { display: flex; gap: 4px; margin-bottom: 4px; padding: 3px; border-radius: 11px; background: var(--fill); }
+.ctab {
+  flex: 1;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color .2s, color .2s;
+}
+.ctab:hover { color: var(--ink); }
+.ctab[aria-selected="true"] { color: var(--ink); background: color-mix(in srgb, var(--glow) 22%, #16171a); }
 .olabel {
   flex: none;
   width: 58px;
@@ -478,7 +492,7 @@ html, body {
 .btn:hover { background: var(--fill-hover); }
 .btn.ok { background: var(--glow); color: var(--on-accent); border-color: transparent; font-weight: 600; }
 .btn.ok:hover { filter: brightness(1.1); }
-:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw, .ctab):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 
 .wave { gap: 3px; height: 20px; }
 .wave i { width: 3px; height: 6px; border-radius: 2px; background: var(--s-listen); }
@@ -518,7 +532,7 @@ html, body {
 .yo-char[data-state="done"] .dot { fill: var(--s-done); }
 .yo-char[data-state="alert"] .dot { fill: var(--s-alert-deep); }
 .yo-char .hit-ant { fill: transparent; cursor: pointer; }
-.yo-char :is(.eye, .blush, .mouth, .smile, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
+.yo-char :is(.eye, .blush, .mouth, .smile, .stickers, .o-scarf, .o-bowtie, .o-cape, .o-glasses, .hat, .arm, .fx, .x-listen, .x-alert) { pointer-events: none; }
 
 /* eyes: one shape at a time */
 .yo-char .eye > * { display: none; fill: var(--eye); }
@@ -565,7 +579,34 @@ html, body {
 .yo-char[data-item="mug"] .o-mug,
 .yo-char[data-item="controller"] .o-pad,
 .yo-char[data-moon="true"] .o-moon { display: inline; }
-.yo-char[data-moon="true"] .dot { display: none; }
+.yo-char[data-moon="true"] .tip { display: none; }
+/* antenna tip, neckwear, sticker */
+.yo-char :is(.t-heart, .t-star, .t-bolt, .t-flower, .o-cape, .o-scarf, .o-bowtie, .s-freckles, .s-stripes, .s-bolt, .s-heart) { display: none; }
+.yo-char:not([data-tip="ball"]) .dot { display: none; }
+.yo-char[data-tip="heart"] .t-heart,
+.yo-char[data-tip="star"] .t-star,
+.yo-char[data-tip="bolt"] .t-bolt,
+.yo-char[data-tip="flower"] .t-flower,
+.yo-char[data-neck="cape"] .o-cape,
+.yo-char[data-neck="scarf"] .o-scarf,
+.yo-char[data-neck="bowtie"] .o-bowtie,
+.yo-char[data-sticker="freckles"] .s-freckles,
+.yo-char[data-sticker="stripes"] .s-stripes,
+.yo-char[data-sticker="bolt"] .s-bolt,
+.yo-char[data-sticker="heart"] .s-heart { display: inline; }
+.yo-char .t-heart { fill: #FF7A93; }
+.yo-char .t-star, .yo-char .t-bolt { fill: #FFD166; }
+.yo-char .t-flower circle { fill: #FFFFFF; }
+.yo-char .t-flower .t-center { fill: #FFD166; }
+.yo-char .o-capec { fill: #E5484D; stroke: #B9333B; stroke-width: 1.4; stroke-linejoin: round; }
+.yo-char .o-scarfc { fill: #E5484D; }
+.yo-char .o-scarfs { fill: none; stroke: #F4F1EA; stroke-width: 2; stroke-linecap: round; }
+.yo-char .o-tie { fill: #2B2B33; }
+.yo-char .o-tie2 { fill: #3F4350; }
+.yo-char .s-freckles circle { fill: rgba(122, 64, 42, .45); }
+.yo-char .s-stripes { fill: none; stroke: rgba(0, 0, 0, .14); stroke-width: 2.6; stroke-linecap: round; }
+.yo-char .s-bolt { fill: #FFD166; stroke: rgba(0, 0, 0, .15); stroke-width: .6; }
+.yo-char .s-heart { fill: #FF7A93; }
 .yo-char .o-red { fill: #E5484D; }
 .yo-char .o-white { fill: #F4F1EA; }
 .yo-char .o-violet { fill: #A99BF0; }

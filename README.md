@@ -101,9 +101,14 @@ Locked items show a lock in Customize; click one to see how far you are.
 
 A live preview on the left, choices on the right. Everything saves as you click:
 
-- Color: 8 body colors. Eyes: classic, round or pixel, in 5 colors.
-- Hat: beanie, party, witch, crown, cap, headphones, bow.
-- Glasses: sunglasses or round "dev" glasses. Holding: lantern, coffee mug, game controller.
+Three tabs:
+
+- Body: 8 colors (and gold, to earn); eyes classic, round or pixel in 5 colors; antenna tip
+  (ball, heart, star, bolt, flower); a sticker (freckles, stripes, bolt, heart).
+- Outfit: hat (beanie, party, witch, crown, cap, headphones, bow, plus the ones to earn); neck
+  (scarf with a swinging tail, bow tie, a cape that flutters); glasses (sunglasses, round);
+  holding (lantern, coffee mug, game controller); seasonal outfits.
+- Sound: voice and volume.
 - Seasonal outfits on or off, with what's on today and what comes next.
 - Voice: Robot, Soft or Retro (8-bit), or Off; volume low, mid or high.
 - "Surprise me" picks a random look; Reset goes back to the start.
