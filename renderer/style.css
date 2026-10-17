@@ -560,7 +560,27 @@ html, body {
   transform: translateY(-2px);
 }
 .htile:active { transform: scale(.95); }
-.hico { display: grid; place-items: center; color: var(--ink); }
+.hico { position: relative; display: grid; place-items: center; color: var(--ink); }
+/* live tiles: the Focus ring around its icon, the To-do count in the corner */
+.hico .hring { position: absolute; top: -9px; left: -9px; width: calc(100% + 18px); height: calc(100% + 18px); stroke-width: 2.5; pointer-events: none; }
+.hring circle { fill: none; stroke: var(--line); stroke-width: 2.5; }
+.hring .hring-p { stroke: var(--acc); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.hcount {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 9px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--acc);
+  color: var(--on-accent);
+  font-size: var(--tiny);
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 .hico svg { width: 30px; height: 30px; stroke-width: 1.8; overflow: visible; }
 .hname { max-width: 100%; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hdot {
@@ -952,10 +972,21 @@ html, body {
 }
 .todo-row.done .todo-check { background: var(--acc); box-shadow: none; }
 .todo-row.done .todo-check::after { transform: rotate(45deg) scale(1); }
-.todo-text { flex: 1; min-width: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: text; transition: color .2s; }
-.todo-row.done .todo-text { color: var(--faint); text-decoration: line-through; }
+/* the strike-through is drawn left to right when a task is ticked */
+.todo-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: text;
+  background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat;
+  transition: color .2s, background-size .25s .12s ease-out;
+}
+.todo-row.done .todo-text { color: var(--faint); background-size: 100% 1.5px; }
 .todo-row.starred .todo-text { font-weight: 600; }
-.todo-meta { flex: none; display: flex; align-items: center; gap: 6px; color: var(--faint); font-size: var(--tiny); }
+.todo-meta { flex: none; margin-inline-start: auto; display: flex; align-items: center; gap: 6px; color: var(--faint); font-size: var(--tiny); }
 .todo-when.late { color: var(--s-think); }
 .todo-t { color: var(--muted); }
 .todo-badge { padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, var(--acc) 18%, transparent); color: var(--ink); font-size: var(--tiny); }
@@ -1104,9 +1135,11 @@ html, body {
 .pr-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .pr-next { align-self: flex-end; display: flex; gap: 8px; padding: 5px 12px; border-radius: 12px; box-shadow: inset 0 0 0 .5px var(--line); color: var(--muted); font-size: 12.5px; }
 .pr-in { color: var(--ink); border-bottom: 1.5px solid var(--acc); }
-.pr-list { display: flex; flex-direction: column; gap: 2px; padding: 4px; border-radius: 16px; background: var(--fill); box-shadow: inset 0 0 0 .5px var(--line); }
-.pr-row { display: flex; align-items: center; gap: 10px; height: 31px; padding: 0 6px 0 8px; border-radius: 11px; }
-.pr-row.next { background: color-mix(in srgb, var(--acc) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 40%, transparent); }
+.pr-list { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 4px; border-radius: 16px; background: var(--fill); box-shadow: inset 0 0 0 .5px var(--line); }
+.pr-row { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; height: 31px; padding: 0 6px 0 8px; border-radius: 11px; }
+.pr-row.next, .pr-glide { background: color-mix(in srgb, var(--acc) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 40%, transparent); }
+.pr-row.next.arriving { background: transparent; box-shadow: none; }
+.pr-glide { position: absolute; left: 4px; right: 4px; border-radius: 11px; pointer-events: none; }
 .pr-row.sun { color: var(--faint); height: 24px; font-size: 12px; }
 .pr-name { flex: 1; font-size: 13.5px; }
 .pr-row.sun .pr-name { font-size: 12px; }
@@ -1127,6 +1160,7 @@ html, body {
 }
 span.pr-check { box-shadow: none; }
 .pr-check:disabled { opacity: .35; cursor: default; }
+.pr-check { transition: background-color .4s ease-out, box-shadow .4s ease-out; }
 .pr-check.on { background: var(--acc); box-shadow: none; }
 .pr-check.on::after {
   content: "";
@@ -1398,6 +1432,7 @@ span.pr-bell { cursor: default; }
 
 /* ---------- motion (replaced by short fades when the system asks for reduced motion) ---------- */
 @media (prefers-reduced-motion: no-preference) {
+  .pr-check.just::after { animation: fadeIn .3s .2s both; } /* the tick appears once the circle has filled */
   .wave i { animation: wave .9s ease-in-out infinite; }
   .wave i:nth-child(2n) { animation-delay: .2s; }
   .wave i:nth-child(3n) { animation-delay: .4s; }

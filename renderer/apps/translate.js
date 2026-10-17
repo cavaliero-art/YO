@@ -4,7 +4,7 @@
   // Translate: two boxes, the language picked from chips, the answer as you type.
   // The translating happens in the main process (main/translate.js), which needs the internet.
   // Typed: "tr hola to english", "translate bonjour", "tr good morning in ar".
-  const { h, button } = Y.miniapps;
+  const { h, button, still, EASE } = Y.miniapps;
   const KEY = 'yo.translate';
   const WAIT_MS = 450; // after the last key, then translate
   const MAX_RECENT = 4;
@@ -112,14 +112,35 @@
     function swapLangs() {
       const from = state.from === 'auto' ? detected : state.from;
       if (!from || !codeFor(from)) return host.sound('info');
+      const before = [fromBtn.getBoundingClientRect(), toBtn.getBoundingClientRect()];
       state.from = state.to;
       state.to = codeFor(from);
       if (result) src.value = result;
       save();
       drawLangs();
+      swapMotion(before);
       host.react('flip');
       host.sound('tick');
       go();
+    }
+
+    // the two chips trade places in a small arc (one over, one under), the arrows turn, the text fades in
+    function swapMotion([wasFrom, wasTo]) {
+      if (still()) return;
+      const k = wasFrom.width / fromBtn.offsetWidth || 1;
+      const arc = (node, was, lift) => {
+        const now = node.getBoundingClientRect();
+        const dx = (was.left + was.width / 2 - (now.left + now.width / 2)) / k;
+        node.animate([
+          { transform: 'translateX(' + dx + 'px)' },
+          { transform: 'translate(' + dx / 2 + 'px, ' + lift + 'px)', offset: 0.5 },
+          { transform: 'none' },
+        ], { duration: 420, easing: EASE });
+      };
+      arc(fromBtn, wasTo, -9); // the language that was on the right comes over the top
+      arc(toBtn, wasFrom, 9);
+      swap.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(180deg)' }], { duration: 420, easing: EASE });
+      [src, out].forEach((node) => node.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 320, easing: 'ease-out' }));
     }
 
     function show(text, line, tone) {

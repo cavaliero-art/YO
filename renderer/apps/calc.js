@@ -4,7 +4,7 @@
   // Calculator: type or tap; the answer shows as you go, Enter keeps it in the history.
   // Uses YO's own math parser (renderer/quick.js), so typed text is never run as code.
   // It also understands the quick answers: "20% of 150", "5 km in miles", "100 f to c".
-  const { h, button } = Y.miniapps;
+  const { h, button, roll, land } = Y.miniapps;
   const KEY = 'yo.calc';
   const MAX = 20;
   // [shown, inserted]: what the key shows and what it puts in the box
@@ -80,7 +80,7 @@
     function update() {
       const r = solve(input.value);
       host.face.work('screen', r ? short(r.value) : '=');
-      out.textContent = r ? r.value : '';
+      roll(out, r ? r.value : ''); // each new answer rolls up in place of the old
       out.dataset.value = r ? r.value : '';
       note.textContent = r && r.note ? r.note : '';
       root.classList.toggle('has-result', Boolean(r));
@@ -121,6 +121,8 @@
         history = [{ expr, value: r.value }].concat(history.filter((e) => e.expr !== expr)).slice(0, MAX);
         save(history);
         drawHistory();
+        list.scrollTop = 0;
+        land(list.firstElementChild, out); // the answer files itself at the top of History
       }
       input.value = r.value;
       update();

@@ -46,7 +46,7 @@
           open: 'Apps, sites, folders', remind: 'Later, for you', timer: 'Countdown', inbox: 'Your news', todo: 'Tasks and exams', focus: 'Pomodoro with YO', prayer: 'Times and reminders',
           customize: 'Make YO yours',
         },
-        moves: "YO's moves", unread: '{n} new',
+        moves: "YO's moves", unread: '{n} new', todoLeft: '{n} left today',
         translate: {
           detect: 'Detect', swap: 'Swap languages', placeholder: 'Type or paste text…', from: 'From', to: 'To',
           detected: 'Detected: {lang}', working: 'Translating…', fromClip: 'From your clipboard', cut: 'Only the first 500 characters',

@@ -167,7 +167,13 @@
   }
 
   // "Asr 16:28", for the home tile
+  // the Prayer tile: the next prayer and the time left ("Maghrib in 1h 12m"), with its clock time as a title
   function label() {
+    const n = next();
+    return n && n.at ? pname(n.name) + ' ' + t('prayer.in').replace('{t}', span(n.at - Date.now())) : '';
+  }
+
+  function clockLabel() {
     const n = next();
     return n && n.at ? pname(n.name) + ' ' + C.clock(n.at, set.place.tz) : '';
   }
@@ -215,6 +221,24 @@
       return 'dusk';
     }
 
+    // a prayer time passed: the highlight glides slowly from that row down to the next one
+    function glide(from, row) {
+      if (Y.miniapps.still()) return;
+      const shape = h('div.pr-glide');
+      shape.style.top = from.top + 'px';
+      shape.style.height = from.height + 'px';
+      list.append(shape);
+      row.classList.add('arriving');
+      const move = shape.animate([
+        { transform: 'none', height: from.height + 'px' },
+        { transform: 'translateY(' + (row.offsetTop - from.top) + 'px)', height: row.offsetHeight + 'px' },
+      ], { duration: 700, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' });
+      move.finished.then(() => {
+        row.classList.remove('arriving');
+        shape.remove();
+      }, () => shape.remove());
+    }
+
     function draw() {
       const now = today();
       if (!now) return show('setup');
@@ -229,6 +253,8 @@
       sky.dataset.phase = phase(now);
       root.dataset.phase = sky.dataset.phase;
 
+      const was = list.querySelector('.pr-row.next'); // where the highlight is now, so it can glide on
+      const wasBox = was && was.offsetHeight ? { top: was.offsetTop, height: was.offsetHeight } : null;
       list.replaceChildren(...C.NAMES.map((name) => {
         const at = now.times[name];
         const past = at.getTime() <= ms;
@@ -242,7 +268,8 @@
           markPrayed(name);
           if (yo) yo.react('heart');
           host.sound('tick');
-          draw();
+          check.classList.add('on', 'just'); // fills softly, then the list catches up
+          setTimeout(draw, Y.miniapps.still() ? 0 : 450);
         }, { title: prayed ? t('prayer.prayed') : t('prayer.markPrayed'), 'aria-label': (prayed ? t('prayer.prayed') : t('prayer.markPrayed')) + ': ' + pname(name), disabled: !past && !prayed });
         const bell = button('pr-bell' + (set.bells[name] ? '.on' : ''), '', () => {
           set.bells[name] = !set.bells[name];
@@ -256,6 +283,9 @@
         if (past) row.classList.add('past');
         return row;
       }));
+
+      const nowRow = list.querySelector('.pr-row.next');
+      if (wasBox && nowRow && nowRow.offsetTop !== wasBox.top) glide(wasBox, nowRow);
 
       const pcZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const local = set.place.tz && pcZone !== set.place.tz ? ' · ' + t('prayer.localTime').replace('{place}', set.place.name) : '';
@@ -378,5 +408,5 @@
     '</svg>';
 
   Y.miniapps.define('prayer', mount);
-  Y.prayerAlerts = { start, label, next, check, settings: () => set };
+  Y.prayerAlerts = { start, label, clockLabel, next, check, settings: () => set };
 })((window.Yo = window.Yo || {}));

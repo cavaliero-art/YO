@@ -72,6 +72,7 @@
     const phaseEl = h('div.fz-phase');
     const timeEl = h('div.fz-time');
     const play = button('fz-play', '', toggle);
+    const ringBox = h('div.fz-ring', ring, h('div.fz-center', phaseEl, timeEl, play));
     const say = h('div.fz-say');
     const mascot = h('div.fz-yo');
     const taskRow = h('div.fz-task');
@@ -87,7 +88,7 @@
 
     const main = h('div.fz-main',
       h('div.fz-top',
-        h('div.fz-ring', ring, h('div.fz-center', phaseEl, timeEl, play)),
+        ringBox,
         h('div.fz-side', say, mascot)),
       taskRow,
       h('div.fz-cards',
@@ -100,6 +101,8 @@
 
     const length = (phase) => (phase === 'focus' ? set.focus : phase === 'short' ? set.short : set.long) * 60000;
     const leftNow = () => (st.running ? st.endsAt - Date.now() : st.left);
+    // the home tile shows the time left while a session or a break runs
+    Y.miniapps.live.focus = () => (st.running ? { phase: st.phase, left: Math.max(0, leftNow()), total: length(st.phase), text: mmss(Math.max(0, leftNow())) } : null);
 
     // ---------- YO: headphones while focusing, a mug on breaks ----------
     function dressYo() {
@@ -264,8 +267,32 @@
       host.quiet('focus', st.running && st.phase === 'focus');
     }
 
-    // a session ends (or you skip it): count it, go to the next phase, tell you
+    // a session ends (or you skip it): count it, go to the next phase, tell you.
+    // Watching it end, the ring fills, then shrinks into its round's dot, which pops filled.
     function complete(skipped) {
+      if (complete.busy) return; // the ring is still on its way to the dot
+      const here = visible && host.current() === 'focus' && !Y.miniapps.still();
+      if (!skipped && here && st.phase === 'focus') {
+        complete.busy = true;
+        timeEl.textContent = mmss(0);
+        prog.setAttribute('stroke-dashoffset', '0');
+        const dot = dots.children[st.round - 1];
+        setTimeout(() => {
+          Y.miniapps.fly(ringBox, dot, 460, 0.06).then((move) => {
+            finish(false);
+            const filled = dots.children[st.round - 1 - (st.phase === 'focus' ? 1 : 0)];
+            Y.miniapps.pop(filled, 1.7);
+            if (move) move.cancel();
+            if (move) ringBox.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: Y.miniapps.EASE });
+            complete.busy = false;
+          });
+        }, 320);
+        return;
+      }
+      finish(skipped);
+    }
+
+    function finish(skipped) {
       const was = st.phase;
       if (was === 'focus') {
         if (!skipped) {

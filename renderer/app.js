@@ -374,6 +374,7 @@
     el.browse.setAttribute('aria-expanded', String(open));
     syncDrawer();
     syncPick();
+    if (open) liveTiles(true);
   }
 
   // the home panel: Recent on top, big tiles like a phone's home screen, then YO's moves
@@ -397,15 +398,6 @@
       name.textContent = t('short.' + id);
       tile.title = t('app.sub.' + id) + ' · ' + t('example.' + id);
       tile.append(ico, name);
-      if (id === 'prayer' && Y.prayerAlerts) {
-        const next = Y.prayerAlerts.label();
-        if (next) {
-          const note = document.createElement('span');
-          note.className = 'hnote';
-          note.textContent = next;
-          tile.append(note);
-        }
-      }
       if (id === 'inbox' && Y.memory.inbox.unread()) {
         const dot = document.createElement('span');
         dot.className = 'hdot';
@@ -424,6 +416,84 @@
     const recent = recentRow();
     el.panel.replaceChildren(...(recent ? [recent] : []), grid, movesRow());
     syncHomePick();
+    liveTiles(true);
+  }
+
+  // ---------- live tiles: what's running shows on its tile while the panel is open ----------
+  // Focus: a small ring and the time left. To-do: tasks left today, the count pops when it changes.
+  // Prayer: the next prayer and the time left, rolling over when the minute changes.
+  const RING_LEN = 2 * Math.PI * 21;
+  let liveTimer = null;
+  let todoSeen = null; // the last count shown, so a change can pop
+  let todoAsk = 0;
+  let liveTicks = 0;
+
+  function tileNote(tile, text) {
+    let note = tile.querySelector('.hnote');
+    if (!text) { if (note) note.remove(); return null; }
+    if (!note) {
+      note = document.createElement('span');
+      note.className = 'hnote';
+      tile.append(note);
+    }
+    return note;
+  }
+
+  function liveTiles(fresh) {
+    if (!panel || vis === 'hidden') {
+      clearInterval(liveTimer);
+      liveTimer = null;
+      return;
+    }
+    if (!liveTimer) liveTimer = setInterval(() => liveTiles(false), 1000);
+    liveTicks += 1;
+    homeTiles.forEach(({ node, id }) => {
+      if (id === 'focus') liveFocus(node);
+      else if (id === 'prayer' && Y.prayerAlerts) {
+        const text = Y.prayerAlerts.label();
+        const note = tileNote(node, text);
+        if (note && fresh) note.textContent = text;
+        else if (note) Y.miniapps.roll(note, text);
+        node.title = Y.prayerAlerts.clockLabel() || node.title;
+      } else if (id === 'todo' && (fresh || liveTicks % 5 === 0)) liveTodo(node); // tasks: every few seconds
+    });
+  }
+
+  function liveFocus(tile) {
+    const now = Y.miniapps.live.focus ? Y.miniapps.live.focus() : null;
+    let ring = tile.querySelector('.hring');
+    tile.classList.toggle('running', Boolean(now));
+    const note = tileNote(tile, now && now.text);
+    if (!now) { if (ring) ring.remove(); return; }
+    note.textContent = now.text; // a clock: it ticks, it doesn't roll
+    if (!ring) {
+      ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      ring.setAttribute('class', 'hring');
+      ring.setAttribute('viewBox', '0 0 50 50');
+      ring.innerHTML = '<circle cx="25" cy="25" r="21"/><circle class="hring-p" cx="25" cy="25" r="21" transform="rotate(-90 25 25)" stroke-dasharray="' + RING_LEN + '"/>'; // static markup
+      tile.querySelector('.hico').append(ring);
+    }
+    ring.querySelector('.hring-p').setAttribute('stroke-dashoffset', String(RING_LEN * (1 - now.left / now.total)));
+  }
+
+  function liveTodo(tile) {
+    if (!bridge.todo || !Y.miniapps.live.todoToday) return;
+    const ask = ++todoAsk;
+    bridge.todo('list').then((tasks) => {
+      if (ask !== todoAsk || !tile.isConnected) return;
+      const n = Y.miniapps.live.todoToday(tasks);
+      let badge = tile.querySelector('.hcount');
+      if (!n) { if (badge) badge.remove(); todoSeen = n; return; }
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'hcount';
+        tile.append(badge);
+      }
+      badge.textContent = String(n);
+      badge.title = t('app.todoLeft').replace('{n}', n);
+      if (todoSeen !== null && todoSeen !== n) Y.miniapps.pop(badge, 1.4);
+      todoSeen = n;
+    }).catch(() => {});
   }
 
   // YO's moves: small round buttons, YO does it right away

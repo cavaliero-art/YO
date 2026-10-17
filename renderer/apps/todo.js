@@ -5,7 +5,7 @@
   // what it understood as you type. Tasks live in the main process (main/todo.js, tasks.json), so a
   // task's due time brings YO back even while it's hidden.
   //   Today: late + today + tasks with no date   Upcoming: dated later   Done: ticked (kept a month)
-  const { h, button } = Y.miniapps;
+  const { h, button, fly, pop } = Y.miniapps;
   const VIEWS = ['today', 'upcoming', 'done'];
   const EXAM_DAYS = 30; // exams this close show in the countdown strip
 
@@ -16,6 +16,12 @@
     return new Date(y, m - 1, d);
   };
   const daysFrom = (s, now) => Math.round((dayOf(s) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+
+  // tasks waiting today (late, today, or no date): the To-do tile's count
+  function todayCount(tasks, now) {
+    return tasks.filter((x) => !x.done && (!x.due || daysFrom(x.due, now) <= 0)).length;
+  }
+  Y.miniapps.live.todoToday = (tasks) => todayCount(Array.isArray(tasks) ? tasks : [], new Date());
 
   function mount(host) {
     const { t } = host;
@@ -91,11 +97,12 @@
       // tabs with counts
       tabs.replaceChildren(...VIEWS.map((name) => {
         const count = tasks.filter((x) => (name === 'done' ? x.done : !x.done && (name === 'today' ? (!x.due || daysFrom(x.due, now) <= 0) : x.due && daysFrom(x.due, now) > 0))).length;
-        const tab = button('ctab', t('todo.' + name) + (count && name !== 'done' ? '  ' + count : ''), () => {
+        const tab = button('ctab', t('todo.' + name) + (count ? '  ' + count : ''), () => {
           view = name;
           draw();
           host.sound('tick');
         }, { role: 'tab', 'aria-selected': String(view === name) });
+        tab.dataset.view = name;
         return tab;
       }));
 
@@ -136,7 +143,8 @@
       return node;
     }
 
-    // ticking: the row strikes through, YO cheers, and the list settles a moment later
+    // ticking: the check draws, a line strikes the task through, then the row travels into the
+    // Done tab and its count pops, so you see where it went
     function toggle(x, node) {
       const finishing = !x.done;
       node.classList.toggle('done', finishing);
@@ -145,16 +153,20 @@
       ask('toggle', x.id).then((res) => {
         if (!res || !res.tasks) return;
         setTimeout(() => {
-          tasks = res.tasks;
-          draw();
+          const into = finishing && view !== 'done' ? tabs.querySelector('[data-view="done"]') : null;
+          fly(into && node, into).then(() => {
+            tasks = res.tasks;
+            draw();
+            if (into) pop(tabs.querySelector('[data-view="done"]'), 1.15);
+          });
           const now = new Date();
-          const left = tasks.filter((y) => !y.done && (!y.due || daysFrom(y.due, now) <= 0)).length;
+          const left = todayCount(tasks, now);
           if (finishing && left === 0 && view === 'today') {
             host.react('success');
             host.sound('success');
             host.toast(t('todo.allDone'));
           }
-        }, finishing ? 450 : 0);
+        }, finishing ? 520 : 0);
       });
     }
 
