@@ -1,7 +1,7 @@
 {
   "name": "yo",
   "productName": "YO",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "YO: a small desktop companion that hangs from the top of your screen and does quick things for you.",
   "main": "main.js",
   "scripts": {
