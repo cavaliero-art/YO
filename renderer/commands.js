@@ -46,10 +46,18 @@
     { id: 'spin', category: 'fun', words: ['spin', 'twirl'], icon: svg('<path d="M12 3a9 9 0 1 0 9 9M21 3v6h-6"/>') },
     { id: 'love', category: 'fun', words: ['love you', 'love', 'hug'], icon: svg('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>') }
   );
+  // To-do: tasks and exams; "exam physics 12/11" adds an exam
+  LIST.push(
+    { id: 'todo', category: 'time', app: 'todo', words: ['add task', 'to-do', 'to do', 'todo', 'tasks', 'task'],
+      icon: svg('<rect x="4" y="3.5" width="16" height="17" rx="4.5"/><path class="al" d="M7.5 9.2l1.7 1.7 3.1-3.3"/>' +
+        '<path d="M7.5 15.2l1.7 1.7 3.1-3.3M14.6 9.6h2.4M14.6 15.6h2.4"/>') },
+    { id: 'exam', category: 'time', app: 'todo', seed: 'exam ', words: ['exam'],
+      icon: svg('<path d="M12 5.5l9 4.2-9 4.3-9-4.3z"/><path d="M7 12v3.8c3 2.2 7 2.2 10 0V12"/><path d="M21 9.7v4.6"/><circle class="a" cx="21" cy="15.6" r="1.3"/>') }
+  );
   // Customize: opens YO's look (right-click does the same); a tile on the home panel
   LIST.push({ id: 'customize', category: 'system', words: ['customize', 'customise', 'outfit', 'look'],
     icon: svg('<path d="M12 3.5l6.5 14.5h-13z"/><path d="M8 13l3 1.5M10 8.6l3 1.6M6.6 16l4.6 2"/><circle class="a bob" cx="12" cy="3" r="1.7"/><path d="M4 19.5h16"/>') });
-  const STARTERS = ['open', 'translate', 'calc', 'remind', 'timer'];
+  const STARTERS = ['open', 'translate', 'calc', 'todo', 'remind'];
   const CATEGORIES = ['system', 'apps', 'time', 'tools', 'fun'];
 
   function normalize(text) {

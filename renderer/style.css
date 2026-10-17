@@ -852,6 +852,104 @@ html, body {
 .clip-foot { color: var(--faint); font-size: 11px; text-align: center; }
 .clip-foot[data-tone="warn"] { color: var(--s-think); }
 
+/* To-do */
+.todoapp { display: flex; flex-direction: column; gap: 8px; }
+.todo-add { display: flex; flex-direction: column; gap: 6px; }
+.todo-in {
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  outline: 0;
+  border-radius: 13px;
+  background: var(--fill);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 .5px var(--line);
+  caret-color: var(--glow);
+  user-select: text;
+  transition: box-shadow .2s;
+}
+.todo-in:focus { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--glow) 60%, transparent); }
+.todo-in::placeholder { color: var(--faint); }
+.todo-parse { display: flex; flex-wrap: wrap; gap: 5px; min-height: 0; }
+.todo-parse:empty { display: none; }
+.todo-chip {
+  padding: 2px 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--acc) 14%, transparent);
+  color: var(--ink);
+  font-size: 11.5px;
+}
+.todo-exams { display: flex; flex-wrap: wrap; gap: 6px; }
+.todo-exams:empty { display: none; }
+.todo-exam {
+  padding: 4px 10px;
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 .5px var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.todo-exam::before { content: "◆ "; color: var(--acc); }
+.todo-exam.close { color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 50%, transparent); }
+.todo-bar { display: flex; align-items: center; gap: 10px; }
+.todo-tabs { flex: none; width: 270px; margin: 0; }
+.todo-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.todo-tag { height: 22px; padding: 0 8px; font-size: 11.5px; }
+.todo-list { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .2) transparent; }
+.todo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 3px 6px;
+  border-radius: 11px;
+  transition: background-color .12s, opacity .3s;
+}
+.todo-row:hover { background: var(--fill); }
+.todo-row.fresh { animation: freshRow 1.4s ease-out; }
+.todo-check {
+  flex: none;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted);
+  cursor: pointer;
+  transition: box-shadow .15s, background-color .15s, transform .2s var(--spring);
+}
+.todo-check:hover { box-shadow: inset 0 0 0 1.5px var(--acc); }
+.todo-check:active { transform: scale(.85); }
+.todo-check::after {
+  content: "";
+  position: absolute;
+  left: 6.5px;
+  top: 3.5px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--on-accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform .25s var(--spring);
+}
+.todo-row.done .todo-check { background: var(--acc); box-shadow: none; }
+.todo-row.done .todo-check::after { transform: rotate(45deg) scale(1); }
+.todo-text { flex: 1; min-width: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: text; transition: color .2s; }
+.todo-row.done .todo-text { color: var(--faint); text-decoration: line-through; }
+.todo-row.starred .todo-text { font-weight: 600; }
+.todo-meta { flex: none; display: flex; align-items: center; gap: 6px; color: var(--faint); font-size: 11.5px; }
+.todo-when.late { color: var(--s-think); }
+.todo-t { color: var(--muted); }
+.todo-badge { padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, var(--acc) 18%, transparent); color: var(--ink); font-size: 10.5px; }
+.todo-row:hover .clip-act, .todo-star.on { opacity: 1; }
+.todo-star.on { color: var(--acc); }
+.todo-clear { align-self: center; margin: 6px 0 0; font-size: 12px; }
+.todo-foot { color: var(--faint); font-size: 11px; text-align: center; }
+@keyframes freshRow { 0% { background: color-mix(in srgb, var(--acc) 22%, transparent); } 100% { background: transparent; } }
+
 /* ---------- collapsible sections ---------- */
 .fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease); }
 .fold-in { overflow: hidden; min-height: 0; }
@@ -894,7 +992,7 @@ html, body {
 .btn:hover { background: var(--fill-hover); }
 .btn.ok { background: var(--glow); color: var(--on-accent); border-color: transparent; font-weight: 600; }
 .btn.ok:hover { filter: brightness(1.1); }
-:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw, .ctab, .htile, .mbtn, .ckey, .tr-lang, .calc-item, .clip-act):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+:is(.btn, .chip, .icon, .link, .hero, .act, .opt, .sw, .ctab, .htile, .mbtn, .todo-check, .ckey, .tr-lang, .calc-item, .clip-act):focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 
 .wave { gap: 3px; height: 20px; }
 .wave i { width: 3px; height: 6px; border-radius: 2px; background: var(--s-listen); }

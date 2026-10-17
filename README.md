@@ -55,8 +55,8 @@ Release checklist:
    edge and the robot drops in.
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
-   The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: big tiles for Translate,
-   Calculator, Clipboard, Open, Remind me, Timer, Inbox (with a count of what's new) and Customize,
+   The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: tiles for Translate,
+   Calculator, Clipboard, To-do, Timer, Open, Inbox and Customize,
    and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
@@ -81,7 +81,7 @@ again. Opening a program or script file (.exe, .bat, .ps1...) always asks first.
 
 ### Mini apps
 
-The top of the actions panel has three app tiles. Each one opens inside the pill, with YO in the
+The home panel has the app tiles. Each one opens inside the pill, with YO in the
 corner, `← All apps` to go back and `Esc` to close. You can also type their name; what you type after
 it fills the app in.
 
@@ -96,6 +96,14 @@ it fills the app in.
   window you were in, `Ctrl+Enter` only copies it, ★ keeps one. Kept in memory only and cleared when YO
   quits, except ★ ones (saved in clips.json). Text a password manager marks as private is skipped,
   like Windows does. Pause it any time.
+
+- To-do: type tasks in plain words, from the app or straight from the bar:
+  `todo math homework friday 18:00 #math`, `todo call mom tomorrow`, `exam physics 12/11`.
+  It understands today, tonight, tomorrow, weekdays, next week, in 3 days, 12/11 (day/month), 12 nov,
+  18:00, 18h, 6pm, #subjects and `!` for important, and shows what it understood as you type.
+  Today (late, today, and tasks with no date), Upcoming, Done (kept a month). Exams in the next 30 days
+  show as a countdown on top. A task with a time brings YO back at that time (even when hidden), and
+  an exam the evening before; the card has a Mark done button. Saved in tasks.json.
 
 Dropping text on YO while Translate or the Calculator is open puts it in there.
 
@@ -209,19 +217,19 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
                        apps.js (installed apps), keys.js (the paste key), store.js (JSON files),
                        watch.js (what's playing), clipboard.js (clipboard history),
-                       translate.js (asks MyMemory)
+                       translate.js (asks MyMemory), todo.js (tasks, dates, due alerts)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard)
+                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)
     tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)
 
 YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
-apps.json (the installed apps it found), clips.json (clipboard items you kept with ★). Your look and sound choices are in the same folder.
+apps.json (the installed apps it found), clips.json (clipboard items you kept with ★), tasks.json (your to-do list). Your look and sound choices are in the same folder.
 
 ## Next
 

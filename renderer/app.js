@@ -53,12 +53,12 @@
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   // the home panel: big tiles in this order, then YO's moves
-  const HOME = ['translate', 'calc', 'clipboard', 'open', 'remind', 'timer', 'inbox', 'customize'];
+  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'timer', 'open', 'inbox', 'customize'];
   const HOME_COLS = 4;
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
     translate: ['speech'], calc: ['screen', '='], clipboard: ['read'], open: ['launch'], remind: ['notes'],
-    timer: ['clock'], inbox: ['news'], customize: ['star'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let growFrom = null; // the tile an app is opening from: it grows into the app
@@ -765,6 +765,16 @@
       s.state = 'result';
       s.label = ev.sources || t('done');
       s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky, inboxId: ev.inboxId };
+      if (ev.todo && bridge.todo) {
+        s.card.actions = [
+          { label: t('todo.markDone'), primary: true, run: () => {
+            bridge.todo('toggle', ev.todo);
+            clearCard();
+            onEvent({ type: 'message', category: 'time', tone: 'ok', text: t('todo.nice'), ms: 2600 });
+          } },
+          { label: t('todo.openList'), run: () => { clearCard(); openApp('todo', ''); } },
+        ];
+      }
       if (ev.unlock) {
         const { slot, value } = ev.unlock;
         s.card.actions = [{
@@ -1444,7 +1454,7 @@
       return openCustom();
     }
     const appCmd = cmd && cmd.app ? cmd : !cmd ? Y.commands.LIST.find((c) => c.app && Y.commands.leadWord(c, text)) : null;
-    if (appCmd) return openApp(appCmd.app, Y.commands.argOf(appCmd, text));
+    if (appCmd) return openApp(appCmd.app, (appCmd.seed || '') + Y.commands.argOf(appCmd, text));
     if ((cmd && cmd.id === 'inbox') || (!cmd && Y.commands.leadWord(Y.commands.byId('inbox'), text))) return showInbox();
     const fun = cmd && cmd.category === 'fun' ? cmd : !cmd && Y.commands.match(text, 1).find((c) => c.category === 'fun' && Y.commands.leadWord(c, text));
     if (fun) return emote(fun);

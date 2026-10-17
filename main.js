@@ -10,6 +10,7 @@ const watch = require('./main/watch');
 const clips = require('./main/clipboard');
 const translator = require('./main/translate');
 const store = require('./main/store');
+const Todo = require('./main/todo');
 
 const WIN_W = 720; // room for the large pill size
 const WIN_H = 600;
@@ -28,6 +29,7 @@ let win = null;
 let tray = null;
 let activeShortcut = null;
 let agent = null;
+let todo = null;
 let pointerTimer = null;
 let mediaTimer = null;
 let lastMedia = '';
@@ -86,11 +88,16 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
   // YO's hands live here, in the main process; the page only asks
-  agent = Agent.create((event) => {
+  const toPage = (event) => {
     if (win && !win.isDestroyed()) win.webContents.send('agent', event);
+  };
+  agent = Agent.create(toPage);
+  todo = Todo.create(toPage); // tasks with a due time bring YO back like reminders do
+  // once the page listens: deliver reminders and tasks that came due while YO was closed, re-arm the rest
+  win.webContents.once('did-finish-load', () => {
+    agent.restore();
+    todo.start();
   });
-  // once the page listens: deliver reminders that came due while YO was closed, re-arm the rest
-  win.webContents.once('did-finish-load', () => agent.restore());
 }
 
 function summon() {
@@ -333,6 +340,12 @@ ipcMain.handle('translate', (event, request) => {
   return translator.translate(request.text, String(request.from), String(request.to));
 });
 
+const TODO_ACTIONS = new Set(['list', 'parse', 'add', 'toggle', 'star', 'remove', 'clearDone']);
+ipcMain.handle('todo', (event, action, arg) => {
+  if (!fromMainWindow(event) || !todo || !TODO_ACTIONS.has(action) || (arg !== undefined && typeof arg !== 'string')) return null;
+  return todo.act(action, arg);
+});
+
 const CLIP_ACTIONS = new Set(['pin', 'remove', 'clear', 'copy', 'pause', 'resume']);
 ipcMain.handle('clips', (event) => {
   if (!fromMainWindow(event)) return null;
@@ -379,6 +392,7 @@ if (!app.requestSingleInstanceLock()) {
     keys.stop();
     watch.stop();
     clips.stop();
+    if (todo) todo.stop();
   });
   app.on('window-all-closed', () => app.quit());
 }
