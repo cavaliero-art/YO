@@ -28,4 +28,5 @@ contextBridge.exposeInMainWorld('yo', {
   clip: (action, id) => ipcRenderer.invoke('clip', action, id),
   onClips: (callback) => ipcRenderer.on('clips', () => callback()),
   todo: (action, arg) => ipcRenderer.invoke('todo', action, arg),
+  setStatus: (text) => ipcRenderer.send('status', text),
 });

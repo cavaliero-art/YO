@@ -56,7 +56,7 @@ Release checklist:
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
    The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: tiles for Translate,
-   Calculator, Clipboard, To-do, Timer, Open, Inbox and Customize,
+   Calculator, Clipboard, To-do, Focus, Open, Inbox and Customize,
    and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
@@ -104,6 +104,15 @@ it fills the app in.
   Today (late, today, and tasks with no date), Upcoming, Done (kept a month). Exams in the next 30 days
   show as a countdown on top. A task with a time brings YO back at that time (even when hidden), and
   an exam the evening before; the card has a Mark done button. Saved in tasks.json.
+
+- Focus: Pomodoro with YO. A ring counts down while a big YO focuses with you (headphones on, calm
+  eyes) and cheers you on ("You got this!", "Halfway there!", "Last 5 minutes!"); on breaks it holds its
+  mug. Rounds of focus and short breaks, then a long break; lengths and rounds in its settings.
+  Pick a task from your To-do to focus on (or type `focus on math homework`; `focus 50` starts 50 min).
+  Optional focus sound made in code: rain or a deep calm noise, with a little waveform.
+  The timer keeps going when you close it: the tray tooltip shows the time left, and YO comes back with
+  "Focus complete!" (Start break, Mark done). While you focus, YO keeps unlock news for the break.
+  Space starts or pauses. Today's sessions and minutes are counted.
 
 Dropping text on YO while Translate or the Calculator is open puts it in there.
 
@@ -223,7 +232,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo)
+                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo, focus)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)
     tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)

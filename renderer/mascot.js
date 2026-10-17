@@ -288,6 +288,7 @@
     let glyphNext = '';
     let glyphFlipAt = -9;
     let talkUntil = 0;
+    let mood = null; // an expression that stays until it's cleared (focusing: narrow calm eyes)
 
     const calm = () => reduced.matches;
     const hold = (kind, v, ms) => { holds[kind] = { v, until: clock + ms / 1000 }; };
@@ -370,7 +371,7 @@
         if (clock >= e.next) { e.fn(); e.next = clock + e.every; }
       }
 
-      const quiet = state === 'idle' && !typingFocus && !sleeping && !petting && !hungry && !music &&
+      const quiet = state === 'idle' && !typingFocus && !sleeping && !petting && !hungry && !music && !mood &&
         clock > danceUntil && !held('expr') && !held('pose') && !held('look');
       if (quiet && clock > nextMoment) {
         moment();
@@ -381,7 +382,7 @@
 
       // what YO looks like right now: a short reaction wins over sleep/pet, which win over the state
       const base = BASE[state] || BASE.idle;
-      const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : work && work.name === 'star' ? 'proud' : base[0]);
+      const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : work && work.name === 'star' ? 'proud' : mood || base[0]);
       let pose = held('pose') || (sleeping ? 'droop' : petting ? 'pet' : base[1]);
       if (pose === 'rest' && (item === 'lantern' || item === 'mug')) pose = 'hold'; // holds it out
       if (pose === 'rest' && item === 'controller') pose = 'game'; // both hands on the pad
@@ -797,6 +798,7 @@
         work = null;
         flash = null;
         talkUntil = 0;
+        mood = null;
         node.prog.setAttribute('stroke-dashoffset', '56.55');
         node.dot.style.fill = '';
         clearFx();
@@ -861,6 +863,10 @@
       },
       talk(ms) {
         talkUntil = clock + (ms || 800) / 1000;
+      },
+      // an expression that stays (null to go back to normal): squint, done, sleepy...
+      setMood(name) {
+        mood = name && EXPR[name] ? name : null;
       },
       // a ring around the antenna ball fills up (0..1), or goes away (null)
       setProgress(p) {

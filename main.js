@@ -357,6 +357,12 @@ ipcMain.handle('clip', (event, action, id) => {
   return clips.act(action, id);
 });
 
+// what YO is busy with, in the tray's tooltip (Focus 18:42)
+ipcMain.on('status', (event, text) => {
+  if (!fromMainWindow(event) || !tray) return;
+  tray.setToolTip(typeof text === 'string' && text ? 'YO · ' + text.slice(0, 60) : 'YO');
+});
+
 ipcMain.on('quit', (event) => {
   if (fromMainWindow(event)) app.quit();
 });

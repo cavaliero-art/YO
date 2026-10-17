@@ -53,15 +53,16 @@
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   // the home panel: big tiles in this order, then YO's moves
-  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'timer', 'open', 'inbox', 'customize'];
+  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'focus', 'open', 'inbox', 'customize'];
   const HOME_COLS = 4;
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
     translate: ['speech'], calc: ['screen', '='], clipboard: ['read'], open: ['launch'], remind: ['notes'],
-    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], focus: ['clock'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let growFrom = null; // the tile an app is opening from: it grows into the app
+  let quietNews = false; // while you focus, YO keeps its own news (unlocks) for the break
   let homeTiles = []; // { node, run } in order, for the arrow keys
   let homePick = -1;
   let lastActive = Date.now();
@@ -259,7 +260,7 @@
       else if (mode === 'approval') text = t('needsOk');
       else if (mode === 'result') text = s.label || t('done');
       else if (mode === 'custom') text = customHint || t('customize');
-      else if (mode === 'app') text = appHint || t('cmd.' + miniapp);
+      else if (mode === 'app') text = appHint || t('short.' + miniapp);
       el.label.textContent = text;
       setBubble(mode === 'peek' ? bubbleFor() : '');
       announce(text || bubbleText);
@@ -736,8 +737,8 @@
       ev.inboxId = Y.memory.inbox.add({ title: ev.title, kind: ev.unlock ? 'unlock' : ev.alarm ? 'timer' : 'reminder' });
       syncUnread();
     }
-    // YO's own news (a reminder) waits until you're done with what you're doing
-    if (ev.background && busy()) {
+    // YO's own news (a reminder) waits until you're done with what you're doing; unlocks wait for a focus break
+    if ((ev.background && busy()) || (ev.unlock && quietNews)) {
       later.push(ev);
       return;
     }
@@ -765,6 +766,7 @@
       s.state = 'result';
       s.label = ev.sources || t('done');
       s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky, inboxId: ev.inboxId };
+      if (ev.actions) s.card.actions = ev.actions; // buttons from a mini app (Focus: Start break)
       if (ev.todo && bridge.todo) {
         s.card.actions = [
           { label: t('todo.markDone'), primary: true, run: () => {
@@ -1288,6 +1290,16 @@
       }, fail);
     },
     close: () => closeApp(),
+    current: () => miniapp, // the app on screen, if any
+    look: () => effectiveLook(), // YO's look, for an app that shows a big YO
+    quiet: (on) => { quietNews = Boolean(on); },
+    status: (text) => { if (bridge.setStatus) bridge.setStatus(text || ''); },
+    // a card from an app, like a reminder: YO comes back with it (buttons: [{ label, primary, run }])
+    card: (title, body, actions) => onEvent({
+      type: 'result', category: 'time', sticky: true, background: true, title, body,
+      actions: (actions || []).map((a) => ({ label: a.label, primary: a.primary, run: () => { clearCard(); a.run(); } })),
+    }),
+    open: (id, seed) => openApp(id, seed),
     // Clipboard app: YO steps aside, then the main process presses Ctrl+V in the window you were in
     pasteBack() {
       face.react('toss');

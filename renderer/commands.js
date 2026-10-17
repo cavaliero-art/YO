@@ -54,10 +54,14 @@
     { id: 'exam', category: 'time', app: 'todo', seed: 'exam ', words: ['exam'],
       icon: svg('<path d="M12 5.5l9 4.2-9 4.3-9-4.3z"/><path d="M7 12v3.8c3 2.2 7 2.2 10 0V12"/><path d="M21 9.7v4.6"/><circle class="a" cx="21" cy="15.6" r="1.3"/>') }
   );
+  // Focus: Pomodoro sessions; "focus 50" starts 50 minutes, "focus on math homework" picks the task
+  LIST.push({ id: 'focus', category: 'time', app: 'focus', words: ['focus on', 'pomodoro', 'focus', 'study'],
+    icon: svg('<path d="M5 13.5V12a7 7 0 0 1 14 0v1.5"/><rect x="3.5" y="12.5" width="3.6" height="6.5" rx="1.8"/>' +
+      '<rect x="16.9" y="12.5" width="3.6" height="6.5" rx="1.8"/><path class="al" d="M9.6 15.6q1 .9 2 0M12.4 15.6q1 .9 2 0"/>') });
   // Customize: opens YO's look (right-click does the same); a tile on the home panel
   LIST.push({ id: 'customize', category: 'system', words: ['customize', 'customise', 'outfit', 'look'],
     icon: svg('<path d="M12 3.5l6.5 14.5h-13z"/><path d="M8 13l3 1.5M10 8.6l3 1.6M6.6 16l4.6 2"/><circle class="a bob" cx="12" cy="3" r="1.7"/><path d="M4 19.5h16"/>') });
-  const STARTERS = ['open', 'translate', 'calc', 'todo', 'remind'];
+  const STARTERS = ['open', 'translate', 'todo', 'focus', 'calc'];
   const CATEGORIES = ['system', 'apps', 'time', 'tools', 'fun'];
 
   function normalize(text) {

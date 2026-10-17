@@ -151,8 +151,87 @@
     } catch (err) { /* sound is a nicety: never break YO for it */ }
   }
 
+  // ---------- focus ambience: soft rain, or a deep calm noise, generated and looped ----------
+  let amb = null; // { kind, src, gain, analyser, data }
+  const AMB_LEVEL = { rain: 0.12, deep: 0.2 };
+
+  function noise(c, kind) {
+    const len = c.sampleRate * 4;
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, last = 0;
+    for (let i = 0; i < len; i += 1) {
+      const white = Math.random() * 2 - 1;
+      if (kind === 'deep') {
+        last = (last + 0.02 * white) / 1.02; // brown noise: a low, even rumble
+        d[i] = last * 3.5;
+      } else {
+        b0 = 0.997 * b0 + white * 0.029591; // pink-ish noise: like rain on a window
+        b1 = 0.985 * b1 + white * 0.032534;
+        b2 = 0.95 * b2 + white * 0.048056;
+        d[i] = (b0 + b1 + b2 + white * 0.05) * 0.9;
+      }
+    }
+    // fade the loop's ends into each other so there's no click
+    const fade = Math.floor(c.sampleRate * 0.05);
+    for (let i = 0; i < fade; i += 1) {
+      const k = i / fade;
+      d[len - fade + i] = d[len - fade + i] * (1 - k) + d[i] * k;
+    }
+    return buf;
+  }
+
+  function ambient(kind) {
+    if (amb) {
+      const old = amb;
+      amb = null;
+      try {
+        old.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.35);
+        setTimeout(() => { try { old.src.stop(); } catch (err) { /* already stopped */ } }, 1600);
+      } catch (err) { /* nothing to stop */ }
+    }
+    if (!kind || !AMB_LEVEL[kind]) return;
+    try {
+      const c = audio();
+      if (!c) return;
+      const src = c.createBufferSource();
+      src.buffer = noise(c, kind);
+      src.loop = true;
+      const filter = c.createBiquadFilter();
+      filter.type = kind === 'deep' ? 'lowpass' : 'bandpass';
+      filter.frequency.value = kind === 'deep' ? 600 : 2200;
+      filter.Q.value = kind === 'deep' ? 0.7 : 0.4;
+      const gain = c.createGain();
+      gain.gain.value = 0;
+      const analyser = c.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(analyser);
+      gain.connect(c.destination);
+      gain.gain.setTargetAtTime(AMB_LEVEL[kind], c.currentTime, 0.9);
+      src.start();
+      amb = { kind, src, gain, analyser, data: new Uint8Array(analyser.fftSize) };
+    } catch (err) { /* ambience is a nicety */ }
+  }
+
+  // how loud the ambience is right now (0..1), for the little waveform
+  function ambientLevel() {
+    if (!amb) return 0;
+    amb.analyser.getByteTimeDomainData(amb.data);
+    let sum = 0;
+    for (let i = 0; i < amb.data.length; i += 1) {
+      const v = (amb.data[i] - 128) / 128;
+      sum += v * v;
+    }
+    return Math.min(1, Math.sqrt(sum / amb.data.length) * 6);
+  }
+
   Y.sound = {
     play,
+    ambient,
+    ambientLevel,
+    ambientKind: () => (amb ? amb.kind : null),
     VOICES,
     setEnabled: (on) => { enabled = Boolean(on); },
     isEnabled: () => enabled,
