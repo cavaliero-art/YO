@@ -1,4 +1,4 @@
-# YO v0.7: a little robot with real hands
+# YO v0.8: a little robot with real hands
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
@@ -8,7 +8,7 @@ already does well (media keys, Win+L).
 
 ## Install it (Windows 10/11)
 
-Run `YO Setup 0.7.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
+Run `YO Setup 0.8.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
 starts it. The first time, a welcome card shows the few things worth knowing.
 
 Windows may say "Windows protected your PC", because the installer isn't signed yet (a code-signing
@@ -47,7 +47,7 @@ Release checklist:
 4. Try: the shortcut, every tile of the home panel, a reminder in 1 min, Clipboard paste,
    Translate (online), Customize, Start with Windows (sign out and in), the tray menu.
 5. Uninstall: YO is gone from the Start menu and from Startup apps.
-6. Commit, tag (`git tag v0.7.0`), push, and attach the exe to a GitHub release.
+6. Commit, tag (`git tag v0.8.0`), push, and attach the exe to a GitHub release.
 
 ## How it behaves
 
