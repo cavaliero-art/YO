@@ -5,7 +5,7 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('yo', {
   setHitRect: (rect) => ipcRenderer.send('hit-rect', rect),
   show: (focus) => ipcRenderer.invoke('show-window', focus === true),
-  hide: (after) => ipcRenderer.send('hide-window', after === 'paste' ? 'paste' : null),
+  hide: () => ipcRenderer.send('hide-window'),
   releaseFocus: () => ipcRenderer.send('release-focus'),
   quit: () => ipcRenderer.send('quit'),
   getInfo: () => ipcRenderer.invoke('get-info'),
@@ -24,9 +24,6 @@ contextBridge.exposeInMainWorld('yo', {
   onMedia: (callback) => ipcRenderer.on('media', (event, now) => callback(now)),
   // mini apps
   translate: (request) => ipcRenderer.invoke('translate', request),
-  clips: () => ipcRenderer.invoke('clips'),
-  clip: (action, id) => ipcRenderer.invoke('clip', action, id),
-  onClips: (callback) => ipcRenderer.on('clips', () => callback()),
   todo: (action, arg) => ipcRenderer.invoke('todo', action, arg),
   setStatus: (text) => ipcRenderer.send('status', text),
 });

@@ -13,7 +13,7 @@
         label: 'Welcome!',
         title: "Hi, I'm YO 👋",
         body: '•  Press {key} to call me, from anywhere.\n' +
-          '•  The grid button has my apps: Translate, Calculator, Clipboard history.\n' +
+          '•  The grid button has my apps: Translate, Calculator, To-do, Focus and Prayer times.\n' +
           '•  Type what you want: "open spotify", "remind me in 10 min to stretch".\n' +
           '•  Right-click me to change my look. Drop a file or some text on me.\n' +
           'When you don\'t need me, I wait in the tray (bottom right). Its menu has Start with Windows and the shortcut.',
@@ -30,26 +30,26 @@
       cmd: {
         open: 'Open an app, folder or site', remind: 'Remind me', timer: 'Start a timer', customize: 'Customize YO',
         dance: 'Dance', jump: 'Jump', wave: 'Wave hello', flip: 'Backflip', spin: 'Spin', love: 'Show some love',
-        inbox: 'Inbox', translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard history',
+        inbox: 'Inbox', translate: 'Translate', calc: 'Calculator',
         todo: 'To-do list', exam: 'Add an exam', focus: 'Focus (Pomodoro)', prayer: 'Prayer times',
       },
       short: {
         open: 'Open', remind: 'Remind me', timer: 'Timer', customize: 'Customize',
         dance: 'Dance', jump: 'Jump', wave: 'Wave', flip: 'Flip', spin: 'Spin', love: 'Love', inbox: 'Inbox',
-        translate: 'Translate', calc: 'Calculator', clipboard: 'Clipboard', todo: 'To-do', exam: 'Exam', focus: 'Focus', prayer: 'Prayer',
+        translate: 'Translate', calc: 'Calculator', todo: 'To-do', exam: 'Exam', focus: 'Focus', prayer: 'Prayer',
       },
       // mini apps (renderer/apps/)
       app: {
         back: 'All apps', close: 'Close', copied: 'Copied!',
         sub: {
-          translate: 'Any language', calc: 'Math, units, %', clipboard: 'What you copied',
+          translate: 'Any language', calc: 'Math, units, %',
           open: 'Apps, sites, folders', remind: 'Later, for you', timer: 'Countdown', inbox: 'Your news', todo: 'Tasks and exams', focus: 'Pomodoro with YO', prayer: 'Times and reminders',
           customize: 'Make YO yours',
         },
         moves: "YO's moves", unread: '{n} new', todoLeft: '{n} left today',
         translate: {
           detect: 'Detect', swap: 'Swap languages', placeholder: 'Type or paste text…', from: 'From', to: 'To',
-          detected: 'Detected: {lang}', working: 'Translating…', fromClip: 'From your clipboard', cut: 'Only the first 500 characters',
+          detected: 'Detected: {lang}', working: 'Translating…', cut: 'Only the first 500 characters',
           note: 'Sent to MyMemory to translate · needs internet', recent: 'Recent',
           error: {
             net: "Can't reach the translator. Are you online?", quota: 'Daily limit reached, try again tomorrow',
@@ -57,14 +57,6 @@
           },
         },
         calc: { placeholder: '12 × 7, 20% of 150, 5 km in miles', history: 'History', empty: 'Press Enter to keep a result here', clear: 'Clear', bad: "Can't work that out" },
-        clipboard: {
-          search: 'Search what you copied…', pause: 'Pause', resume: 'Resume', clear: 'Clear', empty: 'Copy some text and it shows up here',
-          none: 'Nothing matches', paused: 'Paused: new copies are not kept', hint: 'Enter pastes · Ctrl+Enter copies · ★ keeps it',
-          privacy: 'Text only, on this PC. Cleared when YO quits, except ★. Passwords are skipped.',
-          pin: 'Keep (★)', unpin: 'Unpin', remove: 'Remove', app: 'Clipboard history works in the YO app', full: 'Up to 20 ★',
-          kind: { link: 'Link', color: 'Color', email: 'Email', number: 'Number', code: 'Code', text: 'Text' },
-          now: 'now',
-        },
       },
       cat: { recent: 'Recent', apps: 'Apps', time: 'Time', media: 'Media', tools: 'Tools', fun: 'Fun', system: 'System' },
       pinTip: 'Click to run · Right-click to pin',
@@ -139,7 +131,7 @@
       example: {
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min', customize: 'customize',
         dance: 'dance', jump: 'jump', wave: 'hi yo', flip: 'flip', spin: 'spin', love: 'love you', inbox: 'inbox',
-        translate: 'tr hola to english', calc: 'calc 12*7', clipboard: 'clip',
+        translate: 'tr hola to english', calc: 'calc 12*7',
         todo: 'todo math homework friday 18:00 #math', exam: 'exam physics 12/11', focus: 'focus on math homework', prayer: 'prayer',
       },
       openDone: 'Would open “{arg}” (demo)',

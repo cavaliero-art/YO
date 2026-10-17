@@ -2,9 +2,9 @@
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
-It has small daily apps built in (Translate, Calculator, Clipboard history), opens your apps,
+It has small daily apps built in (Translate, Calculator, To-do, Focus, Prayer times), opens your apps,
 folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
-already does well (media keys, Win+L).
+already does well (media keys, Win+L, clipboard history with Win+V).
 
 ## Install it (Windows 10/11)
 
@@ -44,7 +44,7 @@ Release checklist:
 1. Bump "version" in package.json and the title of this README.
 2. `npm test` passes.
 3. `npm run dist`, then install the new exe on a normal (non-admin) account.
-4. Try: the shortcut, every tile of the home panel, a reminder in 1 min, Clipboard paste,
+4. Try: the shortcut, every tile of the home panel, a reminder in 1 min,
    Translate (online), Customize, Start with Windows (sign out and in), the tray menu.
 5. Uninstall: YO is gone from the Start menu and from Startup apps.
 6. Commit, tag (`git tag v0.9.0`), push, and attach the exe to a GitHub release.
@@ -56,7 +56,7 @@ Release checklist:
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
    The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: tiles for Translate,
-   Calculator, Clipboard, To-do, Focus, Prayer, Inbox and Customize,
+   Calculator, To-do, Focus, Prayer, Inbox and Customize,
    and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
@@ -92,10 +92,6 @@ it fills the app in.
 - Calculator: type or tap; the answer shows as you go and `Enter` keeps it in the history.
   `84 + 20%` = 100.8 like a real calculator, and it also does `20% of 150`, `5 km in miles`.
   `Ctrl+C` with nothing selected copies the answer.
-- Clipboard: everything you copied (text), newest first, searchable. `Enter` pastes it into the
-  window you were in, `Ctrl+Enter` only copies it, ★ keeps one. Kept in memory only and cleared when YO
-  quits, except ★ ones (saved in clips.json). Text a password manager marks as private is skipped,
-  like Windows does. Pause it any time.
 
 - To-do: type tasks in plain words, from the app or straight from the bar:
   `todo math homework friday 18:00 #math`, `todo call mom tomorrow`, `exam physics 12/11`.
@@ -136,8 +132,6 @@ flips like a screen when it changes:
 - Translate: YO talks while it works, then flashes a letter of the new language (É, Я, あ, ع...).
   `⇄` makes it backflip; offline, it covers its eyes.
 - Calculator: the answer shows on YO's visor as you type. Dividing by zero makes it dizzy.
-- Clipboard: YO reads down your list, its antenna ball takes the color of a copied color, a ★ pops a
-  heart, and pasting, it tosses the item back to your window.
 - A timer winds a ring around YO's antenna; a reminder goes into its little notebook; opening an app
   flashes `↗ ↗`; the inbox shows `! !`.
 
@@ -226,7 +220,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 - English only for now (French and Arabic strings are kept in `i18n.js` for later).
 - Quit with `/quit` in the bar or from the tray menu.
 - Hidden, YO uses almost nothing: about 0.2% of one CPU core (no animation runs while it's hidden)
-  and about 150 MB of memory. The paste helper for the Clipboard app starts only when you open it.
+  and about 150 MB of memory.
 - The mic button only shows the listening look for 3 seconds. Real voice comes later.
 - A popup never steals focus from the app you are typing in.
 - "Reduce motion" in Windows replaces the animations with short fades.
@@ -235,22 +229,21 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
-                       apps.js (installed apps), keys.js (the paste key), store.js (JSON files),
-                       watch.js (what's playing), clipboard.js (clipboard history),
+                       apps.js (installed apps), store.js (JSON files), watch.js (what's playing),
                        translate.js (asks MyMemory), todo.js (tasks, dates, due alerts)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo, focus, prayer),
+                       miniapps.js (what every mini app shares), apps/ (translate, calc, todo, focus, prayer),
                        prayer-calc.js (prayer times from the sun's position)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)
     tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)
 
 YO keeps its files in %APPDATA%\YO: settings.json (what you allowed "Always"), reminders.json,
-apps.json (the installed apps it found), clips.json (clipboard items you kept with ★), tasks.json (your to-do list). Your look and sound choices are in the same folder.
+apps.json (the installed apps it found), tasks.json (your to-do list). Your look and sound choices are in the same folder.
 
 ## Next
 

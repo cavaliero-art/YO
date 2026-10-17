@@ -53,11 +53,11 @@
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   // the home panel: big tiles in this order, then YO's moves
-  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'focus', 'prayer', 'inbox', 'customize'];
+  const HOME = ['translate', 'calc', 'todo', 'focus', 'prayer', 'inbox', 'customize'];
   const HOME_COLS = 4;
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
-    translate: ['speech'], calc: ['screen', '='], clipboard: ['read'], open: ['launch'], remind: ['notes'],
+    translate: ['speech'], calc: ['screen', '='], open: ['launch'], remind: ['notes'],
     timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], focus: ['clock'], prayer: ['moon'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -72,7 +72,7 @@
   let nowPlaying = null; // { playing, title, artist } while the pill is on screen
   let dragDepth = 0;
   let histIndex = -1; // browsing past commands with ↑ / ↓
-  let miniapp = null; // id of the open mini app (Translate, Calculator, Clipboard)
+  let miniapp = null; // id of the open mini app (Translate, Calculator, To-do...)
   const appViews = {}; // each mini app is built the first time it opens, then kept
   let appHint = ''; // shown in the app's title for a moment ("Copied!")
 
@@ -760,7 +760,7 @@
     }, ENTER_MS);
   }
 
-  function hideIsland(after) {
+  function hideIsland() {
     if (vis === 'hidden' || vis === 'leaving') return;
     clearTimeout(peekTimer);
     Y.sound.play('leave');
@@ -776,7 +776,7 @@
       face.reset();
       dozing = false;
       reportHit();
-      bridge.hide(after);
+      bridge.hide();
     }, LEAVE_MS);
   }
 
@@ -976,7 +976,7 @@
     face.react('sleep');
   }, 1000);
 
-  // ---------- mini apps: Translate, Calculator, Clipboard (renderer/apps/) ----------
+  // ---------- mini apps: Translate, Calculator, To-do, Focus, Prayer (renderer/apps/) ----------
   // what every app gets from YO
   const host = {
     t,
@@ -1020,24 +1020,6 @@
       actions: (actions || []).map((a) => ({ label: a.label, primary: a.primary, run: () => { clearCard(); a.run(); } })),
     }),
     open: (id, seed) => openApp(id, seed),
-    // Clipboard app: YO steps aside, then the main process presses Ctrl+V in the window you were in
-    pasteBack() {
-      face.react('toss');
-      setTimeout(() => {
-        shutApp();
-        render();
-        hideIsland('paste');
-      }, reducedMotion.matches ? 0 : 380);
-    },
-    // the text you copied in the last few moments (Translate starts with it)
-    recentCopy(ms) {
-      if (!bridge.clips) return Promise.resolve('');
-      return bridge.clips().then((data) => {
-        const items = (data && data.items) || [];
-        const fresh = items.filter((c) => Date.now() - c.at < ms).sort((a, b) => b.at - a.at)[0];
-        return fresh ? fresh.text : '';
-      }, () => '');
-    },
   };
 
   function flashApp(text) {

@@ -135,8 +135,8 @@
         button('todo-check', '', (event) => { event.stopPropagation(); toggle(x, node); }, { 'aria-label': x.text, 'aria-pressed': String(x.done) }),
         h('span.todo-text', { text: x.text }),
         meta,
-        button('clip-act todo-star' + (x.star ? ' on' : ''), '★', () => act('star', x.id), { title: t(x.star ? 'todo.unstar' : 'todo.star'), 'aria-label': t(x.star ? 'todo.unstar' : 'todo.star') }),
-        button('clip-act', '×', () => { act('remove', x.id); host.react('cancel'); }, { title: t('todo.remove'), 'aria-label': t('todo.remove') }));
+        button('row-act todo-star' + (x.star ? ' on' : ''), '★', () => act('star', x.id), { title: t(x.star ? 'todo.unstar' : 'todo.star'), 'aria-label': t(x.star ? 'todo.unstar' : 'todo.star') }),
+        button('row-act', '×', () => { act('remove', x.id); host.react('cancel'); }, { title: t('todo.remove'), 'aria-label': t('todo.remove') }));
       if (x.done) node.classList.add('done');
       if (x.star) node.classList.add('starred');
       if (x.id === fresh) node.classList.add('fresh');

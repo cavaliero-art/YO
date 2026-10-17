@@ -1,7 +1,7 @@
 'use strict';
 
-// Tests for the mini apps: their main-process side (clipboard history, translate) with Electron
-// faked, and the renderer helpers (calculator, translate parsing, clipboard kinds) in a sandbox.
+// Tests for the mini apps: their main-process side (translate) with Electron faked, and the
+// renderer helpers (calculator, translate parsing) in a sandbox.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
@@ -15,63 +15,9 @@ Module._resolveFilename = function (request, ...rest) {
   return resolve.call(this, request, ...rest);
 };
 const electron = require('electron');
-const clips = require('../main/clipboard');
 const translator = require('../main/translate');
 
 const plain = (value) => JSON.parse(JSON.stringify(value));
-// copy something, then let YO look (the real clipboard answers with promises, so does the fake)
-const copy = (text, formats) => {
-  electron.clipboard.set(text, formats);
-  return clips.tick();
-};
-const texts = () => clips.list().items.map((c) => c.text);
-
-test('clipboard: keeps what you copy, newest first, without what was there before YO', async () => {
-  electron.clipboard.set('before YO started');
-  await clips.start(() => {});
-  clips.stop(); // the test drives tick() itself
-  await clips.tick();
-  assert.deepStrictEqual(texts(), []);
-  await copy('first');
-  await copy('second');
-  await copy('first'); // copied again: back on top, once
-  assert.deepStrictEqual(texts(), ['first', 'second']);
-});
-
-test('clipboard: skips what password managers mark as private', async () => {
-  await copy('hunter2', ['ExcludeClipboardContentFromMonitorProcessing']);
-  await copy('s3cret', ['CanIncludeInClipboardHistory']);
-  await copy('fine');
-  assert.deepStrictEqual(texts(), ['fine', 'first', 'second']);
-});
-
-test('clipboard: pause, pin (saved to disk), remove, clear keeps pins', async () => {
-  assert.deepStrictEqual(await clips.act('pause'), { paused: true });
-  await copy('while paused');
-  await clips.act('resume');
-  await clips.tick();
-  assert.ok(!texts().includes('while paused'));
-  const second = clips.list().items.find((c) => c.text === 'second');
-  assert.strictEqual(await clips.act('pin', second.id), true);
-  const saved = JSON.parse(fs.readFileSync(path.join(electron.userData, 'clips.json'), 'utf8'));
-  assert.deepStrictEqual(saved.map((c) => c.text), ['second']);
-  const fine = clips.list().items.find((c) => c.text === 'fine');
-  await clips.act('remove', fine.id);
-  assert.ok(!texts().includes('fine'));
-  await clips.act('clear');
-  assert.deepStrictEqual(texts(), ['second']);
-  assert.strictEqual(await clips.act('pin', 'nope'), false);
-});
-
-test('clipboard: copy puts it back on the clipboard without adding it twice', async () => {
-  const item = clips.list().items[0];
-  await copy('new thing');
-  assert.strictEqual(await clips.act('copy', item.id), true);
-  assert.strictEqual(electron.clipboard.text, 'second');
-  await clips.tick();
-  assert.deepStrictEqual(texts(), ['second', 'new thing']);
-});
-
 test('translate: asks MyMemory, decodes the answer, reports the language', async () => {
   electron.net.reply = () => ({
     ok: true,
@@ -110,7 +56,7 @@ function renderer() {
     window, document: {}, Node: function Node() {}, localStorage: { getItem: () => null, setItem() {} },
     JSON, Math, Date, setTimeout, TextEncoder, TextDecoder, btoa, atob,
   };
-  ['i18n.js', 'quick.js', 'miniapps.js', 'apps/calc.js', 'apps/translate.js', 'apps/clipboard.js'].forEach((file) => {
+  ['i18n.js', 'quick.js', 'miniapps.js', 'apps/calc.js', 'apps/translate.js'].forEach((file) => {
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'renderer', file), 'utf8'), ctx);
   });
   return window.Yo;
@@ -134,12 +80,3 @@ test('translate: what was typed after the word', () => {
   assert.deepStrictEqual(plain(Y.miniapps.parseTranslate('')), { text: '', to: null });
 });
 
-test('clipboard: what kind of thing was copied', () => {
-  const kind = Y.miniapps.clipKind;
-  assert.strictEqual(kind('https://example.com/a?b=1'), 'link');
-  assert.strictEqual(kind('#ff6600'), 'color');
-  assert.strictEqual(kind('me@example.com'), 'email');
-  assert.strictEqual(kind('1 234,50'), 'number');
-  assert.strictEqual(kind('const a = 1;\nconsole.log(a);'), 'code');
-  assert.strictEqual(kind('just some words'), 'text');
-});

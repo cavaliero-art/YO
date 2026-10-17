@@ -706,7 +706,7 @@
         hold('expr', 'dizzy', 1800);
         burst('star', 4, 100, 56, 36, 1);
       },
-      // throws something with its arm (Clipboard: pasting where you were)
+      // throws something with its arm
       toss() {
         hold('pose', 'raise', 260);
         after(260, () => { hold('pose', 'reach', 300); kick('armR', -900); burst('spark', 5, 135, 80, 50, 0.5); });

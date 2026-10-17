@@ -4,10 +4,8 @@ const fs = require('fs');
 const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen, shell } = require('electron');
 const path = require('path');
 const Agent = require('./main/agent');
-const keys = require('./main/keys');
 const apps = require('./main/apps');
 const watch = require('./main/watch');
-const clips = require('./main/clipboard');
 const translator = require('./main/translate');
 const store = require('./main/store');
 const Todo = require('./main/todo');
@@ -23,7 +21,6 @@ const AT_LOGIN = process.argv.includes('--login'); // started by Windows: no hel
 const POINTER_MS = 33; // pointer checks while a YO window is on screen: eyes follow it, clicks reach YO
 const HIT_MARGIN = 4;
 const MEDIA_MS = 2500; // what's playing, asked only while the pill is on screen
-const PASTE_DELAY_MS = 180; // after YO hides, the window you were in has focus again
 
 let win = null;
 let tray = null;
@@ -279,11 +276,9 @@ ipcMain.handle('show-window', (event, focus) => {
   return true;
 });
 
-ipcMain.on('hide-window', (event, after) => {
+ipcMain.on('hide-window', (event) => {
   if (!fromMainWindow(event)) return;
   win.hide();
-  // Clipboard app: what you picked is already on the clipboard; paste it where you were
-  if (after === 'paste') setTimeout(() => { try { keys.paste(); } catch (err) { /* copied, not pasted */ } }, PASTE_DELAY_MS);
 });
 
 ipcMain.on('release-focus', (event) => {
@@ -346,17 +341,6 @@ ipcMain.handle('todo', (event, action, arg) => {
   return todo.act(action, arg);
 });
 
-const CLIP_ACTIONS = new Set(['pin', 'remove', 'clear', 'copy', 'pause', 'resume']);
-ipcMain.handle('clips', (event) => {
-  if (!fromMainWindow(event)) return null;
-  keys.warm(); // the Clipboard app is open: get the paste key ready (PowerShell takes ~1.7 s to start)
-  return clips.list();
-});
-ipcMain.handle('clip', (event, action, id) => {
-  if (!fromMainWindow(event) || !CLIP_ACTIONS.has(action) || (id !== undefined && typeof id !== 'string')) return false;
-  return clips.act(action, id);
-});
-
 // what YO is busy with, in the tray's tooltip (Focus 18:42)
 ipcMain.on('status', (event, text) => {
   if (!fromMainWindow(event) || !tray) return;
@@ -387,17 +371,14 @@ if (!app.requestSingleInstanceLock()) {
     registerHotkey(store.load('settings', {}).shortcut);
     createTray();
     screen.on('display-metrics-changed', placeWindow);
-    // get ready in the background: the list of installed apps (~4 s). The paste key starts with the Clipboard app.
+    // get ready in the background: the list of installed apps (~4 s)
     setTimeout(() => apps.refresh(), 3000);
-    clips.start(() => { if (win && !win.isDestroyed()) win.webContents.send('clips'); });
   });
 
   app.on('second-instance', summon);
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
-    keys.stop();
     watch.stop();
-    clips.stop();
     if (todo) todo.stop();
   });
   app.on('window-all-closed', () => app.quit());

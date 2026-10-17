@@ -33,9 +33,7 @@
     { id: 'translate', category: 'tools', app: 'translate', tint: 'media', words: ['translate', 'translator', 'tr'],
       icon: svg('<path d="M4 6.5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-6l-4 3.5v-3.5a3 3 0 0 1-3-3z"/><rect class="a blink" x="8.6" y="8" width="1.8" height="3.4" rx=".9"/><rect class="a blink" x="13.6" y="8" width="1.8" height="3.4" rx=".9"/>') },
     { id: 'calc', category: 'tools', app: 'calc', tint: 'tools', words: ['calculator', 'calculate', 'calc'],
-      icon: svg('<rect x="4" y="3.5" width="16" height="17" rx="5"/><rect x="7" y="7" width="10" height="5.5" rx="2.75"/><path class="al" d="M9.5 9h5M9.5 10.6h5"/><path d="M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/>') },
-    { id: 'clipboard', category: 'tools', app: 'clipboard', tint: 'system', words: ['clipboard', 'paste history', 'clips', 'clip'],
-      icon: svg('<rect x="5.5" y="6" width="13" height="15" rx="3"/><g class="bob"><path d="M12 6V3.6"/><circle class="a" cx="12" cy="2.6" r="1.5"/></g><path d="M9 11h6M9 14h6M9 17h3.5"/>') }
+      icon: svg('<rect x="4" y="3.5" width="16" height="17" rx="5"/><rect x="7" y="7" width="10" height="5.5" rx="2.75"/><path class="al" d="M9.5 9h5M9.5 10.6h5"/><path d="M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/>') }
   );
   // emotes: YO does them right away, nothing leaves the page
   LIST.push(

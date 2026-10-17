@@ -1,12 +1,12 @@
 (function (Y) {
   'use strict';
 
-  // Mini apps: small tools that open inside the pill (Translate, Calculator, Clipboard...).
+  // Mini apps: small tools that open inside the pill (Translate, Calculator, To-do...).
   // Each file in renderer/apps/ calls define(id, mount). app.js gives every app the same frame
   // (header with YO, Back and Close) and calls mount(host) the first time it opens.
   //   mount(host) -> { root, open(seed), escape?() -> handled, drop?(text) -> handled, close?() }
   //   live: what an app shows on its home tile while it runs (live.focus(), live.todoToday(tasks))
-  //   host: { t, bridge, copy(text), toast(text), react(move), sound(name), close(), pasteBack(), recentCopy(ms) }
+  //   host: { t, bridge, copy(text), toast(text), react(move), sound(name), close() }
   const APPS = {};
 
   function define(id, mount) {
@@ -42,14 +42,6 @@
     node.addEventListener('mousedown', (event) => event.preventDefault());
     node.addEventListener('click', run);
     return node;
-  }
-
-  function ago(at, now) {
-    const s = Math.max(0, Math.round(((now || Date.now()) - at) / 1000));
-    if (s < 45) return Y.i18n.t('app.clipboard.now');
-    if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min';
-    if (s < 86400) return Math.round(s / 3600) + ' h';
-    return new Date(at).toLocaleDateString('en', { month: 'short', day: 'numeric' });
   }
 
   // ---------- motion the apps share: short, only when something changes, none with "reduce motion" ----------
@@ -102,5 +94,5 @@
     node.animate([{ transform: 'translateY(60%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: EASE });
   }
 
-  Y.miniapps = { define, get: (id) => APPS[id] || null, h, button, ago, live: {}, still, pop, fly, land, roll, EASE, SPRING };
+  Y.miniapps = { define, get: (id) => APPS[id] || null, h, button, live: {}, still, pop, fly, land, roll, EASE, SPRING };
 })((window.Yo = window.Yo || {}));

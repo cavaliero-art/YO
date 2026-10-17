@@ -241,13 +241,6 @@
           return focus();
         }
         focus();
-        // nothing typed: what you just copied is probably what you want translated
-        if (src.value.trim()) return;
-        host.recentCopy(90000).then((text) => {
-          if (!text || src.value.trim() || /^https?:\/\//i.test(text.trim()) || !/\p{L}/u.test(text)) return;
-          src.value = text.slice(0, 2000);
-          go().then(() => { if (!status.textContent && result) status.textContent = t('app.translate.fromClip'); });
-        });
       },
       escape() {
         if (!picking) return false;
