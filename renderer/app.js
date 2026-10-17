@@ -69,12 +69,9 @@
   let lastActive = Date.now();
   let lastSnore = 0;
   let dozing = false;
-  let customizing = false; // the Customize panel is open
-  let customHint = ''; // shown in the panel title for a moment (how to unlock something)
   let nowPlaying = null; // { playing, title, artist } while the pill is on screen
   let dragDepth = 0;
   let histIndex = -1; // browsing past commands with ↑ / ↓
-  let preview = null; // the big YO in that panel
   let miniapp = null; // id of the open mini app (Translate, Calculator, Clipboard)
   const appViews = {}; // each mini app is built the first time it opens, then kept
   let appHint = ''; // shown in the app's title for a moment ("Copied!")
@@ -106,6 +103,16 @@
     try { localStorage.setItem('yo.prefs', JSON.stringify(prefs)); } catch (err) { /* not saved, still applied */ }
   }
 
+  // the Customize panel (renderer/customize.js): right-click YO
+  const custom = Y.customize.create({
+    t, el, prefs, PILL, DEFAULT_PREFS, savePrefs, applyPrefs, render, reportHit, showIsland, maybeHide,
+    beforeOpen() {
+      if (miniapp) shutApp();
+      composing = false;
+      panel = false;
+    },
+  });
+
   // a seasonal outfit only fills the slots you left empty
   const effectiveLook = () => Y.mascot.lookFor(prefs);
 
@@ -115,7 +122,7 @@
     Y.sound.setVolume(prefs.volume);
     const look = effectiveLook();
     face.setLook(look);
-    if (preview) preview.setLook(look);
+    if (custom.preview()) custom.preview().setLook(look);
     // the pill: style, size, and which side of the screen
     el.island.dataset.pill = prefs.pill.pillStyle;
     el.island.dataset.size = prefs.pill.size;
@@ -143,7 +150,7 @@
     prefs.sound = Boolean(value);
     savePrefs();
     applyPrefs();
-    if (customizing) syncCustom();
+    if (custom.isOpen()) custom.sync();
     return true;
   }
 
@@ -159,7 +166,7 @@
 
   // ---------- what the island should look like right now ----------
   function derive() {
-    if (customizing) return 'custom';
+    if (custom.isOpen()) return 'custom';
     if (miniapp) return 'app';
     if (composing) return 'command';
     if (s.state === 'listening') return 'listening';
@@ -170,7 +177,7 @@
   }
 
   function busy() {
-    return composing || customizing || Boolean(miniapp) || s.state === 'working' || s.state === 'listening' || s.state === 'approval' ||
+    return composing || custom.isOpen() || Boolean(miniapp) || s.state === 'working' || s.state === 'listening' || s.state === 'approval' ||
       (s.state === 'result' && s.fg);
   }
 
@@ -261,7 +268,7 @@
       if (mode === 'listening' || mode === 'working') text = s.label;
       else if (mode === 'approval') text = t('needsOk');
       else if (mode === 'result') text = s.label || t('done');
-      else if (mode === 'custom') text = customHint || t('customize');
+      else if (mode === 'custom') text = custom.hint() || t('customize');
       else if (mode === 'app') text = appHint || t('short.' + miniapp);
       el.label.textContent = text;
       setBubble(mode === 'peek' ? bubbleFor() : '');
@@ -377,7 +384,7 @@
     HOME.forEach((id) => {
       const cmd = Y.commands.byId(id);
       if (!cmd) return;
-      const run = id === 'customize' ? () => { setPanel(false); openCustom(); } : () => fromPanel(cmd);
+      const run = id === 'customize' ? () => { setPanel(false); custom.open(); } : () => fromPanel(cmd);
       const tile = document.createElement('button');
       const ico = document.createElement('span');
       const name = document.createElement('span');
@@ -705,7 +712,7 @@
 
   // nothing going on: deliver waiting news first, otherwise leave
   function maybeHide() {
-    if (composing || customizing || miniapp || s.state !== 'idle') return;
+    if (composing || custom.isOpen() || miniapp || s.state !== 'idle') return;
     if (later.length) return onEvent(later.shift());
     hideIsland();
   }
@@ -871,16 +878,11 @@
     fresh.forEach((rule) => {
       onEvent({
         type: 'result', background: true, sticky: true, category: 'system', unlock: { slot: rule.slot, value: rule.value },
-        title: t('unlock.title').replace('{name}', optionLabel(rule.slot, rule.value)),
+        title: t('unlock.title').replace('{name}', custom.optionLabel(rule.slot, rule.value)),
         body: t('unlock.body'),
       });
     });
-    if (fresh.length && customizing) drawCustom();
-  }
-
-  function lockHint(group, value) {
-    const p = Y.unlocks.progress(group, value);
-    return p ? t('lock.' + p.stat).replace(/\{need\}/g, p.need).replace('{have}', p.have) : '';
+    if (fresh.length && custom.isOpen()) custom.redraw();
   }
 
   // ---------- small life: dozing off, petting, boops ----------
@@ -903,379 +905,6 @@
     lastSnore = Date.now();
     face.react('sleep');
   }, 1000);
-
-  // ---------- Customize: right-click YO ----------
-  // each row: [label key, pref group, values]; swatches for colors, chips for the rest
-  // tabs keep the panel short: each one has its rows
-  const CUSTOM_TABS = {
-    body: [['custom.color', 'color'], ['custom.eyes', 'eyes', 'eyeColor'], ['custom.tip', 'tip'], ['custom.sticker', 'sticker']],
-    outfit: [['custom.hat', 'hat'], ['custom.neck', 'neck'], ['custom.glasses', 'glasses'], ['custom.item', 'item'], ['custom.seasonal', 'seasonal']],
-    pill: [['custom.pillStyle', 'pillStyle'], ['custom.position', 'position'], ['custom.size', 'size']],
-    sound: [['custom.voice', 'voice'], ['custom.volume', 'volume']],
-    saved: [],
-  };
-  let customTab = 'body';
-  const SWATCHES = { color: true, eyeColor: true };
-
-  function optionsFor(group) {
-    if (group === 'seasonal') return [true, false];
-    if (group === 'voice') return Y.sound.VOICES.concat('off');
-    if (group === 'volume') return [1, 2, 3];
-    if (PILL[group]) return PILL[group];
-    return Y.mascot.LOOKS[group];
-  }
-
-  function optionLabel(group, value) {
-    if (group === 'seasonal') return t(value ? 'seasonOn' : 'seasonOff');
-    if (group === 'voice') return t('voice.' + value);
-    if (group === 'volume') return t('volume.' + value);
-    if (PILL[group]) return t('pill.' + group + '.' + value);
-    return t('look.' + group + '.' + value);
-  }
-
-  function isPicked(group, value) {
-    if (group === 'seasonal') return prefs.seasonal === value;
-    if (group === 'voice') return value === 'off' ? !prefs.sound : prefs.sound && prefs.voice === value;
-    if (group === 'volume') return prefs.volume === value;
-    if (PILL[group]) return prefs.pill[group] === value;
-    return prefs.look[group] === value;
-  }
-
-  function drawCustom() {
-    const tabs = document.createElement('div');
-    tabs.className = 'ctabs';
-    tabs.setAttribute('role', 'tablist');
-    Object.keys(CUSTOM_TABS).forEach((tab) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'ctab';
-      button.setAttribute('role', 'tab');
-      button.setAttribute('aria-selected', String(tab === customTab));
-      button.textContent = t('tab.' + tab);
-      button.addEventListener('click', () => {
-        if (tab === customTab) return;
-        customTab = tab;
-        drawCustom();
-        Y.sound.play('tick');
-      });
-      tabs.append(button);
-    });
-    stopSavedFaces();
-    if (customTab === 'saved') {
-      el.cOpts.replaceChildren(tabs, savedView());
-      return;
-    }
-    const rows = CUSTOM_TABS[customTab].map(([labelKey, ...groups]) => {
-      const row = document.createElement('div');
-      const name = document.createElement('span');
-      const opts = document.createElement('div');
-      row.className = 'orow';
-      name.className = 'olabel';
-      name.textContent = t(labelKey);
-      opts.className = 'ochips';
-      opts.setAttribute('role', 'group');
-      opts.setAttribute('aria-label', t(labelKey));
-      groups.forEach((group) => {
-        optionsFor(group).forEach((value) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = SWATCHES[group] ? 'sw' : 'opt';
-          if (group === 'eyeColor') button.classList.add('sw-eye');
-          button.dataset.group = group;
-          button.dataset.value = String(value);
-          if (SWATCHES[group]) {
-            button.dataset[group === 'color' ? 'color' : 'eye'] = value;
-            button.title = optionLabel(group, value);
-            button.setAttribute('aria-label', optionLabel(group, value));
-          } else {
-            button.textContent = optionLabel(group, value);
-          }
-          if (!Y.unlocks.isUnlocked(group, value)) {
-            button.classList.add('locked');
-            button.setAttribute('aria-disabled', 'true');
-            button.title = lockHint(group, value);
-          }
-          button.addEventListener('click', () => chooseLook(group, value));
-          opts.append(button);
-        });
-      });
-      row.append(name, opts);
-      if (groups[0] === 'seasonal') row.append(seasonInfo());
-      return row;
-    });
-    el.cOpts.replaceChildren(tabs, ...rows);
-    syncCustom();
-  }
-
-  // what's on today, what comes next, and the whole list: so you know what exists
-  function seasonInfo() {
-    const info = document.createElement('div');
-    const today = Y.mascot.seasonal();
-    const next = Y.mascot.nextSeason();
-    let line = today ? t('seasonToday').replace('{name}', t('season.' + today)) : t('seasonNone');
-    if (next) {
-      const date = next.date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-      line += ' · ' + t('seasonNext').replace('{name}', t('season.' + next.name)).replace('{date}', date);
-    }
-    info.className = 'oinfo';
-    info.textContent = line + '. ' + t('seasonAll');
-    info.title = t('seasonRule');
-    return info;
-  }
-
-  function syncCustom() {
-    el.cOpts.querySelectorAll('button[data-group]').forEach((button) => {
-      const group = button.dataset.group;
-      const raw = button.dataset.value;
-      const value = group === 'seasonal' ? raw === 'true' : group === 'volume' ? Number(raw) : raw;
-      button.setAttribute('aria-pressed', String(isPicked(group, value)));
-    });
-  }
-
-  function chooseLook(group, value) {
-    // still locked: say how to earn it, in the panel's title for a moment
-    if (!Y.unlocks.isUnlocked(group, value)) {
-      customHint = '🔒 ' + lockHint(group, value);
-      render();
-      preview.react('info');
-      Y.sound.play('info');
-      clearTimeout(chooseLook.timer);
-      chooseLook.timer = setTimeout(() => { customHint = ''; render(); }, 2800);
-      return;
-    }
-    if (group === 'seasonal') prefs.seasonal = value;
-    else if (group === 'voice') {
-      prefs.sound = value !== 'off';
-      if (value !== 'off') prefs.voice = value;
-    } else if (group === 'volume') prefs.volume = value;
-    else if (PILL[group]) prefs.pill[group] = value;
-    else prefs.look[group] = value;
-    savePrefs();
-    applyPrefs();
-    syncCustom();
-    // a little show: YO reacts, and the sound settings play a sample
-    if (group === 'voice' || group === 'volume') {
-      preview.react('success');
-      Y.sound.play('hello');
-    } else if (PILL[group]) {
-      Y.sound.play('tick');
-      reportHit();
-    } else {
-      preview.react('equip');
-      Y.sound.play('equip');
-    }
-  }
-
-  function surprise() {
-    const L = {};
-    Object.keys(Y.mascot.LOOKS).forEach((key) => {
-      L[key] = Y.mascot.LOOKS[key].filter((value) => Y.unlocks.isUnlocked(key, value));
-    });
-    const pick = (list) => list[Math.floor(Math.random() * list.length)];
-    prefs.look = {
-      color: pick(L.color), eyeColor: pick(L.eyeColor), eyes: pick(L.eyes),
-      hat: Math.random() < 0.8 ? pick(L.hat) : 'none',
-      glasses: Math.random() < 0.4 ? pick(L.glasses) : 'none',
-      item: Math.random() < 0.5 ? pick(L.item) : 'none',
-      neck: Math.random() < 0.5 ? pick(L.neck) : 'none',
-      tip: Math.random() < 0.5 ? pick(L.tip) : 'ball',
-      sticker: Math.random() < 0.4 ? pick(L.sticker) : 'none',
-    };
-    savePrefs();
-    applyPrefs();
-    syncCustom();
-    preview.react('equip');
-    Y.sound.play('equip');
-  }
-
-  function resetLook() {
-    const fresh = JSON.parse(JSON.stringify(DEFAULT_PREFS));
-    Object.assign(prefs, fresh);
-    savePrefs();
-    applyPrefs();
-    syncCustom();
-    preview.react('land');
-    Y.sound.play('arrive');
-  }
-
-  function openCustom() {
-    if (customizing) return;
-    if (miniapp) shutApp();
-    customizing = true;
-    composing = false;
-    panel = false;
-    if (!preview) preview = Y.mascot.mount(el.preview, 150);
-    drawCustom();
-    applyPrefs();
-    preview.setActive(true);
-    render();
-    showIsland(true);
-    Y.sound.play('drawer');
-    setTimeout(() => { if (customizing) preview.react('land'); }, 120);
-  }
-
-  // ---------- saved looks and look codes ----------
-  const CODE_KEYS = ['color', 'eyeColor', 'eyes', 'hat', 'glasses', 'item', 'neck', 'tip', 'sticker'];
-  let savedFaces = [];
-
-  function stopSavedFaces() {
-    savedFaces.forEach((f) => f.setActive(false));
-    savedFaces = [];
-  }
-
-  const lookOf = (look) => {
-    const out = {};
-    CODE_KEYS.forEach((key) => { out[key] = look[key]; });
-    return out;
-  };
-
-  // a look as a short code: each choice is a digit in a mixed-radix number, written in base 36
-  function encodeLook(look) {
-    let n = 0;
-    CODE_KEYS.forEach((key) => {
-      const list = Y.mascot.LOOKS[key];
-      n = n * list.length + Math.max(0, list.indexOf(look[key]));
-    });
-    return 'YO-' + n.toString(36).toUpperCase();
-  }
-
-  function decodeLook(code) {
-    const m = /^\s*YO-([0-9A-Z]{1,8})\s*$/i.exec(code || '');
-    if (!m) return null;
-    let n = parseInt(m[1], 36);
-    const max = CODE_KEYS.reduce((acc, key) => acc * Y.mascot.LOOKS[key].length, 1);
-    if (!Number.isFinite(n) || n < 0 || n >= max) return null;
-    const look = {};
-    CODE_KEYS.slice().reverse().forEach((key) => {
-      const list = Y.mascot.LOOKS[key];
-      look[key] = list[n % list.length];
-      n = Math.floor(n / list.length);
-    });
-    return look;
-  }
-
-  // wear a look; anything still locked falls back to the default
-  function wear(look, message) {
-    let locked = false;
-    CODE_KEYS.forEach((key) => {
-      if (look[key] === undefined) return;
-      if (Y.unlocks.isUnlocked(key, look[key])) prefs.look[key] = look[key];
-      else { locked = true; prefs.look[key] = Y.mascot.DEFAULT_LOOK[key]; }
-    });
-    savePrefs();
-    applyPrefs();
-    preview.react('equip');
-    Y.sound.play('equip');
-    flashHint(locked ? t('saved.locked') : message);
-  }
-
-  function flashHint(text) {
-    customHint = text;
-    render();
-    clearTimeout(flashHint.timer);
-    flashHint.timer = setTimeout(() => { customHint = ''; render(); }, 2600);
-  }
-
-  function savedView() {
-    const wrap = document.createElement('div');
-    wrap.className = 'saved';
-    const slots = document.createElement('div');
-    slots.className = 'slots';
-    prefs.saved.forEach((look, i) => {
-      const slot = document.createElement('div');
-      const mini = document.createElement('div');
-      const buttons = document.createElement('div');
-      slot.className = 'slot' + (look ? '' : ' empty');
-      mini.className = 'mini-yo';
-      buttons.className = 'slot-actions';
-      if (look) {
-        const f = Y.mascot.mount(mini, 62);
-        f.setLook(look);
-        f.setActive(true);
-        savedFaces.push(f);
-        buttons.append(
-          smallButton(t('saved.wear'), true, () => wear(look, t('saved.wearing'))),
-          smallButton(t('saved.replace'), false, () => saveSlot(i))
-        );
-      } else {
-        mini.textContent = t('saved.empty');
-        buttons.append(smallButton(t('saved.save'), true, () => saveSlot(i)));
-      }
-      slot.append(mini, buttons);
-      slots.append(slot);
-    });
-
-    // share: your look as a code, and a box to use someone else's
-    const share = document.createElement('div');
-    share.className = 'share';
-    const code = encodeLook(prefs.look);
-    const mine = document.createElement('span');
-    mine.className = 'code';
-    mine.textContent = code;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'code-in';
-    input.placeholder = t('saved.paste');
-    input.spellcheck = false;
-    input.maxLength = 16;
-    const useCode = () => {
-      const look = decodeLook(input.value);
-      if (!look) { flashHint(t('saved.bad')); Y.sound.play('info'); return; }
-      input.value = '';
-      wear(look, t('saved.applied'));
-      drawCustom();
-    };
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') { event.preventDefault(); useCode(); }
-      event.stopPropagation(); // typing here is not the command bar
-    });
-    share.append(
-      label(t('saved.code')), mine,
-      smallButton(t('copy'), false, () => {
-        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(() => {});
-        flashHint(t('copied').replace('{v}', code));
-        Y.sound.play('tick');
-      }),
-      input, smallButton(t('saved.apply'), false, useCode)
-    );
-    wrap.append(slots, share);
-    return wrap;
-  }
-
-  function saveSlot(i) {
-    prefs.saved[i] = lookOf(prefs.look);
-    savePrefs();
-    Y.sound.play('equip');
-    flashHint(t('saved.done'));
-    drawCustom();
-  }
-
-  function smallButton(text, primary, run) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn small' + (primary ? ' ok' : '');
-    button.textContent = text;
-    button.addEventListener('click', run);
-    return button;
-  }
-
-  function label(text) {
-    const span = document.createElement('span');
-    span.className = 'olabel';
-    span.textContent = text;
-    return span;
-  }
-
-  function closeCustom() {
-    if (!customizing) return;
-    customizing = false;
-    stopSavedFaces();
-    preview.setActive(false);
-    preview.reset();
-    render();
-    Y.sound.play('close');
-    maybeHide();
-  }
 
   // ---------- mini apps: Translate, Calculator, Clipboard (renderer/apps/) ----------
   // what every app gets from YO
@@ -1354,12 +983,7 @@
     const fresh = miniapp !== id;
     if (miniapp && fresh) shutApp();
     miniapp = id;
-    if (customizing) {
-      customizing = false;
-      stopSavedFaces();
-      preview.setActive(false);
-      preview.reset();
-    }
+    custom.dismiss();
     composing = false;
     panel = false;
     el.cmd.value = '';
@@ -1484,7 +1108,7 @@
     if (cmd) Y.memory.usage.bump(cmd.id);
     if ((cmd && cmd.id === 'customize') || (!cmd && Y.commands.leadWord(Y.commands.byId('customize'), text))) {
       el.cmd.value = '';
-      return openCustom();
+      return custom.open();
     }
     const appCmd = cmd && cmd.app ? cmd : !cmd ? Y.commands.LIST.find((c) => c.app && Y.commands.leadWord(c, text)) : null;
     if (appCmd) return openApp(appCmd.app, (appCmd.seed || '') + Y.commands.argOf(appCmd, text));
@@ -1583,7 +1207,7 @@
   }
 
   function escape() {
-    if (customizing) return closeCustom();
+    if (custom.isOpen()) return custom.close();
     if (miniapp) {
       const view = appViews[miniapp];
       if (view.escape && view.escape()) return; // the app used it (closed its picker, cleared its search)
@@ -1649,13 +1273,13 @@
   el.hero.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     stopPet();
-    openCustom();
+    custom.open();
   });
-  el.cDone.addEventListener('click', closeCustom);
+  el.cDone.addEventListener('click', () => custom.close());
   el.aClose.addEventListener('click', () => closeApp());
   el.aBack.addEventListener('click', backToTiles);
-  el.cRandom.addEventListener('click', surprise);
-  el.cReset.addEventListener('click', resetLook);
+  el.cRandom.addEventListener('click', () => custom.surprise());
+  el.cReset.addEventListener('click', () => custom.reset());
   el.island.addEventListener('mouseenter', () => { hovering = true; });
   el.island.addEventListener('mouseleave', () => { hovering = false; });
   el.cmd.addEventListener('input', updateSuggestions);
@@ -1772,7 +1396,7 @@
       return;
     }
     if (miniapp) shutApp();
-    if (customizing) closeCustom();
+    if (custom.isOpen()) custom.close();
     face.react('eat');
     Y.sound.play('gulp');
     composing = false;
@@ -1851,7 +1475,7 @@
   });
 
   bridge.onHotkey(() => {
-    if (customizing) return closeCustom();
+    if (custom.isOpen()) return custom.close();
     if (miniapp) return closeApp();
     if (vis === 'hidden' || vis === 'leaving') {
       composing = false;
