@@ -53,16 +53,17 @@
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   // the home panel: big tiles in this order, then YO's moves
-  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'focus', 'open', 'inbox', 'customize'];
+  const HOME = ['translate', 'calc', 'clipboard', 'todo', 'focus', 'prayer', 'inbox', 'customize'];
   const HOME_COLS = 4;
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
     translate: ['speech'], calc: ['screen', '='], clipboard: ['read'], open: ['launch'], remind: ['notes'],
-    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], focus: ['clock'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], focus: ['clock'], prayer: ['moon'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let growFrom = null; // the tile an app is opening from: it grows into the app
-  let quietNews = false; // while you focus, YO keeps its own news (unlocks) for the break
+  let quietNews = false; // while you focus (or just after a prayer), YO keeps its own news (unlocks) for later
+  const quietBy = new Set();
   let homeTiles = []; // { node, run } in order, for the arrow keys
   let homePick = -1;
   let lastActive = Date.now();
@@ -244,7 +245,8 @@
 
   function render() {
     const mode = derive();
-    const faceState = composing ? 'idle' : FACE[s.state];
+    // a calm card (prayer time) keeps YO's own color instead of the bright "done" glow
+    const faceState = composing || (s.state === 'result' && s.card && s.card.calm) ? 'idle' : FACE[s.state];
 
     if (vis !== 'leaving') {
       el.island.dataset.mode = mode;
@@ -388,6 +390,15 @@
       name.textContent = t('short.' + id);
       tile.title = t('app.sub.' + id) + ' · ' + t('example.' + id);
       tile.append(ico, name);
+      if (id === 'prayer' && Y.prayerAlerts) {
+        const next = Y.prayerAlerts.label();
+        if (next) {
+          const note = document.createElement('span');
+          note.className = 'hnote';
+          note.textContent = next;
+          tile.append(note);
+        }
+      }
       if (id === 'inbox' && Y.memory.inbox.unread()) {
         const dot = document.createElement('span');
         dot.className = 'hdot';
@@ -765,7 +776,7 @@
     } else if (ev.type === 'result') {
       s.state = 'result';
       s.label = ev.sources || t('done');
-      s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky, inboxId: ev.inboxId };
+      s.card = { title: ev.title, body: ev.body, copyable: !ev.sticky, inboxId: ev.inboxId, calm: Boolean(ev.calm) };
       if (ev.actions) s.card.actions = ev.actions; // buttons from a mini app (Focus: Start break)
       if (ev.todo && bridge.todo) {
         s.card.actions = [
@@ -815,6 +826,10 @@
     } else if (ev.type === 'result' && ev.unlock) {
       move = 'equip';
       sound = 'unlock';
+    } else if (ev.type === 'result' && ev.calm) {
+      // a calm moment (prayer time): YO just comes down, with its own sound or none
+      sound = ev.sound || '';
+      if (ev.face) face.flash(ev.face, '', 8000);
     } else if (ev.type === 'result') {
       move = ev.background ? 'remind' : 'success';
       sound = ev.background ? (ev.alarm ? 'alarm' : 'chime') : 'success';
@@ -1292,11 +1307,17 @@
     close: () => closeApp(),
     current: () => miniapp, // the app on screen, if any
     look: () => effectiveLook(), // YO's look, for an app that shows a big YO
-    quiet: (on) => { quietNews = Boolean(on); },
+    quiet: (who, on) => {
+      if (on) quietBy.add(who);
+      else quietBy.delete(who);
+      quietNews = quietBy.size > 0;
+    },
     status: (text) => { if (bridge.setStatus) bridge.setStatus(text || ''); },
     // a card from an app, like a reminder: YO comes back with it (buttons: [{ label, primary, run }])
-    card: (title, body, actions) => onEvent({
+    card: (title, body, actions, opts) => onEvent({
       type: 'result', category: 'time', sticky: true, background: true, title, body,
+      calm: Boolean(opts && opts.calm), sound: opts && opts.sound !== undefined ? opts.sound : null, face: opts && opts.face,
+      sources: opts && opts.label, // the word in the header (Prayer, Focus)
       actions: (actions || []).map((a) => ({ label: a.label, primary: a.primary, run: () => { clearCard(); a.run(); } })),
     }),
     open: (id, seed) => openApp(id, seed),
@@ -1874,6 +1895,7 @@
 
   // English only for now: the FR/AR strings stay in i18n.js but are no longer offered
   setLang('en');
+  if (Y.prayerAlerts) Y.prayerAlerts.start(host); // prayer reminders run even before the app is opened
   syncUnread();
   applyPrefs();
   applyStrings();

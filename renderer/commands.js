@@ -58,6 +58,10 @@
   LIST.push({ id: 'focus', category: 'time', app: 'focus', words: ['focus on', 'pomodoro', 'focus', 'study'],
     icon: svg('<path d="M5 13.5V12a7 7 0 0 1 14 0v1.5"/><rect x="3.5" y="12.5" width="3.6" height="6.5" rx="1.8"/>' +
       '<rect x="16.9" y="12.5" width="3.6" height="6.5" rx="1.8"/><path class="al" d="M9.6 15.6q1 .9 2 0M12.4 15.6q1 .9 2 0"/>') });
+  // Prayer times: worked out on this PC, with calm reminders
+  LIST.push({ id: 'prayer', category: 'time', app: 'prayer', words: ['prayer times', 'prayer', 'salah', 'salat', 'adhan', 'namaz'],
+    icon: svg('<path d="M4.5 20.5h15M6.5 20.5V13.5a5.5 5.5 0 0 1 11 0v7"/><path d="M10.4 20.5v-2.8a1.6 1.6 0 0 1 3.2 0v2.8M12 8V5.6"/>' +
+      '<path class="al" d="M13.4 3.6a1.9 1.9 0 1 1-2.3-2.2 2.3 2.3 0 0 0 2.3 2.2z"/>') });
   // Customize: opens YO's look (right-click does the same); a tile on the home panel
   LIST.push({ id: 'customize', category: 'system', words: ['customize', 'customise', 'outfit', 'look'],
     icon: svg('<path d="M12 3.5l6.5 14.5h-13z"/><path d="M8 13l3 1.5M10 8.6l3 1.6M6.6 16l4.6 2"/><circle class="a bob" cx="12" cy="3" r="1.7"/><path d="M4 19.5h16"/>') });

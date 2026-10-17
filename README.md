@@ -56,7 +56,7 @@ Release checklist:
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
    The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: tiles for Translate,
-   Calculator, Clipboard, To-do, Focus, Open, Inbox and Customize,
+   Calculator, Clipboard, To-do, Focus, Prayer, Inbox and Customize,
    and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
@@ -113,6 +113,17 @@ it fills the app in.
   The timer keeps going when you close it: the tray tooltip shows the time left, and YO comes back with
   "Focus complete!" (Start break, Mark done). While you focus, YO keeps unlock news for the break.
   Space starts or pauses. Today's sessions and minutes are counted.
+
+- Prayer: the day's prayer times for your city, worked out on this PC (no internet, nothing sent),
+  checked against published Tunisia-method tables to within a minute. Pick your city the first time
+  (Tunisian cities, major cities worldwide, or coordinates); each city keeps its own clock.
+  Methods: Tunisia (default), Muslim World League, Umm al-Qura, Egypt, Morocco, Algeria, France,
+  Turkey, ISNA, Karachi, Gulf, Dubai; Asr standard or Hanafi; ±minutes per prayer to match your mosque.
+  A calm scene follows the real sky (night, dawn, day, sunset) with YO on a prayer rug holding its lantern.
+  A bell per prayer, an optional heads-up before (default 10 min). At prayer time YO comes down
+  quietly with a soft tone and its crescent face: I prayed ✓, Snooze 10 min. Then it keeps its own news
+  to itself for a while (15 min). What you mark as prayed stays on this PC; no streaks, no scores.
+  The Prayer tile shows the next prayer. In Ramadan the countdown is to Suhoor and Iftar.
 
 Dropping text on YO while Translate or the Calculator is open puts it in there.
 
@@ -232,7 +243,8 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo, focus)
+                       miniapps.js (what every mini app shares), apps/ (translate, calc, clipboard, todo, focus, prayer),
+                       prayer-calc.js (prayer times from the sun's position)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)
     tests/             npm test (nothing real happens: Electron, keys, launching and the network are faked)

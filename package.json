@@ -8,7 +8,7 @@
     "start": "electron .",
     "icons": "electron scripts/make-icons.js",
     "dist": "electron-builder --win nsis",
-    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js"
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js"
   },
   "license": "MIT",
   "author": "cavaliero-art",

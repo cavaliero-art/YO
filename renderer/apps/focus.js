@@ -261,7 +261,7 @@
         lastStatus = text;
         host.status(text);
       }
-      host.quiet(st.running && st.phase === 'focus');
+      host.quiet('focus', st.running && st.phase === 'focus');
     }
 
     // a session ends (or you skip it): count it, go to the next phase, tell you
@@ -312,12 +312,12 @@
         const body = (st.phase === 'long' ? t('focus.card.bodyLong') : t('focus.card.body').replace('{n}', set.short)) +
           (st.task ? '\n' + t('focus.card.task').replace('{task}', st.task.text) : '');
         const actions = st.running ? [] : [{ label: t('focus.card.startBreak'), primary: true, run: () => start() }];
-        host.card(t('focus.card.title'), body, actions.concat(markDone, [{ label: t('focus.card.open'), run: () => host.open('focus', '') }]));
+        host.card(t('focus.card.title'), body, actions.concat(markDone, [{ label: t('focus.card.open'), run: () => host.open('focus', '') }]), { label: t('short.focus') });
       } else {
         host.card(t('focus.card.breakOver'), t('focus.card.breakBody'), [
           { label: t('focus.card.startFocus'), primary: true, run: () => start() },
           { label: t('focus.card.open'), run: () => host.open('focus', '') },
-        ]);
+        ], { label: t('short.focus') });
       }
     }
 

@@ -121,7 +121,10 @@
     knock: [[[300, 180, 0, 0.07, 0.5, 's'], [300, 180, 0.14, 0.07, 0.5, 's'], [620, 940, 0.3, 0.12, 0.25]]],
     chime: [[[1319, 1319, 0, 1.0, 0.3, 's'], [2637, 2637, 0, 0.6, 0.08, 's'], [1047, 1047, 0.28, 1.1, 0.26, 's'], [2093, 2093, 0.28, 0.6, 0.07, 's']]],
     alarm: [[0, 0.22, 0.44, 0.66].flatMap((at) => [[1568, 1568, at, 0.1, 0.3, 's'], [1319, 1319, at + 0.1, 0.1, 0.28, 's']])],
+    // prayer time: three slow, low tones, the same in every voice
+    prayer: [[[294, 294, 0, 1.8, 0.3, 's'], [440, 440, 0.45, 1.8, 0.26, 's'], [587, 587, 0.9, 2.4, 0.22, 's'], [880, 880, 0.9, 1.6, 0.04, 's']]],
   };
+  const CALM = { prayer: true }; // played as written: no voice style, no pitch change
 
   // how each voice plays the score
   const STYLE = {
@@ -141,9 +144,10 @@
       let i = Math.floor(Math.random() * variants.length);
       if (variants.length > 1 && i === lastVariant[name]) i = (i + 1) % variants.length;
       lastVariant[name] = i;
-      const pitch = 1 + (Math.random() - 0.5) * 0.1;
+      const pitch = CALM[name] ? 1 : 1 + (Math.random() - 0.5) * 0.1;
+      const style = CALM[name] ? STYLE.robot : STYLE[voice];
       variants[i].forEach(([f0, f1, at, dur, vol, type, vib]) => {
-        note(c, STYLE[voice]({
+        note(c, style({
           f0: f0 * pitch, f1: f1 * pitch, at, dur, vol,
           type: type === 's' ? 'sine' : 'triangle', vib: vib || 0, vibRate: vib ? 9 + Math.random() * 4 : 9,
         }));

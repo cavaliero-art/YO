@@ -513,6 +513,7 @@
       if (name === 'speech') return t('\u00AB \u00BB', 14, 96);
       if (name === 'launch') return t('\u2197 \u2197', 12);
       if (name === 'news') return t('! !', 15);
+      if (name === 'moon') return '<path d="M104 90.5a8.5 8.5 0 1 0 0 17a12 12 0 0 1 0 -17z"/>';
       if (name === 'check') return '<path class="gs" d="M84.5 99.5l3.3 3.3 6.2-6.6"/><path class="gs" d="M104.5 99.5l3.3 3.3 6.2-6.6"/>';
       if (name === 'notes') return '<circle cx="90" cy="100" r="2.2"/><circle cx="100" cy="100" r="2.2"/><circle cx="110" cy="100" r="2.2"/>';
       if (name === 'clock') {
@@ -853,7 +854,7 @@
           delete holds.pose;
         }
       },
-      // the job YO is doing (null when none): speech, screen (with text), read, launch, notes, clock, news, star, check
+      // the job YO is doing (null when none): speech, screen (with text), read, launch, notes, clock, news, star, check, moon
       setWork(name, text) {
         work = name ? { name, text: text === undefined ? '' : String(text) } : null;
       },
