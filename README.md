@@ -2,7 +2,7 @@
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
-It has small daily apps built in (Translate, Calculator, To-do, Focus, Prayer times), opens your apps,
+It has small daily apps built in (Habits, To-do, Notes, Focus, Prayer times, Translate), opens your apps,
 folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
 already does well (media keys, Win+L, clipboard history with Win+V).
 
@@ -56,7 +56,7 @@ Release checklist:
 2. Click the robot, or just start typing. Matching actions appear under the bar as you type.
    `↑` `↓` pick, `Enter` runs. Actions that need more ("open …", "remind me in …") fill the bar first.
    The grid button (or `↓` / `Enter` on an empty bar) opens the home panel: tiles for Translate,
-   Calculator, To-do, Focus, Prayer, Inbox and Customize,
+   Habits, To-do, Notes, Focus, Prayer, Inbox and Customize,
    and a row of YO's moves. Arrow keys move over the tiles, `Enter` opens one.
 3. `Esc` closes. If you do nothing, YO leaves after 7 seconds.
 4. `↑` in an empty bar brings back what you ran before. The actions you use most come first, and the
@@ -85,18 +85,30 @@ The home panel has the app tiles. Each one opens inside the pill, with YO in the
 corner, `← All apps` to go back and `Esc` to close. You can also type their name; what you type after
 it fills the app in.
 
-- Translate: `tr hola to english`, `translate bonjour`, or open it right after copying some text and
-  it starts with that. Pick languages from chips (From can detect the language); `⇄` swaps.
+- Translate: `tr hola to english`, `translate bonjour`. Pick languages from chips (From can detect the language); `⇄` swaps.
   `Ctrl+Enter` copies. The text is sent to MyMemory (a free translation service, no account) and
   needs internet; nothing else is sent.
-- Calculator: type or tap; the answer shows as you go and `Enter` keeps it in the history.
-  `84 + 20%` = 100.8 like a real calculator, and it also does `20% of 150`, `5 km in miles`.
-  `Ctrl+C` with nothing selected copies the answer.
+- Habits: small daily habits built on the four laws of behavior change (make it obvious, attractive,
+  easy, satisfying). Add one as a sentence: `After Fajr I will read 2 pages because I'm a reader`.
+  YO reads the cue (after or before a prayer, a clock time, or a moment like "with my coffee"), the
+  habit, its tiny version and who you're becoming. The day is drawn as a path between the five prayers
+  (your real prayer times from the Prayer app), each habit where its cue is, YO standing at now.
+  At a habit's cue YO comes down once, quietly (never while you focus): Done, Just the tiny version,
+  Not today. The tiny version counts. Each row shows the last 7 days; one miss is fine, never miss
+  twice (an orange ring warns, two in a row offers to make it smaller). Month shows a habit's days,
+  its best run and whether you ever missed twice. Packs to start in one tap: Bac and exams, Ramadan,
+  Summer water, Healthy body. A 7-day run unlocks a sprout on YO's antenna. Kept on this PC.
+- Calculator: no tile any more, but typing math in the bar still answers (`84 + 20%`, `20% of 150`,
+  `5 km in miles`), and `calc` opens the calculator with its history.
+- Notes: a scratchpad that saves itself. The first line is the title; pin, search, delete (it asks
+  once). `note call the dentist` from the bar makes a note; Ctrl+N makes a new one.
 
 - To-do: type tasks in plain words, from the app or straight from the bar:
   `todo math homework friday 18:00 #math`, `todo call mom tomorrow`, `exam physics 12/11`.
   It understands today, tonight, tomorrow, weekdays, next week, in 3 days, 12/11 (day/month), 12 nov,
   18:00, 18h, 6pm, #subjects and `!` for important, and shows what it understood as you type.
+  Repeating tasks: `gym every mon wed 18:00`, `revise every day`, `lab every weekday`; ticking one
+  puts the next one on the list (unticking takes it back).
   Today (late, today, and tasks with no date), Upcoming, Done (kept a month). Exams in the next 30 days
   show as a countdown on top. A task with a time brings YO back at that time (even when hidden), and
   an exam the evening before; the card has a Mark done button. Saved in tasks.json.
@@ -108,7 +120,8 @@ it fills the app in.
   Optional focus sound made in code: rain or a deep calm noise, with a little waveform.
   The timer keeps going when you close it: the tray tooltip shows the time left, and YO comes back with
   "Focus complete!" (Start break, Mark done). While you focus, YO keeps unlock news for the break.
-  Space starts or pauses. Today's sessions and minutes are counted.
+  Space starts or pauses. A daily goal of sessions (default 4) shows as dots and YO cheers when you
+  reach it; Week shows your focus minutes per day, with the goal as a dashed line.
 
 - Prayer: the day's prayer times for your city, worked out on this PC (no internet, nothing sent),
   checked against published Tunisia-method tables to within a minute. Pick your city the first time
@@ -121,7 +134,7 @@ it fills the app in.
   to itself for a while (15 min). What you mark as prayed stays on this PC; no streaks, no scores.
   The Prayer tile shows the next prayer. In Ramadan the countdown is to Suhoor and Iftar.
 
-Dropping text on YO while Translate or the Calculator is open puts it in there.
+Dropping text on YO while Translate, the Calculator or Notes is open puts it in there.
 
 YO does the work, not just sits next to it. Its visor becomes a little screen for each tool, and it
 flips like a screen when it changes:
@@ -236,7 +249,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (translate, calc, todo, focus, prayer),
+                       miniapps.js (what every mini app shares), apps/ (habits, todo, notes, focus, prayer, translate, calc),
                        prayer-calc.js (prayer times from the sun's position)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)

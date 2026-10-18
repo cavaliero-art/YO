@@ -44,7 +44,9 @@
         '<path class="t-star" transform="translate(100 53) scale(1.15)" d="' + STAR + '"/>' +
         '<path class="t-bolt" d="M101.5 45L95 54H100L98 61.5L105.5 51.5H100.5Z"/>' +
         '<g class="t-flower"><circle cx="100" cy="48.5" r="3"/><circle cx="104.3" cy="51.6" r="3"/><circle cx="102.6" cy="56.6" r="3"/>' +
-          '<circle cx="97.4" cy="56.6" r="3"/><circle cx="95.7" cy="51.6" r="3"/><circle class="t-center" cx="100" cy="53" r="2.2"/></g></g>' +
+          '<circle cx="97.4" cy="56.6" r="3"/><circle cx="95.7" cy="51.6" r="3"/><circle class="t-center" cx="100" cy="53" r="2.2"/></g>' +
+        '<g class="t-sprout"><path class="t-stem" d="M100 61V51.5"/><path d="M100 52.5C100 47.6 103.6 45 108 45C108 49.8 104.6 52.5 100 52.5Z"/>' +
+          '<path d="M100 55.5C100 51.6 97.2 49.5 93.5 49.5C93.5 53.4 96.3 55.5 100 55.5Z"/></g></g>' +
       '<path class="o-moon" d="M103 45.5a7.5 7.5 0 1 0 0 15a9 9 0 0 1 0 -15z"/>' +
       '<circle class="hit-ant" cx="100" cy="54" r="12"/>' +
     '</g>' +
@@ -144,7 +146,7 @@
     glasses: ['none', 'sun', 'round'],
     item: ['none', 'lantern', 'mug', 'controller'],
     neck: ['none', 'scarf', 'bowtie', 'cape'],
-    tip: ['ball', 'heart', 'star', 'bolt', 'flower'],
+    tip: ['ball', 'heart', 'star', 'bolt', 'flower', 'sprout'],
     sticker: ['none', 'freckles', 'stripes', 'bolt', 'heart'],
   };
   const DEFAULT_LOOK = {

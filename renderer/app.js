@@ -53,12 +53,12 @@
   let panel = false; // the "all actions" panel under the bar
   let hoverCat = null; // category of the action under the pointer in that panel
   // the home panel: big tiles in this order, then YO's moves
-  const HOME = ['translate', 'calc', 'todo', 'focus', 'prayer', 'inbox', 'customize'];
+  const HOME = ['translate', 'habits', 'todo', 'notes', 'focus', 'prayer', 'inbox', 'customize'];
   const HOME_COLS = 4;
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
     translate: ['speech'], calc: ['screen', '='], open: ['launch'], remind: ['notes'],
-    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], focus: ['clock'], prayer: ['moon'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], notes: ['notes'], habits: ['star'], focus: ['clock'], prayer: ['moon'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let growFrom = null; // the tile an app is opening from: it grows into the app
@@ -456,6 +456,12 @@
         else if (note) Y.miniapps.roll(note, text);
         node.title = Y.prayerAlerts.clockLabel() || node.title;
       } else if (id === 'todo' && (fresh || liveTicks % 5 === 0)) liveTodo(node); // tasks: every few seconds
+      else if (id === 'habits' && Y.miniapps.live.habits && (fresh || liveTicks % 5 === 0)) {
+        const text = Y.miniapps.live.habits();
+        const note = tileNote(node, text);
+        if (note && fresh) note.textContent = text;
+        else if (note) Y.miniapps.roll(note, text);
+      }
     });
   }
 
@@ -943,8 +949,8 @@
   }
 
   // ---------- unlocks: earned by using YO ----------
-  function earn(kind) {
-    const fresh = Y.unlocks.record(kind);
+  function earn(kind, value) {
+    const fresh = Y.unlocks.record(kind, undefined, value);
     fresh.forEach((rule) => {
       onEvent({
         type: 'result', background: true, sticky: true, category: 'system', unlock: { slot: rule.slot, value: rule.value },
@@ -1020,6 +1026,7 @@
       actions: (actions || []).map((a) => ({ label: a.label, primary: a.primary, run: () => { clearCard(); a.run(); } })),
     }),
     open: (id, seed) => openApp(id, seed),
+    earn: (kind, value) => earn(kind, value), // an app counts toward an unlock (Habits: your best run)
   };
 
   function flashApp(text) {
@@ -1572,6 +1579,7 @@
   // English only for now: the FR/AR strings stay in i18n.js but are no longer offered
   setLang('en');
   if (Y.prayerAlerts) Y.prayerAlerts.start(host); // prayer reminders run even before the app is opened
+  if (Y.habitsCoach) Y.habitsCoach.start(host); // so do the habit cues
   syncUnread();
   applyPrefs();
   applyStrings();

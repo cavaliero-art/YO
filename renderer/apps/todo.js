@@ -15,6 +15,16 @@
     const [y, m, d] = s.split('-').map(Number);
     return new Date(y, m - 1, d);
   };
+  // "every day", "weekdays", "Mon, Wed": how a repeating task says when it comes back
+  function repeatText(days, t) {
+    const set = (days || []).slice().sort().join('');
+    if (set === '0123456') return t('todo.repeat.daily');
+    if (set === '12345') return t('todo.repeat.weekdays');
+    if (set === '06') return t('todo.repeat.weekend');
+    const base = new Date(2026, 9, 18); // a Sunday
+    return days.slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)) // Monday first
+      .map((d) => new Date(base.getFullYear(), base.getMonth(), base.getDate() + d).toLocaleDateString('en', { weekday: 'short' })).join(', ');
+  }
   const daysFrom = (s, now) => Math.round((dayOf(s) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
 
   // tasks waiting today (late, today, or no date): the To-do tile's count
@@ -129,6 +139,7 @@
       const meta = h('span.todo-meta');
       const whenText = when(x, now);
       if (x.exam) meta.append(h('span.todo-badge', { text: t('todo.exam') }));
+      if (x.repeat) meta.append(h('span.todo-rep', { text: '↻', title: t('todo.repeat.title').replace('{days}', repeatText(x.repeat, t)) }));
       if (whenText) meta.append(h('span.todo-when' + (late ? '.late' : ''), { text: whenText }));
       (x.tags || []).forEach((g) => meta.append(h('span.todo-t', { text: '#' + g })));
       const node = h('div.todo-row',
@@ -213,6 +224,7 @@
         if (p.exam) bits.push(t('todo.exam'));
         const whenText = p.due ? when({ due: p.due, time: p.time }, now) || t('todo.when.today') : '';
         if (whenText) bits.push(whenText);
+        if (p.repeat) bits.push('↻ ' + repeatText(p.repeat, t));
         p.tags.forEach((g) => bits.push('#' + g));
         if (p.star) bits.push('★');
         understood.replaceChildren(...bits.map((b) => h('span.todo-chip', { text: b })));

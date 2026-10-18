@@ -21,8 +21,8 @@ const p = (text) => Todo.parse(text, NOW);
 
 test('reads a task: text, date, time, subjects, important', () => {
   assert.deepStrictEqual(p('math homework friday 18:00 #math !'),
-    { text: 'math homework', due: '2026-10-16', time: '18:00', tags: ['math'], star: true, exam: false });
-  assert.deepStrictEqual(p('read chapter 3'), { text: 'read chapter 3', due: null, time: null, tags: [], star: false, exam: false });
+    { text: 'math homework', due: '2026-10-16', time: '18:00', tags: ['math'], star: true, exam: false, repeat: null });
+  assert.deepStrictEqual(p('read chapter 3'), { text: 'read chapter 3', due: null, time: null, tags: [], star: false, exam: false, repeat: null });
   assert.strictEqual(p('call mom tomorrow').due, '2026-10-15');
   assert.strictEqual(p('gym today').due, '2026-10-14');
   assert.strictEqual(p('essay in 3 days').due, '2026-10-17');
@@ -53,7 +53,7 @@ test('reads dates the European way, and times in every usual form', () => {
 
 test('exams, and words around the date are tidied away', () => {
   assert.deepStrictEqual(p('exam physics 12/11 #physics'),
-    { text: 'physics', due: '2026-11-12', time: null, tags: ['physics'], star: false, exam: true });
+    { text: 'physics', due: '2026-11-12', time: null, tags: ['physics'], star: false, exam: true, repeat: null });
   assert.strictEqual(p('hand in essay by friday').text, 'hand in essay');
   assert.strictEqual(p('dentist at 15:00').text, 'dentist');
   assert.strictEqual(p('révision #français').tags[0], 'français');
@@ -109,6 +109,35 @@ test('a due task brings YO back once, with its card; one missed while closed say
   todo.act('add', 'past thing 00:00 ' + localDay(new Date()).split('-').reverse().slice(0, 2).join('/'));
   todo.check();
   assert.strictEqual(events.length, 1);
+});
+
+test('repeating tasks: every day, chosen days, weekdays; the first one lands on the right day', () => {
+  // Wednesday 14 October 2026, 10:00
+  assert.deepStrictEqual([p('gym every mon wed 18:00 #sport').text, p('gym every mon wed 18:00').due, p('gym every mon wed').repeat], ['gym', '2026-10-14', [1, 3]]);
+  assert.deepStrictEqual([p('revise every day').due, p('revise daily').repeat.length], ['2026-10-14', 7]);
+  assert.strictEqual(p('tea every day 09:00').due, '2026-10-15'); // 9:00 has passed today
+  assert.deepStrictEqual(p('lab every weekday').repeat, [1, 2, 3, 4, 5]);
+  assert.deepStrictEqual(p('clean every weekend').repeat, [0, 6]);
+  assert.deepStrictEqual([p('swim every tuesdays and thursdays').due, p('swim every tuesdays and thursdays').repeat], ['2026-10-15', [2, 4]]);
+  assert.deepStrictEqual([p('call grandma every week').due, p('call grandma every week').repeat], ['2026-10-14', [3]]);
+  assert.strictEqual(p('exam every day').repeat, null); // an exam doesn't repeat
+  assert.strictEqual(p('read every page').repeat, null);
+});
+
+test('ticking a repeating task puts the next one on the list; unticking takes it back', () => {
+  fs.writeFileSync(path.join(electron.userData, 'tasks.json'), '[]');
+  const todo = Todo.create(() => {});
+  const today = new Date();
+  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  const { added } = todo.act('add', 'water the plants every day');
+  let tasks = todo.act('toggle', added).tasks;
+  assert.strictEqual(tasks.length, 2);
+  const next = tasks.find((x) => !x.done);
+  assert.strictEqual(next.text, 'water the plants');
+  assert.strictEqual(next.due, localDay(tomorrow));
+  assert.deepStrictEqual(next.repeat, [0, 1, 2, 3, 4, 5, 6]);
+  tasks = todo.act('toggle', added).tasks; // by mistake: undo
+  assert.deepStrictEqual(tasks.map((x) => [x.text, x.done]), [['water the plants', false]]);
 });
 
 function localDay(d) {

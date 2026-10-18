@@ -8,19 +8,25 @@
   const { h, button } = Y.miniapps;
   const KEY = 'yo.focus';
   const STATS = 'yo.focusStats';
+  const DAYS = 'yo.focusDays'; // { '2026-10-18': { m: minutes, s: sessions } }, the last 4 weeks: the Week chart
   const RING = 2 * Math.PI * 80; // the ring's length (radius 80)
-  const LIMITS = { focus: [5, 90, 5], short: [1, 30, 1], long: [5, 45, 5], rounds: [2, 8, 1] };
-  const DEFAULTS = { focus: 25, short: 5, long: 15, rounds: 4, autoBreak: true, endSound: true, sound: 'off' };
+  const LIMITS = { focus: [5, 90, 5], short: [1, 30, 1], long: [5, 45, 5], rounds: [2, 8, 1], goal: [0, 12, 1] };
+  const DEFAULTS = { focus: 25, short: 5, long: 15, rounds: 4, goal: 4, autoBreak: true, endSound: true, sound: 'off' };
+  const KEEP_DAYS = 28;
 
   const PLAY = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>';
   const PAUSE = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="6.5" y="5.5" width="4" height="13" rx="1.4" fill="currentColor"/>' +
     '<rect x="13.5" y="5.5" width="4" height="13" rx="1.4" fill="currentColor"/></svg>';
+  const BARS = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M6 19v-6M12 19V7M18 19v-9"/></svg>';
   const pad = (n) => String(n).padStart(2, '0');
   const mmss = (ms) => {
     const s = Math.max(0, Math.ceil(ms / 1000));
     return pad(Math.floor(s / 60)) + ':' + pad(s % 60);
   };
   const today = () => new Date().toDateString();
+  const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const hm = (min) => (min >= 60 ? Math.floor(min / 60) + 'h ' + pad(min % 60) + 'm' : min + ' min');
 
   function read(key, fallback) {
     try {
@@ -80,11 +86,16 @@
     const roundsTxt = h('span.fz-val');
     const sessionTxt = h('span.fz-val');
     const todayTxt = h('span.fz-val');
+    const goalDots = h('span.fz-goal');
     const skip = button('btn small fz-skip', t('focus.skip'), () => complete(true));
     const sounds = h('div.ochips.fz-sounds');
     const wave = h('span.fz-wave', {}, ...Array.from({ length: 14 }, () => h('i')));
     const gear = button('link fz-gear', '⚙ ' + t('focus.settings'), () => showSettings(!settingsOpen));
+    const weekBtn = button('link fz-gear', '', () => showWeek(true));
+    weekBtn.innerHTML = BARS; // static markup
+    weekBtn.append(' ' + t('focus.week.open'));
     const settings = h('div.fz-settings', { hidden: true });
+    const week = h('div.fz-week', { hidden: true });
 
     const main = h('div.fz-main',
       h('div.fz-top',
@@ -94,10 +105,10 @@
       h('div.fz-cards',
         h('div.fz-card', h('span.olabel', { text: t('focus.rounds') }), h('span.fz-row', dots, roundsTxt)),
         h('div.fz-card', h('span.olabel', { text: t('focus.session') }), sessionTxt),
-        h('div.fz-card', h('span.olabel', { text: t('focus.today') }), todayTxt),
+        h('div.fz-card', h('span.olabel', { text: t('focus.today') }), h('span.fz-row', goalDots, todayTxt)),
         skip),
-      h('div.fz-soundrow', h('span.olabel', { text: t('focus.sound') }), sounds, wave, gear));
-    const root = h('div.focusapp', main, settings);
+      h('div.fz-soundrow', h('span.olabel', { text: t('focus.sound') }), sounds, wave, weekBtn, gear));
+    const root = h('div.focusapp', main, settings, week);
 
     const length = (phase) => (phase === 'focus' ? set.focus : phase === 'short' ? set.short : set.long) * 60000;
     const leftNow = () => (st.running ? st.endsAt - Date.now() : st.left);
@@ -150,7 +161,11 @@
       dots.replaceChildren(...Array.from({ length: set.rounds }, (_, i) => h('i' + (i < st.round - (st.phase === 'focus' ? 1 : 0) ? '.on' : i === st.round - 1 ? '.now' : ''))));
       roundsTxt.textContent = st.round + ' / ' + set.rounds;
       sessionTxt.textContent = t('focus.min').replace('{n}', set.focus);
-      todayTxt.textContent = t('focus.sessions').replace('{n}', stats.sessions).replace('{m}', stats.minutes);
+      todayTxt.textContent = set.goal
+        ? t('focus.goalOf').replace('{n}', stats.sessions).replace('{goal}', set.goal)
+        : t('focus.sessions').replace('{n}', stats.sessions).replace('{m}', stats.minutes);
+      todayTxt.title = t('focus.sessions').replace('{n}', stats.sessions).replace('{m}', stats.minutes);
+      goalDots.replaceChildren(...Array.from({ length: Math.min(set.goal, 8) }, (_, i) => h('i' + (i < stats.sessions ? '.on' : ''))));
       if (Date.now() >= sayUntil) speak(line());
     }
 
@@ -184,10 +199,71 @@
       });
     }
 
+    // ---------- the week: focus minutes per day, today in full color ----------
+    function showWeek(on) {
+      week.hidden = !on;
+      main.hidden = on;
+      if (on) drawWeek();
+      host.sound('drawer');
+    }
+
+    function drawWeek() {
+      const days = read(DAYS, {});
+      const now = new Date();
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+      const list = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        const v = days[ymd(d)] || { m: 0, s: 0 };
+        return { d, m: v.m || 0, s: v.s || 0, today: ymd(d) === ymd(now), future: d > now };
+      });
+      const total = list.reduce((a, x) => a + x.m, 0);
+      const sessions = list.reduce((a, x) => a + x.s, 0);
+      // the goal line sits where the goal's minutes are; the tallest bar or the goal fills the chart
+      const goalMin = set.goal * set.focus;
+      const top = Math.max(goalMin, ...list.map((x) => x.m), 1);
+      const bars = h('div.fz-bars');
+      list.forEach((x, i) => {
+        const label = x.d.toLocaleDateString('en', { weekday: 'short' });
+        const bar = h('i' + (x.today ? '.today' : '') + (x.m ? '' : '.none'));
+        bar.style.height = x.m ? Math.max(4, Math.round((x.m / top) * 100)) + '%' : '2px';
+        const col = h('div.fz-col', { title: t('focus.week.day').replace('{d}', label).replace('{m}', x.m).replace('{n}', x.s) },
+          h('div.fz-barbox', bar), h('span.fz-dname' + (x.today ? '.today' : ''), { text: label.slice(0, 1) }));
+        bars.append(col);
+        if (x.m && !Y.miniapps.still()) {
+          bar.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 420, delay: 40 * i, easing: Y.miniapps.EASE, fill: 'backwards' });
+        }
+      });
+      if (set.goal) {
+        const line = h('div.fz-goalline');
+        // the bars stand 26px above the chart's bottom (day letters) and get 40px less than its height
+        line.style.bottom = 'calc(26px + (100% - 40px) * ' + (goalMin / top).toFixed(3) + ')';
+        bars.firstChild && bars.prepend(line);
+      }
+      const head = h('div.fz-weekhead', h('span.olabel', { text: t('focus.week.title') }),
+        h('span.fz-weektotal', { text: t('focus.week.total').replace('{t}', hm(total)).replace('{n}', sessions) }));
+      const goalRow = set.goal ? h('div.fz-weekgoal', h('span', { text: t('focus.week.goal') }),
+        h('span.fz-row', h('span.fz-goal', {}, ...Array.from({ length: Math.min(set.goal, 8) }, (_, i) => h('i' + (i < stats.sessions ? '.on' : '')))),
+          h('span.fz-val', { text: t('focus.goalOf').replace('{n}', stats.sessions).replace('{goal}', set.goal) }))) : null;
+      week.replaceChildren(head, total ? bars : h('div.side-empty', { text: t('focus.week.empty') }), goalRow || '',
+        button('btn small ok fz-done', t('focus.back'), () => showWeek(false)));
+    }
+
+    // count a finished session on its day (kept 4 weeks)
+    function logDay(minutes) {
+      const days = read(DAYS, {});
+      const key = ymd(new Date());
+      const v = days[key] || { m: 0, s: 0 };
+      days[key] = { m: v.m + minutes, s: v.s + 1 };
+      const cutoff = ymd(new Date(Date.now() - KEEP_DAYS * 86400000));
+      Object.keys(days).forEach((k) => { if (k < cutoff) delete days[k]; });
+      write(DAYS, days);
+    }
+
     // ---------- settings: + / - steppers and two switches ----------
     function showSettings(on) {
       settingsOpen = on;
       settings.hidden = !on;
+      week.hidden = true;
       main.hidden = on;
       if (on) drawSettings();
       host.sound('drawer');
@@ -196,7 +272,7 @@
     function drawSettings() {
       const rows = Object.keys(LIMITS).map((k) => {
         const [min, max, step] = LIMITS[k];
-        const value = h('span.fz-num', { text: k === 'rounds' ? String(set[k]) : t('focus.min').replace('{n}', set[k]) });
+        const value = h('span.fz-num', { text: k === 'rounds' ? String(set[k]) : k === 'goal' ? (set[k] ? String(set[k]) : t('focus.off')) : t('focus.min').replace('{n}', set[k]) });
         const change = (d) => {
           const untouched = !st.running && st.left === length(st.phase); // not started yet: follows the new length
           set[k] = Math.min(max, Math.max(min, set[k] + d * step));
@@ -300,6 +376,8 @@
           stats.sessions += 1;
           stats.minutes += set.focus;
           write(STATS, stats);
+          logDay(set.focus);
+          finish.goalHit = set.goal > 0 && stats.sessions === set.goal;
         }
         st.phase = st.round >= set.rounds ? 'long' : 'short';
       } else {
@@ -323,12 +401,15 @@
     function announce(was) {
       if (set.endSound) host.sound(was === 'focus' ? 'success' : 'chime');
       const here = visible && host.current() === 'focus';
+      const goal = was === 'focus' && finish.goalHit;
+      finish.goalHit = false;
       if (here) {
-        if (yo) yo.react(was === 'focus' ? 'success' : 'wave');
+        if (yo) yo.react(goal ? 'heart' : was === 'focus' ? 'success' : 'wave');
         if (was === 'focus') {
-          speak(t('focus.say.done'));
+          speak(t(goal ? 'focus.say.goal' : 'focus.say.done'));
           sayUntil = Date.now() + 4000;
         }
+        if (goal) host.toast(t('focus.goalHit'));
         return;
       }
       const markDone = st.task && st.task.id && host.bridge.todo ? [{ label: t('focus.card.markDone'), run: () => {
@@ -336,7 +417,7 @@
         st.task = null;
       } }] : [];
       if (was === 'focus') {
-        const body = (st.phase === 'long' ? t('focus.card.bodyLong') : t('focus.card.body').replace('{n}', set.short)) +
+        const body = (goal ? t('focus.goalHit') + ' ' : '') + (st.phase === 'long' ? t('focus.card.bodyLong') : t('focus.card.body').replace('{n}', set.short)) +
           (st.task ? '\n' + t('focus.card.task').replace('{task}', st.task.text) : '');
         const actions = st.running ? [] : [{ label: t('focus.card.startBreak'), primary: true, run: () => start() }];
         host.card(t('focus.card.title'), body, actions.concat(markDone, [{ label: t('focus.card.open'), run: () => host.open('focus', '') }]), { label: t('short.focus') });

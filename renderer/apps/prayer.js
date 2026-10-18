@@ -408,5 +408,7 @@
     '</svg>';
 
   Y.miniapps.define('prayer', mount);
-  Y.prayerAlerts = { start, label, clockLabel, next, check, settings: () => set };
+  // today's times for the place you set (Habits puts them on its day path), or null with no place yet
+  const times = () => { const now = today(); return now ? now.times : null; };
+  Y.prayerAlerts = { start, label, clockLabel, next, check, times, settings: () => set };
 })((window.Yo = window.Yo || {}));

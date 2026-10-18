@@ -5,6 +5,8 @@
 //   parse("math homework friday 18:00 #math !")  -> { text, due, time, tags, star, exam }
 // Dates: today, tonight, tomorrow, monday..sunday, next week, in 3 days, 12/11 (day/month), 12 nov,
 // 2026-11-12. Times: 18:00, 18h, 18h30, 6pm, 6:30pm. #tags, ! for important, "exam ..." for an exam.
+// Repeats: every day / daily, every week / weekly, every monday, every mon wed fri, every weekday,
+// every weekend. Ticking a repeating task puts the next one on the list.
 const store = require('./store');
 
 const CHECK_MS = 30 * 1000; // how often due times are checked
@@ -16,6 +18,12 @@ const EXAM_HEADS_UP = '18:00'; // an exam is announced the evening before, at th
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_SHORT = { sun: 0, mon: 1, tue: 2, tues: 2, wed: 3, thu: 4, thur: 4, thurs: 4, fri: 5, sat: 6 };
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+const DAY_WORD = '(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tues|tue|wed|thurs|thur|thu|fri|sat)';
+const dayNumber = (word) => {
+  const w = word.toLowerCase();
+  return DAYS.indexOf(w) !== -1 ? DAYS.indexOf(w) : DAY_SHORT[w];
+};
 
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -83,6 +91,34 @@ function take(text, rules, now) {
   return { value: null, rest: text };
 }
 
+// "every ..." -> the weekdays it repeats on (0 = sunday), or null; the words are taken out of the text
+function takeRepeat(text) {
+  const rules = [
+    [/\b(?:every\s*day|everyday|daily)\b/i, () => [0, 1, 2, 3, 4, 5, 6]],
+    [/\bevery\s+weekdays?\b/i, () => [1, 2, 3, 4, 5]],
+    [/\bevery\s+weekends?\b/i, () => [0, 6]],
+    [/\b(?:every\s+week|weekly)\b/i, () => 'week'],
+    [new RegExp('\\bevery\\s+(' + DAY_WORD + 's?(?:\\s*(?:,|and|&)?\\s*' + DAY_WORD + 's?)*)\\b', 'i'), (m) =>
+      m[1].split(/[\s,&]+|\band\b/i).filter(Boolean).map((w) => dayNumber(w.replace(/s$/i, ''))).filter((d) => d !== undefined)],
+  ];
+  for (const [re, read] of rules) {
+    const m = re.exec(text);
+    if (!m) continue;
+    const days = read(m);
+    if (days === 'week' || days.length) return { days, rest: text.slice(0, m.index) + ' ' + text.slice(m.index + m[0].length) };
+  }
+  return { days: null, rest: text };
+}
+
+// the first day on or after `from` (a Date) that falls on one of the weekdays
+function nextOn(days, from) {
+  for (let i = 0; i < 7; i += 1) {
+    const d = addDays(from, i);
+    if (days.indexOf(d.getDay()) !== -1) return d;
+  }
+  return from;
+}
+
 function parse(input, now) {
   const at = now || new Date();
   let text = ' ' + String(input || '').replace(/\s+/g, ' ').slice(0, 400) + ' ';
@@ -99,6 +135,8 @@ function parse(input, now) {
   });
   let star = false;
   text = text.replace(/(^|\s)!+(?=\s)/g, () => { star = true; return ' '; });
+  const every = exam ? { days: null, rest: text } : takeRepeat(text);
+  text = every.rest;
   const date = take(text, DATE_RULES, at);
   text = date.rest;
   const time = take(text, TIME_RULES, at);
@@ -112,8 +150,22 @@ function parse(input, now) {
     const today = new Date(at.getFullYear(), at.getMonth(), at.getDate(), h, mm);
     due = ymd(today <= at ? addDays(at, 1) : at);
   }
+  // a repeating task: weekly means the day it's due (or today); with no date, the first day it falls on
+  let repeat = null;
+  if (every.days) {
+    repeat = every.days === 'week' ? [(date.value || at).getDay()] : Array.from(new Set(every.days)).sort();
+    if (!date.value) {
+      const [h, mm] = hhmm ? hhmm.split(':').map(Number) : [0, 0];
+      let first = nextOn(repeat, new Date(at.getFullYear(), at.getMonth(), at.getDate()));
+      // today, but its time has passed: the next one
+      if (hhmm && ymd(first) === ymd(at) && new Date(at.getFullYear(), at.getMonth(), at.getDate(), h, mm) <= at) {
+        first = nextOn(repeat, addDays(at, 1));
+      }
+      due = ymd(first);
+    }
+  }
   const clean = text.replace(/\s+/g, ' ').replace(/^\s*(?:to|on|at|by)\s+/i, '').replace(/\s+(?:on|at|by|due)\s*$/i, '').trim().slice(0, MAX_TEXT);
-  return { text: clean, due, time: hhmm, tags, star, exam };
+  return { text: clean, due, time: hhmm, tags, star, exam, repeat };
 }
 
 // when a task should bring YO back: its due time; an exam, the evening before
@@ -174,6 +226,17 @@ function create(emit) {
     check();
   }
 
+  function newTask(p) {
+    const task = {
+      id: 't' + Date.now().toString(36) + (++counter).toString(36), text: p.text, due: p.due, time: p.time, tags: p.tags,
+      star: p.star, exam: p.exam, repeat: p.repeat || null, done: false, doneAt: null, created: Date.now(), notified: false,
+    };
+    // already past when added (a time earlier today): no alert for it
+    const at = alertAt(task);
+    if (at && at <= Date.now()) task.notified = true;
+    return task;
+  }
+
   function find(id) {
     return tasks.find((t) => t.id === id) || null;
   }
@@ -185,13 +248,7 @@ function create(emit) {
     if (action === 'add') {
       const p = parse(String(arg || ''));
       if (!p.text || tasks.length >= MAX_TASKS) return { error: p.text ? 'full' : 'empty', tasks: list() };
-      const task = {
-        id: 't' + Date.now().toString(36) + (++counter).toString(36), text: p.text, due: p.due, time: p.time, tags: p.tags,
-        star: p.star, exam: p.exam, done: false, doneAt: null, created: Date.now(), notified: false,
-      };
-      // already past when added (a time earlier today): no alert for it
-      const at = alertAt(task);
-      if (at && at <= Date.now()) task.notified = true;
+      const task = newTask(p);
       tasks.push(task);
       save();
       return { added: task.id, tasks: list() };
@@ -206,6 +263,19 @@ function create(emit) {
     if (action === 'toggle') {
       task.done = !task.done;
       task.doneAt = task.done ? Date.now() : null;
+      if (task.repeat && task.done) {
+        // the next one goes on the list: the first of its days after this one (and after today)
+        const today = new Date();
+        const [y, m, d] = (task.due || ymd(today)).split('-').map(Number);
+        const after = new Date(Math.max(new Date(y, m - 1, d), new Date(today.getFullYear(), today.getMonth(), today.getDate())));
+        const next = newTask(Object.assign({}, task, { due: ymd(nextOn(task.repeat, addDays(after, 1))) }));
+        tasks.push(next);
+        task.spawned = next.id;
+      } else if (task.repeat && task.spawned) {
+        // ticked by mistake: the next one it made goes away again (unless that one is done too)
+        tasks = tasks.filter((t) => t.id !== task.spawned || t.done);
+        task.spawned = null;
+      }
     } else if (action === 'star') {
       task.star = !task.star;
     } else if (action === 'remove') {
@@ -220,4 +290,4 @@ function create(emit) {
   return { start, stop: () => { clearInterval(timer); timer = null; }, act, check, list };
 }
 
-module.exports = { create, parse, alertAt };
+module.exports = { create, parse, alertAt, nextOn };

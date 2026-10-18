@@ -10,8 +10,9 @@
     { slot: 'hat', value: 'nightcap', stat: 'nights', need: 1 },
     { slot: 'hat', value: 'grad', stat: 'answers', need: 20 },
     { slot: 'color', value: 'gold', stat: 'days', need: 7 },
+    { slot: 'tip', value: 'sprout', stat: 'habitRun', need: 7 },
   ];
-  const FRESH = { actions: 0, pets: 0, nights: 0, answers: 0, days: [], unlocked: [] };
+  const FRESH = { actions: 0, pets: 0, nights: 0, answers: 0, habitRun: 0, days: [], unlocked: [] };
 
   function load() {
     try {
@@ -32,11 +33,13 @@
   const id = (rule) => rule.slot + ':' + rule.value;
   const ruleFor = (slot, value) => RULES.find((r) => r.slot === slot && r.value === value) || null;
 
-  // something happened: 'actions', 'pets', 'answers', or 'visit' (a day, and a night after midnight)
-  // returns the rules it just unlocked
-  function record(kind, date) {
+  // something happened: 'actions', 'pets', 'answers', 'visit' (a day, and a night after midnight),
+  // or 'habitRun' with the longest run of a habit so far (Habits); returns the rules it just unlocked
+  function record(kind, date, value) {
     const now = date || new Date();
-    if (kind === 'visit') {
+    if (kind === 'habitRun') {
+      stats.habitRun = Math.max(stats.habitRun || 0, Number(value) || 0);
+    } else if (kind === 'visit') {
       const day = now.toLocaleDateString('en-CA'); // local date, YYYY-MM-DD
       if (stats.days.indexOf(day) === -1) stats.days.push(day);
       if (stats.days.length > 60) stats.days = stats.days.slice(-60);

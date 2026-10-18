@@ -53,6 +53,12 @@
       icon: svg('<path d="M12 5.5l9 4.2-9 4.3-9-4.3z"/><path d="M7 12v3.8c3 2.2 7 2.2 10 0V12"/><path d="M21 9.7v4.6"/><circle class="a" cx="21" cy="15.6" r="1.3"/>') }
   );
   // Focus: Pomodoro sessions; "focus 50" starts 50 minutes, "focus on math homework" picks the task
+  LIST.push({ id: 'habits', category: 'time', app: 'habits', words: ['habits', 'habit', 'routine', 'healthy', 'new habit'],
+    icon: svg('<path d="M12 20.5v-8"/><path d="M12 13c0-4.2 2.9-6.8 7-6.8 0 4.2-2.9 6.8-7 6.8z"/>' +
+      '<path class="al" d="M12 15.5c0-3.3-2.3-5.4-5.6-5.4 0 3.3 2.3 5.4 5.6 5.4z"/><path d="M7.5 20.5h9"/>') });
+  LIST.push({ id: 'notes', category: 'tools', app: 'notes', words: ['notes', 'note', 'jot', 'write down', 'scratchpad'],
+    icon: svg('<path d="M6.5 4h8l4 4v10.5a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2v-12.5a2 2 0 0 1 2-2z"/><path d="M14.5 4v4h4"/>' +
+      '<path class="al" d="M8 12.5h7"/><path d="M8 16h4.5"/>') });
   LIST.push({ id: 'focus', category: 'time', app: 'focus', words: ['focus on', 'pomodoro', 'focus', 'study'],
     icon: svg('<path d="M5 13.5V12a7 7 0 0 1 14 0v1.5"/><rect x="3.5" y="12.5" width="3.6" height="6.5" rx="1.8"/>' +
       '<rect x="16.9" y="12.5" width="3.6" height="6.5" rx="1.8"/><path class="al" d="M9.6 15.6q1 .9 2 0M12.4 15.6q1 .9 2 0"/>') });
