@@ -1,7 +1,9 @@
-# YO v0.9: a little robot with real hands
+# YO v0.11: a small healthy companion for your PC
 
 A small desktop companion that hangs from the top of your screen in a black pill.
 It stays hidden until you call it, or until something you asked for needs you.
+It helps you build small daily habits (built on the science of behavior change and anchored on the
+five prayers), keeps your tasks, notes and focus sessions, and tells you the prayer times.
 It has small daily apps built in (Habits, To-do, Notes, Focus, Prayer times, Translate), opens your apps,
 folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
 already does well (media keys, Win+L, clipboard history with Win+V).
@@ -287,7 +289,7 @@ apps.json (the installed apps it found), tasks.json (your to-do list). Your look
 
 ## Next
 
-- Auto-update, from a public releases repo (the code stays private).
 - Habits: a Ramadan mode that moves habits around Suhoor and Iftar by itself.
 - French, then Arabic.
+- Code signing, so Windows stops showing "Windows protected your PC".
 
