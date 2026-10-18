@@ -827,6 +827,7 @@ html, body {
 .ab-name { display: flex; align-items: baseline; gap: 10px; }
 .ab-yo { font-size: 22px; font-weight: 700; letter-spacing: .02em; color: var(--acc-ink); }
 .ab-ver { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ab-check { margin-inline-start: auto; font-size: 12px; }
 .ab-text { color: var(--ink); font-size: 13px; line-height: 1.5; }
 .ab-lead { font-size: 14px; line-height: 1.5; }
 .ab-faint { color: var(--faint); }

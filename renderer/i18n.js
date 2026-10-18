@@ -106,6 +106,11 @@
           startBreak: 'Start break', markDone: 'Mark done', open: 'Open Focus', startFocus: 'Start focus' },
         status: { focus: 'Focus {t}', break: 'Break {t}' },
       },
+      update: {
+        label: 'Update', title: 'Update ready: YO {v}', body: 'Restart YO to use it now, or it installs the next time YO closes.',
+        now: 'Restart now', later: 'Later', none: 'You have the newest YO ({v})', error: "Couldn't check for updates. Are you online?",
+        dev: 'Updates work in the installed YO', check: 'Check for updates', auto: 'YO updates itself from its GitHub releases.',
+      },
       about: {
         tab: { about: 'About', data: 'Your data', privacy: 'Privacy' }, cancel: 'Cancel', version: 'Version {v}',
         app: 'Backup and restore work in the YO app',
@@ -122,7 +127,7 @@
           staysTitle: 'Stays on this PC',
           stays: ['Your habits, tasks, notes, reminders and Focus history', 'Your prayer city and what you mark as prayed', 'Your looks, settings and what you typed in the bar'],
           sentTitle: 'Leaves this PC',
-          sent: ['Only the text you translate, sent to MyMemory to be translated', 'Nothing else. Updates, once they come, will only ask GitHub for the newest version'],
+          sent: ['The text you translate, sent to MyMemory to be translated', 'A check for a newer YO, a few times a day, with GitHub (and the update itself, from there)', 'Nothing else'],
           readTitle: 'Read on this PC, never sent',
           read: ['The song that is playing, so YO can bop along', 'Your installed apps, so "open ..." can find them', 'Files you drop on YO, only to show their name and path'],
           where: 'Everything is in %APPDATA%\\YO and in YO\'s own storage. Your data tab can back it up, restore it, or delete it all.',

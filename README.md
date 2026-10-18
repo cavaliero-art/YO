@@ -8,8 +8,12 @@ already does well (media keys, Win+L, clipboard history with Win+V).
 
 ## Install it (Windows 10/11)
 
-Run `YO Setup 0.10.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
-starts it. The first time, a welcome card shows the few things worth knowing.
+Run `YO-Setup-<version>.exe` from the latest release. It installs for you only (no admin rights), adds YO
+to the Start menu and starts it. The first time, a welcome card shows the few things worth knowing.
+
+After that, YO updates itself: it checks its GitHub releases a little after it starts and every few hours,
+downloads a new version quietly, and comes down with "Update ready": Restart now, or Later (it installs
+the next time YO closes). Tray menu > Check for updates asks right away.
 
 Windows may say "Windows protected your PC", because the installer isn't signed yet (a code-signing
 certificate costs money every year). Click *More info*, then *Run anyway*.
@@ -24,6 +28,8 @@ case you install YO again; delete that folder to remove them too.
 - Shortcut: Ctrl+Space, Ctrl+Shift+Space, Ctrl+Alt+Y or Alt+Shift+Y. If another app already uses
   the one you pick, YO takes the next free one and tells you.
 - Sounds on or off
+- About YO, backup and privacy
+- Check for updates
 - Quit
 
 ## Run it from the code
@@ -37,7 +43,11 @@ case you install YO again; delete that folder to remove them too.
 ## Make the installer
 
        npm run icons    (only after changing YO's look: redraws build/icon.png and the tray icons)
-       npm run dist     (writes dist/YO Setup <version>.exe)
+       npm run dist     (writes dist/YO-Setup-<version>.exe, its .blockmap and latest.yml)
+
+If the build stops with EBUSY on an .asar file, something is holding files in dist/; build elsewhere:
+
+       npx electron-builder --win nsis --publish never -c.directories.output=%TEMP%\yo-build
 
 Release checklist:
 
@@ -47,7 +57,9 @@ Release checklist:
 4. Try: the shortcut, every tile of the home panel, a reminder in 1 min,
    Translate (online), Customize, Start with Windows (sign out and in), the tray menu.
 5. Uninstall: YO is gone from the Start menu and from Startup apps.
-6. Commit, tag (`git tag v0.10.0`), push, and attach the exe to a GitHub release.
+6. Commit, tag (`git tag v<version>`), push, and make a GitHub release (not a draft, not a pre-release)
+   with all three files: `YO-Setup-<version>.exe`, `YO-Setup-<version>.exe.blockmap` and `latest.yml`.
+   Installed copies of YO find it there and update themselves.
 
 ## How it behaves
 
@@ -257,6 +269,7 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
                        apps.js (installed apps), store.js (JSON files), watch.js (what's playing),
                        backup.js (backup, restore, the weekly backup, delete my data),
+                       updater.js (updates from the GitHub releases),
                        translate.js (asks MyMemory), todo.js (tasks, dates, due alerts)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,

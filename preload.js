@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('yo', {
   backup: (action, storage) => ipcRenderer.invoke('backup', action, storage),
   restart: () => ipcRenderer.send('restart'),
   onOpenApp: (callback) => ipcRenderer.on('open-app', (event, id) => callback(id)),
+  // updates: { type: 'ready', version, notes } | { type: 'none', version } | { type: 'error' } | { type: 'dev' }
+  onUpdate: (callback) => ipcRenderer.on('update', (event, info) => callback(info)),
+  update: (action) => ipcRenderer.send('update', action === 'install' ? 'install' : 'check'),
 });

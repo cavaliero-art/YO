@@ -10,6 +10,9 @@ const translator = require('./main/translate');
 const store = require('./main/store');
 const Todo = require('./main/todo');
 const backup = require('./main/backup');
+const Updater = require('./main/updater');
+// updates from GitHub releases; what happens is told to the page, which shows it as YO's card
+const updater = Updater.create((event) => { if (win && !win.isDestroyed()) win.webContents.send('update', event); });
 
 const WIN_W = 720; // room for the large pill size
 const WIN_H = 600;
@@ -248,6 +251,7 @@ function buildMenu() {
       { label: 'Sounds', type: 'checkbox', checked: prefs.sound, click: (item) => setPref('sound', item.checked) },
       { type: 'separator' },
       { label: 'About YO, backup and privacy', click: () => openApp('about') },
+      { label: 'Check for updates', click: () => { summon(); updater.check(true); } },
       { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
     ])
@@ -363,6 +367,13 @@ ipcMain.on('quit', (event) => {
   if (fromMainWindow(event)) app.quit();
 });
 
+// updates: "Restart now" on YO's card, or "Check for updates" in About
+ipcMain.on('update', (event, action) => {
+  if (!fromMainWindow(event)) return;
+  if (action === 'install') updater.install();
+  else if (action === 'check') updater.check(true);
+});
+
 // after a restore or "delete all my data": start again, so every part reads the new data
 ipcMain.on('restart', (event) => {
   if (!fromMainWindow(event)) return;
@@ -453,6 +464,7 @@ if (!app.requestSingleInstanceLock()) {
     screen.on('display-metrics-changed', placeWindow);
     // get ready in the background: the list of installed apps (~4 s)
     setTimeout(() => apps.refresh(), 3000);
+    updater.start(); // the installed app only
   });
 
   app.on('second-instance', summon);

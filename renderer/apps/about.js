@@ -78,8 +78,10 @@
 
     function drawAbout() {
       return h('div.ab-page',
-        h('div.ab-name', h('span.ab-yo', { text: 'YO' }), h('span.ab-ver', { text: version ? t('about.version').replace('{v}', version) : '' })),
+        h('div.ab-name', h('span.ab-yo', { text: 'YO' }), h('span.ab-ver', { text: version ? t('about.version').replace('{v}', version) : '' }),
+          bridge.update ? button('link ab-check', t('update.check'), () => { bridge.update('check'); host.sound('tick'); }) : ''),
         h('div.ab-text', { text: t('about.what') }),
+        bridge.update ? h('div.ab-text.ab-faint.ab-small', { text: t('update.auto') }) : '',
         h('div.ab-block', h('span.olabel', { text: t('about.licenceTitle') }),
           h('div.ab-text', { text: t('about.licence') })),
         h('div.ab-block', h('span.olabel', { text: t('about.creditsTitle') }), list(t('about.credits'))));

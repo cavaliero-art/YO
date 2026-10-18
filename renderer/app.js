@@ -1583,6 +1583,22 @@
   if (Y.backupCoach) Y.backupCoach.start(host); // and the weekly backup
   // the tray opens an app (About YO, backup and privacy)
   if (bridge.onOpenApp) bridge.onOpenApp((id) => { if (Y.miniapps.get(id)) openApp(id, ''); });
+  // updates (main/updater.js): a new version downloaded by itself, or the answer to "Check for updates"
+  if (bridge.onUpdate) {
+    bridge.onUpdate((info) => {
+      if (!info) return;
+      if (info.type === 'ready') {
+        host.card(t('update.title').replace('{v}', info.version), (info.notes ? info.notes + '\n' : '') + t('update.body'), [
+          { label: t('update.now'), primary: true, run: () => bridge.update('install') },
+          { label: t('update.later'), run: () => {} },
+        ], { label: t('update.label'), calm: true });
+        return;
+      }
+      const text = info.type === 'none' ? t('update.none').replace('{v}', info.version)
+        : info.type === 'dev' ? t('update.dev') : t('update.error');
+      onEvent({ type: 'message', category: 'system', tone: info.type === 'none' ? 'ok' : 'info', text, ms: 4200 });
+    });
+  }
   syncUnread();
   applyPrefs();
   applyStrings();

@@ -7,8 +7,8 @@
   "scripts": {
     "start": "electron .",
     "icons": "electron scripts/make-icons.js",
-    "dist": "electron-builder --win nsis",
-    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js tests/backup.test.js"
+    "dist": "electron-builder --win nsis --publish never",
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js tests/backup.test.js tests/updater.test.js"
   },
   "license": "SEE LICENSE IN LICENSE",
   "author": "cavaliero-art",
@@ -46,15 +46,27 @@
       "createStartMenuShortcut": true,
       "shortcutName": "YO",
       "include": "build/installer.nsh",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "YO-Setup-${version}.${ext}"
     },
     "extraFiles": [
       "LICENSE",
       "PRIVACY.md"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "cavaliero-art",
+        "repo": "YO",
+        "releaseType": "release"
+      }
     ]
   },
   "devDependencies": {
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

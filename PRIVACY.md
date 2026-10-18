@@ -12,7 +12,8 @@ All of it is in `%APPDATA%\YO` and in YO's own storage on your PC. YO never uplo
 ## What leaves your PC
 - **Translate:** only the text you choose to translate is sent to MyMemory (translated.net), a free
   translation service, to be translated. Nothing else goes with it: no account, no name, no other data.
-- **Updates (coming later):** YO will ask GitHub whether there is a newer version, and download it from there.
+- **Updates:** a few times a day, the installed YO asks GitHub (github.com/cavaliero-art/YO) whether there
+  is a newer version, and downloads it from there. GitHub sees that a computer asked, like any download.
 
 Nothing else is sent. YO has no analytics and no crash reporting.
 
