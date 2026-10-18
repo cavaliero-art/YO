@@ -399,7 +399,7 @@ html, body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--acc);
+  background: var(--tint-deep, var(--acc)); /* YO's deeper color: still a clear dot when YO is white (Snow, Sidi Bou Said) */
   box-shadow: 0 0 0 2px var(--bg);
   opacity: 0;
   transform: scale(.3);

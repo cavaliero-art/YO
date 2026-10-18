@@ -1,14 +1,16 @@
 {
   "name": "yo",
   "productName": "YO",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "YO: a small desktop companion that hangs from the top of your screen and does quick things for you.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "icons": "electron scripts/make-icons.js",
+    "promo": "electron promo/render.js",
     "dist": "electron-builder --win nsis --publish never",
-    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js tests/backup.test.js tests/updater.test.js"
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js tests/backup.test.js tests/updater.test.js",
+    "film": "electron promo/film.js"
   },
   "license": "SEE LICENSE IN LICENSE",
   "author": "cavaliero-art",
