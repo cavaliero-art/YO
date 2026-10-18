@@ -8,7 +8,7 @@ already does well (media keys, Win+L, clipboard history with Win+V).
 
 ## Install it (Windows 10/11)
 
-Run `YO Setup 0.9.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
+Run `YO Setup 0.10.0.exe`. It installs for you only (no admin rights), adds YO to the Start menu and
 starts it. The first time, a welcome card shows the few things worth knowing.
 
 Windows may say "Windows protected your PC", because the installer isn't signed yet (a code-signing
@@ -47,7 +47,7 @@ Release checklist:
 4. Try: the shortcut, every tile of the home panel, a reminder in 1 min,
    Translate (online), Customize, Start with Windows (sign out and in), the tray menu.
 5. Uninstall: YO is gone from the Start menu and from Startup apps.
-6. Commit, tag (`git tag v0.9.0`), push, and attach the exe to a GitHub release.
+6. Commit, tag (`git tag v0.10.0`), push, and attach the exe to a GitHub release.
 
 ## How it behaves
 
