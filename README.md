@@ -8,6 +8,11 @@ It has small daily apps built in (Habits, To-do, Notes, Focus, Prayer times, Tra
 folders and sites, and keeps your reminders, even across restarts. No buttons for things Windows
 already does well (media keys, Win+L, clipboard history with Win+V).
 
+<p align="center">
+  <a href="docs/yo-demo.mp4"><img src="docs/yo-preview.gif" width="300" alt="YO drops in, shows its 8 mini apps, and dresses up in a chechia and a fouta"></a>
+</p>
+<p align="center"><b>▶ <a href="docs/yo-demo.mp4">Watch the full video, with sound (42 s)</a></b></p>
+
 ## Install it (Windows 10/11)
 
 Run `YO-Setup-<version>.exe` from the latest release. It installs for you only (no admin rights), adds YO
