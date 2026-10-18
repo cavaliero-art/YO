@@ -1,0 +1,60 @@
+/* the demo reel: the real YO, filmed (promo/film.js), on a desktop, with a cursor and captions */
+html, body { margin: 0; background: #0a0a0c; overflow: hidden; }
+#frame {
+  position: relative; width: 1080px; height: 1920px; overflow: hidden;
+  background: #0a0a0c; color: #ECEAE3;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+}
+#glow { position: absolute; inset: 0; }
+
+#captions { position: absolute; left: 60px; right: 60px; top: 110px; height: 200px; text-align: center; }
+#captions .title { font-size: 80px; font-weight: 750; letter-spacing: -1px; line-height: 1.08; }
+#captions .sub { font-size: 44px; color: #9A9890; margin-top: 12px; }
+
+/* the screen: YO's black pill hangs from its top edge */
+#monitor {
+  position: absolute; left: 40px; top: 340px; width: 1000px; height: 1120px;
+  border-radius: 36px; overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.08);
+}
+#monitor .wall {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 45% at 25% 80%, #2f6fe0 0%, transparent 62%),
+    radial-gradient(55% 40% at 80% 70%, #5b3fd0 0%, transparent 62%),
+    radial-gradient(90% 40% at 50% 105%, #8fb8ff 0%, transparent 58%),
+    linear-gradient(180deg, #0b1228, #13285a);
+}
+#app { position: absolute; left: 0; top: 0; width: 720px; height: 600px; transform-origin: 0 0; }
+#monitor .taskbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 64px;
+  background: rgba(16, 20, 36, .85);
+  display: flex; gap: 16px; align-items: center; justify-content: center;
+}
+#monitor .taskbar i { width: 34px; height: 34px; border-radius: 9px; background: rgba(255,255,255,.2); }
+#monitor .taskbar i.on { background: #9FE1CB; }
+
+#cursor { position: absolute; left: 0; top: 0; filter: drop-shadow(0 3px 6px rgba(0,0,0,.45)); }
+#ripple {
+  position: absolute; width: 0; height: 0; border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.85);
+}
+
+#keys { position: absolute; left: 0; right: 0; top: 1510px; display: flex; gap: 18px; justify-content: center; align-items: center; }
+#keys .cap {
+  min-width: 120px; padding: 18px 34px; border-radius: 22px; text-align: center;
+  font-size: 46px; font-weight: 650; color: #ECEAE3;
+  background: #1b1b20; box-shadow: inset 0 -6px 0 rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.12);
+}
+#keys .plus { font-size: 46px; color: #75746d; }
+
+#end { position: absolute; left: 0; right: 0; top: 700px; text-align: center; }
+#end .word { font-size: 260px; font-weight: 800; letter-spacing: -9px; line-height: 1; }
+#end .free { font-size: 56px; font-weight: 600; margin-top: 20px; }
+#end .cta {
+  display: inline-block; margin-top: 60px; padding: 28px 54px; border-radius: 60px;
+  font-size: 44px; color: #9A9890; background: rgba(255,255,255,.08);
+}
+#end .cta b { color: #ECEAE3; }
+
+.marker { position: absolute; right: 0; width: 1px; height: 1px; }

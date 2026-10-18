@@ -1,0 +1,199 @@
+/* the promo video: one 1080x1920 frame, everything placed and moved by scene.js */
+html, body { background: #0a0a0c; overflow: hidden; }
+* { transition: none !important; } /* nothing moves on its own: only the video's clock moves things */
+
+#frame {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: #0a0a0c;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  color: #ECEAE3;
+}
+#bg { position: absolute; inset: 0; }
+#bg::after { /* a very light grain so the dark never bands */
+  content: ""; position: absolute; inset: 0; opacity: .05;
+  background-image: radial-gradient(rgba(255,255,255,.6) 1px, transparent 1.2px);
+  background-size: 6px 6px;
+}
+
+#world { position: absolute; inset: 0; transform-origin: 540px 492px; }
+
+/* a little Windows desktop: YO's black pill hangs from its top edge */
+#desk {
+  position: absolute; left: 60px; top: 470px; width: 960px; height: 600px;
+  border-radius: 30px; overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.07);
+}
+#desk .wall {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 70% at 30% 85%, #2f6fe0 0%, transparent 60%),
+    radial-gradient(55% 60% at 75% 75%, #5b3fd0 0%, transparent 62%),
+    radial-gradient(80% 60% at 50% 110%, #9bc4ff 0%, transparent 55%),
+    linear-gradient(180deg, #0d1630, #142a5c);
+}
+#desk .pill {
+  position: absolute; left: 50%; top: 0; width: 132px; height: 44px;
+  transform: translateX(-50%);
+  background: #000; border-radius: 0 0 24px 24px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+#desk .taskbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 52px;
+  background: rgba(20, 24, 40, .82);
+  display: flex; gap: 14px; align-items: center; justify-content: center;
+}
+#desk .taskbar i { width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,.22); }
+#desk .taskbar i.on { background: #9FE1CB; }
+
+#hero { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+#hero > div { position: absolute; transform: translate(-50%, -50%); }
+
+#ring { position: absolute; width: 760px; height: 760px; opacity: 0; }
+#ring circle { fill: none; stroke-width: 3.2; }
+#ring .track { stroke: rgba(255,255,255,.08); }
+#ring .arc { stroke: #9FE1CB; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 100px 100px; stroke-dasharray: 578; }
+
+#label {
+  position: absolute; left: 0; right: 0; text-align: center;
+  font-size: 46px; font-weight: 650; letter-spacing: .5px;
+}
+#label span {
+  display: inline-block; padding: 14px 34px; border-radius: 40px;
+  background: rgba(255,255,255,.08); box-shadow: 0 0 0 2px rgba(255,255,255,.06);
+}
+
+#captions .cap {
+  position: absolute; left: 70px; right: 70px; text-align: center;
+  font-weight: 750; letter-spacing: -1px; line-height: 1.08;
+}
+#captions .cap .sub { font-weight: 500; letter-spacing: 0; color: #9A9890; }
+#captions .cap .acc { color: var(--acc, #9FE1CB); }
+#captions svg { vertical-align: -6px; margin-left: 14px; }
+
+/* habit rows and the small info cards */
+#cards { position: absolute; left: 90px; right: 90px; top: 1180px; }
+.card {
+  position: absolute; left: 0; right: 0; height: 168px;
+  display: flex; align-items: center; gap: 30px; padding: 0 36px;
+  border-radius: 36px; background: #141418; box-shadow: 0 0 0 2px rgba(255,255,255,.06);
+}
+.card .ico {
+  width: 92px; height: 92px; border-radius: 30px; flex: none;
+  display: grid; place-items: center; font-size: 50px;
+  background: rgba(255,255,255,.06);
+}
+.card .txt { flex: 1; min-width: 0; }
+.card .name { font-size: 44px; font-weight: 650; }
+.card .cue { font-size: 30px; color: #9A9890; margin-top: 2px; }
+.card .chain { display: flex; gap: 12px; margin-top: 14px; }
+.card .chain i { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,.12); }
+.card .chain i.on { background: var(--acc, #9FE1CB); }
+.card .check {
+  width: 84px; height: 84px; border-radius: 50%; flex: none;
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.22);
+  display: grid; place-items: center;
+}
+.card .check svg { width: 46px; height: 46px; opacity: 0; }
+.card.done .check { background: var(--acc, #9FE1CB); box-shadow: none; }
+.card.done .check svg { opacity: 1; }
+.card .badge {
+  position: absolute; right: 30px; top: -30px; padding: 10px 24px; border-radius: 30px;
+  font-size: 30px; font-weight: 700; color: #04130e; background: var(--acc, #9FE1CB);
+}
+.card .big { font-size: 64px; font-weight: 750; letter-spacing: -1px; }
+.card .path { display: flex; gap: 22px; margin-top: 10px; font-size: 26px; color: #75746d; }
+.card .path b { color: var(--acc, #9FE1CB); font-weight: 650; }
+
+/* all of YO's apps: its home screen, tile by tile */
+#apps { position: absolute; left: 84px; top: 880px; width: 912px; }
+#apps .tile {
+  position: absolute; width: 210px; height: 210px; border-radius: 42px;
+  background: #141418; box-shadow: 0 0 0 2px rgba(255,255,255,.06);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  font-size: 32px; font-weight: 600; color: #ECEAE3;
+}
+#apps .tile .icon { color: #ECEAE3; display: grid; place-items: center; }
+#apps .tile .icon svg { width: 76px; height: 76px; stroke-width: 1.7; overflow: visible; }
+#apps .tile.on { background: #1d2a26; box-shadow: 0 0 0 4px var(--acc, #9FE1CB), 0 20px 50px rgba(0,0,0,.4); }
+#apps .tile.on .icon { color: var(--acc, #9FE1CB); }
+#apps .what { position: absolute; left: 0; right: 0; top: 500px; text-align: center; font-size: 46px; font-weight: 600; }
+#apps .what span { display: inline-block; padding: 14px 36px; border-radius: 40px; background: rgba(255,255,255,.08); box-shadow: 0 0 0 2px rgba(255,255,255,.06); }
+
+#end { position: absolute; left: 0; right: 0; top: 1200px; text-align: center; }
+#end .word { font-size: 230px; font-weight: 800; letter-spacing: -8px; line-height: 1; }
+#end .free { font-size: 52px; font-weight: 600; margin-top: 18px; }
+#end .cta {
+  display: inline-block; margin-top: 54px; padding: 26px 50px; border-radius: 60px;
+  font-size: 42px; color: #9A9890; background: rgba(255,255,255,.07);
+}
+#end .cta b { color: #ECEAE3; }
+
+/* the frame number, one pixel in each half's corner: the renderer checks it so no frame is ever stale */
+.marker { position: absolute; right: 0; width: 1px; height: 1px; }
+
+/* ---------- the extras: floating lights, detail cards ---------- */
+#bokeh { position: absolute; inset: 0; pointer-events: none; }
+#bokeh i { position: absolute; border-radius: 50%; background: var(--acc, #9FE1CB); filter: blur(1px); }
+
+#detail { position: absolute; left: 90px; right: 90px; top: 880px; }
+.dcard {
+  position: absolute; left: 0; right: 0; border-radius: 40px; padding: 34px 40px;
+  background: #141418; box-shadow: 0 0 0 2px rgba(255,255,255,.06), 0 30px 80px rgba(0,0,0,.35);
+}
+.dcard .k { font-size: 28px; letter-spacing: 2px; color: #75746d; font-weight: 600; }
+.dcard .big { font-size: 58px; font-weight: 700; margin-top: 6px; }
+.dcard .row { display: flex; align-items: center; gap: 26px; height: 112px; font-size: 42px; }
+.dcard .row + .row { border-top: 2px solid rgba(255,255,255,.06); }
+.dcard .row .box { width: 64px; height: 64px; border-radius: 50%; box-shadow: inset 0 0 0 4px rgba(255,255,255,.25); display: grid; place-items: center; flex: none; }
+.dcard .row.done .box { background: var(--acc, #9FE1CB); box-shadow: none; }
+.dcard .row.done .box svg { opacity: 1; }
+.dcard .row .box svg { width: 36px; height: 36px; opacity: 0; }
+.dcard .row.done .t { color: #75746d; text-decoration: line-through; }
+.dcard .pill { margin-left: auto; padding: 8px 22px; border-radius: 24px; font-size: 30px; font-weight: 650; background: rgba(255,255,255,.08); color: #ECEAE3; }
+.dcard .pill.hot { background: #F0997B; color: #1a0d07; }
+.dcard .lang { display: flex; align-items: baseline; gap: 22px; }
+.dcard .lang b { font-size: 30px; padding: 6px 16px; border-radius: 14px; background: rgba(255,255,255,.08); color: #9A9890; }
+.dcard .swap { height: 70px; display: grid; place-items: center; font-size: 46px; color: var(--acc, #9FE1CB); }
+.dcard .ar { direction: rtl; }
+.dcard .note { font-size: 38px; line-height: 1.5; color: #cfccc5; white-space: pre-wrap; min-height: 180px; }
+.dcard .saved { position: absolute; right: 36px; top: 32px; padding: 8px 22px; border-radius: 24px; font-size: 28px; font-weight: 650; color: #04130e; background: var(--acc, #9FE1CB); }
+
+/* opening an app: YO's bar, what it finds, the window */
+#open { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+#open .bar {
+  position: absolute; left: 80px; right: 80px; top: 850px; height: 124px; border-radius: 62px;
+  background: #0b0c0e; box-shadow: 0 0 0 3px rgba(159,225,203,.55), 0 30px 80px rgba(0,0,0,.5);
+  display: flex; align-items: center; padding: 0 50px; font-size: 52px;
+}
+#open .bar .ph { color: #6d6b65; }
+#open .bar .caret { display: inline-block; width: 4px; height: 56px; margin-left: 4px; background: #9FE1CB; vertical-align: -10px; }
+#open .found { position: absolute; left: 80px; right: 80px; top: 994px; border-radius: 38px; overflow: hidden; background: #121316; box-shadow: 0 0 0 2px rgba(255,255,255,.06); }
+#open .found .r { display: flex; align-items: center; gap: 28px; height: 112px; padding: 0 40px; font-size: 44px; }
+#open .found .r .ic { width: 66px; height: 66px; border-radius: 18px; display: grid; place-items: center; font-size: 34px; background: rgba(255,255,255,.08); }
+#open .found .r.on { background: rgba(159,225,203,.14); }
+#open .found .r.on .ic { background: #9FE1CB; color: #0b0c0e; }
+#open .found .r .kind { margin-left: auto; font-size: 30px; color: #75746d; }
+#open .win {
+  position: absolute; left: 90px; right: 90px; top: 1120px; height: 500px; border-radius: 34px; overflow: hidden;
+  background: #121216; box-shadow: 0 40px 100px rgba(0,0,0,.55), 0 0 0 2px rgba(255,255,255,.07); transform-origin: 50% 0;
+}
+#open .win .tb { height: 62px; display: flex; align-items: center; gap: 16px; padding: 0 30px; font-size: 26px; color: #a9a6a0; background: #0b0b0e; }
+#open .win .tb .dots { margin-left: auto; letter-spacing: 22px; color: #6d6b65; }
+#open .win .bd { display: flex; gap: 40px; padding: 42px; }
+#open .win .art { width: 320px; height: 320px; border-radius: 26px; flex: none; background: radial-gradient(circle at 30% 30%, #F6C177, #E3508B 55%, #5B3FD0); }
+#open .win .meta { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+#open .win .kk { font-size: 24px; letter-spacing: 3px; color: #8f8c85; }
+#open .win .song { font-size: 58px; font-weight: 700; margin: 8px 0 4px; }
+#open .win .artist { font-size: 32px; color: #a9a6a0; }
+#open .win .prog { height: 10px; border-radius: 5px; background: rgba(255,255,255,.12); margin: 34px 0 24px; overflow: hidden; }
+#open .win .prog i { display: block; height: 100%; background: #F2F0EA; }
+#open .win .ctrl { display: flex; gap: 44px; align-items: center; font-size: 40px; color: #d9d6cf; }
+#open .win .ctrl .play { width: 88px; height: 88px; border-radius: 50%; background: #F2F0EA; color: #121216; display: grid; place-items: center; font-size: 32px; }
+#keycap {
+  position: absolute; left: 50%; top: 1690px; padding: 20px 46px; border-radius: 26px; transform: translateX(-50%);
+  font-size: 50px; font-weight: 650; background: #1b1b20; box-shadow: inset 0 -7px 0 rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.12);
+}

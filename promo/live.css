@@ -1,0 +1,138 @@
+/* The live reel: YO's real page, drawn frame by frame inside a 1080x1920 stage (promo/live.js).
+   Every name here starts with pf- so nothing touches YO's own styles. */
+@font-face { font-family: "Fredoka"; src: url("../promo/fonts/Fredoka.ttf") format("truetype"); font-weight: 300 700; font-stretch: 75% 125%; }
+
+html, body { margin: 0 !important; background: var(--pf-bg, #0b0d10) !important; }
+
+#pf {
+  position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden;
+  background: var(--pf-bg); color: var(--pf-ink);
+  font-family: "Fredoka", "Segoe UI", sans-serif;
+}
+#pf-glow { position: absolute; inset: 0; }
+
+/* ---------- themes ---------- */
+#pf[data-theme="mint"] {
+  --pf-bg: #0b0d10; --pf-ink: #F2F0EA; --pf-sub: #9A9890; --pf-acc: #9FE1CB; --pf-glow: rgba(95, 202, 165, .2);
+  --pf-cap: #1b1d22; --pf-cap-ink: #F2F0EA; --pf-frame: rgba(255,255,255,.08);
+}
+#pf[data-theme="sidi"] {
+  --pf-bg: #F4F7FB; --pf-ink: #0F2D52; --pf-sub: #5A7393; --pf-acc: #1F5FA8; --pf-glow: rgba(31, 95, 168, .16);
+  --pf-cap: #ffffff; --pf-cap-ink: #0F2D52; --pf-frame: rgba(15,45,82,.10);
+}
+#pf[data-theme="blocks"] {
+  --pf-bg: #9FE1CB; --pf-ink: #101114; --pf-sub: rgba(16,17,20,.62); --pf-acc: #101114; --pf-glow: rgba(255,255,255,.25);
+  --pf-cap: #101114; --pf-cap-ink: #ffffff; --pf-frame: rgba(16,17,20,.12);
+}
+
+/* Sidi Bou Said: blue doors in white walls, a little bougainvillea */
+#pf-pattern { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+#pf[data-theme="sidi"] #pf-pattern { opacity: 1; }
+#pf-pattern .door {
+  position: absolute; bottom: -40px; width: 300px; height: 520px; border-radius: 150px 150px 0 0;
+  background: linear-gradient(180deg, #2F7BD6, #1F5FA8); box-shadow: inset 0 0 0 14px #F4F7FB, inset 0 0 0 20px #1F5FA8;
+  opacity: .14;
+}
+#pf-pattern .door.l { left: -90px; }
+#pf-pattern .door.r { right: -90px; height: 600px; }
+#pf-pattern .flower { position: absolute; border-radius: 50%; background: #E3508B; opacity: .16; }
+
+/* ---------- captions: words pop on the beat ---------- */
+#pf-cap { position: absolute; left: 50px; right: 50px; top: 120px; height: 250px; }
+#pf-cap .line {
+  position: absolute; left: 0; right: 0; top: 0; text-align: center;
+  font-weight: 600; font-size: 92px; letter-spacing: -1px; line-height: 1.02; color: var(--pf-ink);
+}
+#pf-cap .line .w { display: inline-block; white-space: pre; }
+#pf-cap .line .w.acc { color: var(--pf-acc); }
+#pf-cap .sub { position: absolute; left: 0; right: 0; top: 170px; text-align: center; font-size: 46px; font-weight: 500; color: var(--pf-sub); }
+
+/* ---------- the screen ---------- */
+#pf-monitor {
+  position: absolute; left: 40px; top: 400px; width: 1000px; height: 1120px;
+  border-radius: 40px; overflow: hidden;
+  box-shadow: 0 50px 120px rgba(0,0,0,.35), 0 0 0 2px var(--pf-frame);
+  transform-origin: 50% 0;
+}
+#pf-wall { position: absolute; inset: 0; }
+#pf[data-theme="mint"] #pf-wall, #pf[data-theme="blocks"] #pf-wall {
+  background:
+    radial-gradient(60% 45% at 25% 80%, #2f6fe0 0%, transparent 62%),
+    radial-gradient(55% 40% at 80% 70%, #5b3fd0 0%, transparent 62%),
+    radial-gradient(90% 40% at 50% 105%, #8fb8ff 0%, transparent 58%),
+    linear-gradient(180deg, #0b1228, #13285a);
+}
+#pf[data-theme="sidi"] #pf-wall {
+  background:
+    radial-gradient(70% 40% at 50% 100%, #ffffff 0%, transparent 70%),
+    radial-gradient(50% 35% at 85% 20%, rgba(227, 80, 139, .25) 0%, transparent 70%),
+    linear-gradient(180deg, #8FC1F2 0%, #CFE5FA 55%, #F4F7FB 100%);
+}
+#pf-taskbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 66px;
+  background: rgba(16, 20, 36, .82); backdrop-filter: blur(10px);
+  display: flex; gap: 16px; align-items: center; justify-content: center;
+}
+#pf[data-theme="sidi"] #pf-taskbar { background: rgba(255,255,255,.75); }
+#pf-taskbar i { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,.22); }
+#pf[data-theme="sidi"] #pf-taskbar i { background: rgba(15,45,82,.18); }
+#pf-taskbar i.on { background: #9FE1CB; }
+#pf-taskbar i.music { background: #E8A15C; }
+
+#pf-app { position: absolute; left: 0; top: 0; width: 720px; height: 600px; transform-origin: 0 0; }
+#pf-app #stage { height: 600px; }
+
+/* ---------- windows YO opens ---------- */
+#pf-win {
+  position: absolute; left: 90px; top: 430px; width: 820px; height: 470px;
+  border-radius: 22px; overflow: hidden; opacity: 0;
+  background: #121216; color: #EDEBE6; box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
+  font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+}
+#pf-win .bar { height: 46px; display: flex; align-items: center; padding: 0 18px; gap: 12px; font-size: 18px; color: #bdbab3; background: #0c0c0f; }
+#pf-win .bar .dots { margin-left: auto; letter-spacing: 18px; color: #77746d; }
+#pf-win .body { display: flex; gap: 26px; padding: 28px; }
+#pf-win .art { width: 270px; height: 270px; border-radius: 16px; background: radial-gradient(circle at 30% 30%, #F6C177, #E3508B 55%, #5B3FD0); flex: none; }
+#pf-win .meta { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+#pf-win .meta .k { font-size: 16px; letter-spacing: 2px; color: #8f8c85; }
+#pf-win .meta .song { font-size: 40px; font-weight: 700; margin: 6px 0; }
+#pf-win .meta .artist { font-size: 22px; color: #a9a6a0; }
+#pf-win .prog { height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); margin: 26px 0 10px; overflow: hidden; }
+#pf-win .prog i { display: block; height: 100%; width: 30%; background: #F2F0EA; }
+#pf-win .ctrl { display: flex; gap: 26px; align-items: center; font-size: 26px; color: #d9d6cf; }
+#pf-win .ctrl .play { width: 58px; height: 58px; border-radius: 50%; background: #F2F0EA; color: #121216; display: grid; place-items: center; font-size: 22px; }
+
+/* ---------- the pointer ---------- */
+#pf-cursor { position: absolute; left: 0; top: 0; transform-origin: 3px 3px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.4)); }
+#pf-ring { position: absolute; border-radius: 50%; box-shadow: 0 0 0 5px var(--pf-acc); opacity: 0; }
+#pf[data-theme="mint"] #pf-ring, #pf[data-theme="blocks"] #pf-ring { box-shadow: 0 0 0 5px #9FE1CB; }
+
+/* ---------- keys pressed ---------- */
+#pf-keys { position: absolute; left: 0; right: 0; top: 1580px; display: flex; gap: 18px; justify-content: center; align-items: center; }
+#pf-keys .cap {
+  min-width: 130px; padding: 18px 36px; border-radius: 24px; text-align: center;
+  font-size: 50px; font-weight: 600; color: var(--pf-cap-ink); background: var(--pf-cap);
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,.18), 0 0 0 2px var(--pf-frame), 0 12px 30px rgba(0,0,0,.15);
+}
+#pf-keys .plus { font-size: 50px; color: var(--pf-sub); }
+
+/* ---------- "10 minutes later" ---------- */
+#pf-later {
+  position: absolute; inset: 0; display: grid; place-items: center; opacity: 0;
+  background: var(--pf-bg); font-size: 96px; font-weight: 600; color: var(--pf-ink);
+}
+#pf-later small { display: block; font-size: 44px; font-weight: 500; color: var(--pf-sub); text-align: center; margin-top: 10px; }
+
+/* ---------- the end ---------- */
+#pf-end { position: absolute; inset: 0; opacity: 0; }
+#pf-end .yo { position: absolute; left: 540px; top: 640px; }
+#pf-end .yo > * { position: absolute; transform: translate(-50%, -50%); }
+#pf-end .text { position: absolute; left: 0; right: 0; top: 1060px; text-align: center; }
+#pf-end .word { font-size: 250px; font-weight: 700; letter-spacing: -6px; line-height: 1; color: var(--pf-ink); }
+#pf-end .free { font-size: 60px; font-weight: 500; margin-top: 16px; color: var(--pf-ink); }
+#pf-end .cta {
+  display: inline-block; margin-top: 56px; padding: 26px 54px; border-radius: 60px;
+  font-size: 46px; color: var(--pf-cap-ink); background: var(--pf-cap); box-shadow: 0 0 0 2px var(--pf-frame);
+}
+
+.pf-marker { position: absolute; right: 0; width: 1px; height: 1px; z-index: 10; }
