@@ -211,14 +211,39 @@
     try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (err) { /* not kept */ }
   }
 
-  function makeHabit(sentence) {
+  function makeHabit(sentence, pack) {
     const p = parse(sentence);
     if (!p.name) return null;
-    return {
+    const habit = {
       id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       said: String(sentence).trim().slice(0, 200), name: p.name, cue: p.cue, tiny: p.tiny, identity: p.identity,
       created: Date.now(), log: {},
     };
+    if (pack) habit.pack = pack;
+    return habit;
+  }
+
+  // which pack a habit came from (habits added before packs were remembered: by their sentence)
+  const packOf = (habit) => habit.pack || Object.keys(PACKS).find((k) => PACKS[k].indexOf(habit.said) !== -1) || null;
+  const PACK_STAT = { water: 'habitWater', body: 'habitBody', bac: 'habitBac', ramadan: 'habitRamadan' };
+
+  // the best runs count toward YO's rewards: the sprout (any habit), and each pack's own outfit
+  function earnAll(list) {
+    if (!host || !host.earn || !list.length) return;
+    host.earn('habitRun', Math.max(...list.map(bestRun)));
+    Object.keys(PACK_STAT).forEach((pack) => {
+      const runs = list.filter((x) => packOf(x) === pack).map(bestRun);
+      if (runs.length) host.earn(PACK_STAT[pack], Math.max(...runs));
+    });
+  }
+
+  // each kind of habit gets its own celebration: a sip of water, a little jog, a few pages
+  function celebration(habit) {
+    const words = (habit.name + ' ' + (habit.said || '')).toLowerCase();
+    if (/\b(water|drink|hydrat\w*|glass(es)?)\b/.test(words)) return 'sip';
+    if (/\b(walk|run|jog|sport|gym|stretch|exercise|push-?ups?|squats?|steps|swim|bike|cycle|football|move)\b/.test(words)) return 'jog';
+    if (/\b(read|quran|book|study|review|revise|learn|pages?)\b/.test(words)) return 'read';
+    return null;
   }
 
   // ---------- shared by the app and the coach (the cue cards) ----------
@@ -245,7 +270,7 @@
     if (value) habit.log[key] = value;
     else delete habit.log[key];
     save(list);
-    if (counts(value) && host && host.earn) host.earn('habitRun', Math.max(...list.map(bestRun)));
+    if (counts(value)) earnAll(list);
     listeners.forEach((fn) => fn());
     return habit;
   }
@@ -268,7 +293,7 @@
       const body = (habit.identity ? cap(toYou(habit.identity)) + '. ' : '') +
         (habit.tiny ? t('habits.card.tiny').replace('{tiny}', habit.tiny) : t('habits.card.small'));
       host.card(cueText(habit) + ': ' + habit.name.toLowerCase(), body, [
-        { label: t('habits.done'), primary: true, run: () => { logToday(habit.id, 'done'); host.react('heart'); host.sound('success'); } },
+        { label: t('habits.done'), primary: true, run: () => { logToday(habit.id, 'done'); host.react(celebration(habit) || 'heart'); host.sound('success'); } },
         { label: habit.tiny ? t('habits.justTiny').replace('{tiny}', habit.tiny) : t('habits.justLittle'), run: () => { logToday(habit.id, 'tiny'); host.react('success'); host.sound('tick'); } },
         { label: t('habits.notToday'), run: () => { logToday(habit.id, 'skip'); } },
       ], { label: t('short.habits'), calm: true });
@@ -456,7 +481,8 @@
       const key = ymd(new Date());
       const all = list.every((x) => counts((x.log || {})[key]));
       host.sound(all ? 'success' : 'tick');
-      host.react(all ? 'success' : value === 'tiny' ? 'note' : 'heart');
+      const habit = list.find((x) => x.id === id);
+      host.react(all ? 'success' : (habit && celebration(habit)) || (value === 'tiny' ? 'note' : 'heart'));
       if (all) host.toast(t('habits.allDone'));
       const n = body.querySelector('.hb-node[data-id="' + id + '"] circle');
       if (n) Y.miniapps.pop(n, 1.5);
@@ -484,8 +510,7 @@
       const run = bestRun(x);
       const stat = (label, value, cls) => h('div.hb-stat', h('span.olabel', { text: label }), h('div.hb-statv' + (cls || ''), { text: value }));
       // a run that's already long enough (from days logged earlier) still earns the sprout
-      const best = Math.max(...list.map(bestRun));
-      if (best >= 7 && host.earn && Y.unlocks && !Y.unlocks.isUnlocked('tip', 'sprout')) host.earn('habitRun', best);
+      earnAll(list); // runs from days logged earlier still earn their rewards
       const sprout = Y.unlocks && Y.unlocks.isUnlocked('tip', 'sprout');
       return h('div.hb-month', pick,
         h('div.hb-monthmain',
@@ -581,7 +606,7 @@
       const all = load();
       let added = 0;
       PACKS[id].forEach((s) => {
-        const made = makeHabit(s);
+        const made = makeHabit(s, id);
         if (!made || all.length >= MAX_HABITS) return;
         if (all.some((x) => x.name === made.name && JSON.stringify(x.cue) === JSON.stringify(made.cue))) return;
         all.push(made);
@@ -637,5 +662,5 @@
 
   Y.miniapps.define('habits', mount);
   Y.habitsCoach = { start, check };
-  Y.miniapps.habitsCore = { parse, cueAt, dayState, currentRun, bestRun, missState, neverMissedTwice, PACKS }; // for tests
+  Y.miniapps.habitsCore = { parse, cueAt, dayState, currentRun, bestRun, missState, neverMissedTwice, celebration, packOf, PACKS }; // for tests
 })((window.Yo = window.Yo || {}));

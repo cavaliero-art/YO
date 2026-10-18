@@ -192,6 +192,8 @@
       } else if (group === 'volume') prefs.volume = value;
       else if (PILL[group]) prefs.pill[group] = value;
       else prefs.look[group] = value;
+      // the Sidi Bou Said pill dresses YO in its white and blue too, unless you picked a color yourself
+      if (group === 'pillStyle' && value === 'sidi' && prefs.look.color === 'mint') prefs.look.color = 'sidi';
       app.savePrefs();
       app.applyPrefs();
       sync();

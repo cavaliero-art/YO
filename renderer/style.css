@@ -192,6 +192,21 @@ html, body {
   --acc-ink: color-mix(in srgb, var(--acc) 55%, #000);
   --scroll: rgba(0, 0, 0, .22);
 }
+/* Sidi Bou Said: a white pill with its blue as the accent (YO's own colors don't change it) */
+.island[data-pill="sidi"] {
+  --acc: #1F5FA8;
+  --acc-ink: #17497F;
+  --bg: #F7FAFD;
+  --ink: #0F2E52;
+  --muted: #4A6E95;
+  --faint: #6F8AA8;
+  --fill: rgba(31, 95, 168, .07);
+  --fill-hover: rgba(31, 95, 168, .12);
+  --line: rgba(31, 95, 168, .18);
+  --line-strong: #B9CCE2;
+  --on-accent: #FFFFFF;
+  --scroll: rgba(31, 95, 168, .3);
+}
 .island[data-size="small"] { zoom: .9; --tiny: 12.5px; --caps: 11.5px; --app-max: 580px; } /* small text doesn't shrink below about 11px */
 .island[data-size="large"] { zoom: 1.16; --app-max: 420px; }
 #stage[data-position="left"] { justify-content: flex-start; padding-inline-start: 8px; }
@@ -1463,6 +1478,7 @@ span.pr-bell { cursor: default; }
 :is(.yo-char, .sw)[data-color="snow"] { --body: #EEECE6; --foot: #B9B6AD; }
 :is(.yo-char, .sw)[data-color="graphite"] { --body: #858B97; --foot: #555B66; }
 :is(.yo-char, .sw)[data-color="gold"] { --body: #F4D06F; --foot: #D4A72C; }
+:is(.yo-char, .sw)[data-color="sidi"] { --body: #F7FAFD; --foot: #1F5FA8; }
 :is(.yo-char, .sw)[data-eye="white"] { --eye: #FFFFFF; }
 :is(.yo-char, .sw)[data-eye="amber"] { --eye: #FFD58A; }
 :is(.yo-char, .sw)[data-eye="pink"] { --eye: #FFB3C7; }
@@ -1517,7 +1533,7 @@ span.pr-bell { cursor: default; }
 
 /* outfit: hat, glasses, held item, and the Ramadan moon */
 .yo-char :is(.o-winter, .o-party, .o-witch, .o-crown, .o-cap, .o-phones, .o-bow, .o-prop, .o-night, .o-halo, .o-grad,
-  .o-glasses, .o-round, .o-lantern, .o-mug, .o-pad, .o-moon) { display: none; }
+  .o-glasses, .o-round, .o-lantern, .o-mug, .o-pad, .o-moon, .o-chechia, .o-sweat, .o-bottle, .o-fanous) { display: none; }
 .yo-char[data-hat="winter"] .o-winter,
 .yo-char[data-hat="party"] .o-party,
 .yo-char[data-hat="witch"] .o-witch,
@@ -1529,21 +1545,29 @@ span.pr-bell { cursor: default; }
 .yo-char[data-hat="nightcap"] .o-night,
 .yo-char[data-hat="halo"] .o-halo,
 .yo-char[data-hat="grad"] .o-grad,
+.yo-char[data-hat="chechia"] .o-chechia,
+.yo-char[data-hat="sweatband"] .o-sweat,
 .yo-char[data-glasses="sun"] .o-glasses,
 .yo-char[data-glasses="round"] .o-round,
 .yo-char[data-item="lantern"] .o-lantern,
 .yo-char[data-item="mug"] .o-mug,
 .yo-char[data-item="controller"] .o-pad,
+.yo-char[data-item="bottle"] .o-bottle,
+.yo-char[data-item="fanous"] .o-fanous,
 .yo-char[data-moon="true"] .o-moon { display: inline; }
 .yo-char[data-moon="true"] .tip { display: none; }
 /* antenna tip, neckwear, sticker */
-.yo-char :is(.t-heart, .t-star, .t-bolt, .t-flower, .t-sprout, .o-cape, .o-scarf, .o-bowtie, .s-freckles, .s-stripes, .s-bolt, .s-heart) { display: none; }
+.yo-char :is(.t-heart, .t-star, .t-bolt, .t-flower, .t-sprout, .t-jasmine, .o-fouta, .o-pack, .o-straps, .o-cape, .o-scarf, .o-bowtie, .s-freckles, .s-stripes, .s-bolt, .s-heart) { display: none; }
 .yo-char:not([data-tip="ball"]) .dot { display: none; }
 .yo-char[data-tip="heart"] .t-heart,
 .yo-char[data-tip="star"] .t-star,
 .yo-char[data-tip="bolt"] .t-bolt,
 .yo-char[data-tip="flower"] .t-flower,
 .yo-char[data-tip="sprout"] .t-sprout,
+.yo-char[data-tip="jasmine"] .t-jasmine,
+.yo-char[data-neck="fouta"] .o-fouta,
+.yo-char[data-neck="backpack"] .o-pack,
+.yo-char[data-neck="backpack"] .o-straps,
 .yo-char[data-neck="cape"] .o-cape,
 .yo-char[data-neck="scarf"] .o-scarf,
 .yo-char[data-neck="bowtie"] .o-bowtie,
@@ -1557,6 +1581,30 @@ span.pr-bell { cursor: default; }
 .yo-char .t-flower .t-center { fill: #FFD166; }
 .yo-char .t-sprout path { fill: #7BD88F; }
 .yo-char .t-sprout .t-stem { fill: none; stroke: #4FAE63; stroke-width: 2; stroke-linecap: round; }
+/* the Tunisia and healthy pack */
+.yo-char .t-jasmine circle { fill: #FFFFFF; stroke: #E6E0C9; stroke-width: .6; }
+.yo-char .t-jasmine .t-jheart { fill: #F3C64B; stroke: none; }
+.yo-char .t-jstem { fill: none; stroke: #5E9E4A; stroke-width: 2; stroke-linecap: round; }
+.yo-char .o-chechc { fill: #C8202F; }
+.yo-char .o-chechb { fill: #9E1622; }
+.yo-char .o-chechl { fill: none; stroke: #1B1B1F; stroke-width: 1.6; stroke-linecap: round; }
+.yo-char .o-chechk { fill: #1B1B1F; }
+.yo-char .o-sweatc { fill: #E5484D; }
+.yo-char .o-sweatw { fill: #F4F1EA; }
+.yo-char .o-foutac { fill: #EDE6D6; }
+.yo-char .o-foutar { fill: none; stroke: #C8202F; stroke-width: 1.4; stroke-linecap: round; }
+.yo-char .o-foutab { fill: none; stroke: #1F5FA8; stroke-width: 1.4; stroke-linecap: round; }
+.yo-char .o-foutaf { fill: none; stroke: #CFC6B2; stroke-width: 1; stroke-linecap: round; }
+.yo-char .o-packc { fill: #F0997B; }
+.yo-char .o-packp { fill: #D57B5C; }
+.yo-char .o-packz { fill: none; stroke: #F4F1EA; stroke-width: 1.2; stroke-linecap: round; }
+.yo-char .o-strap { fill: none; stroke: #D57B5C; stroke-width: 3.4; stroke-linecap: round; }
+.yo-char .o-bottlec { fill: #5BA8E8; }
+.yo-char .o-bottlecap { fill: #2F6FB0; }
+.yo-char .o-bottlel { fill: #CDE6FA; }
+.yo-char .o-bottles { fill: none; stroke: rgba(255, 255, 255, .6); stroke-width: 1.2; stroke-linecap: round; }
+.yo-char .o-fanglow { fill: #FFE7A3; stroke: #C9A44A; stroke-width: .8; }
+.yo-char .o-fanbar { fill: none; stroke: #C9A44A; stroke-width: .8; }
 .yo-char .o-capec { fill: #E5484D; stroke: #B9333B; stroke-width: 1.4; stroke-linejoin: round; }
 .yo-char .o-scarfc { fill: #E5484D; }
 .yo-char .o-scarfs { fill: none; stroke: #F4F1EA; stroke-width: 2; stroke-linecap: round; }

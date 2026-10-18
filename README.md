@@ -218,6 +218,16 @@ Some looks are earned by using YO; you get one small "New!" moment, never a nag.
 | Nightcap | Use YO after midnight |
 | Grad cap | Copy 20 quick answers |
 | Gold color | Use YO on 7 different days |
+| Sprout (antenna tip) | Keep any habit 7 days in a row |
+| Water bottle | Summer water pack: a habit 7 days in a row |
+| Sweatband | Healthy body pack: a habit 7 days in a row |
+| Backpack | Bac and exams pack: a habit 7 days in a row |
+| Golden fanous | Ramadan pack: a habit every day of the month |
+
+Free for everyone, with a Tunisian touch: the chechia, a jasmine tip (it also comes by itself in
+summer), the fouta scarf, YO in Sidi Bou Said white and blue, and the Sidi Bou Said pill (a white pill
+with blue accents). Ticking a habit gets its own little celebration: YO sips water, jogs out and back,
+or reads a few pages.
 
 Locked items show a lock in Customize; click one to see how far you are.
 

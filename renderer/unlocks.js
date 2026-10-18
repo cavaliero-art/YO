@@ -11,8 +11,13 @@
     { slot: 'hat', value: 'grad', stat: 'answers', need: 20 },
     { slot: 'color', value: 'gold', stat: 'days', need: 7 },
     { slot: 'tip', value: 'sprout', stat: 'habitRun', need: 7 },
+    // the Habits packs: each one's own reward, for the best run of a habit from that pack
+    { slot: 'item', value: 'bottle', stat: 'habitWater', need: 7 },
+    { slot: 'hat', value: 'sweatband', stat: 'habitBody', need: 7 },
+    { slot: 'neck', value: 'backpack', stat: 'habitBac', need: 7 },
+    { slot: 'item', value: 'fanous', stat: 'habitRamadan', need: 29 },
   ];
-  const FRESH = { actions: 0, pets: 0, nights: 0, answers: 0, habitRun: 0, days: [], unlocked: [] };
+  const FRESH = { actions: 0, pets: 0, nights: 0, answers: 0, habitRun: 0, habitWater: 0, habitBody: 0, habitBac: 0, habitRamadan: 0, days: [], unlocked: [] };
 
   function load() {
     try {
@@ -34,11 +39,12 @@
   const ruleFor = (slot, value) => RULES.find((r) => r.slot === slot && r.value === value) || null;
 
   // something happened: 'actions', 'pets', 'answers', 'visit' (a day, and a night after midnight),
-  // or 'habitRun' with the longest run of a habit so far (Habits); returns the rules it just unlocked
+  // or 'habitRun' / 'habitWater' / 'habitBody' / 'habitBac' / 'habitRamadan' with the longest run of a habit
+  // so far, overall or from that pack (Habits); returns the rules it just unlocked
   function record(kind, date, value) {
     const now = date || new Date();
-    if (kind === 'habitRun') {
-      stats.habitRun = Math.max(stats.habitRun || 0, Number(value) || 0);
+    if (/^habit(Run|Water|Body|Bac|Ramadan)$/.test(kind)) {
+      stats[kind] = Math.max(stats[kind] || 0, Number(value) || 0);
     } else if (kind === 'visit') {
       const day = now.toLocaleDateString('en-CA'); // local date, YYYY-MM-DD
       if (stats.days.indexOf(day) === -1) stats.days.push(day);

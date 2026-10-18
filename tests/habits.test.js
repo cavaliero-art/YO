@@ -39,6 +39,22 @@ test('everyday moments as cues, and habits with no cue at all', () => {
   assert.strictEqual(H.parse('   ').name, '');
 });
 
+test('each kind of habit gets its own celebration', () => {
+  const c = (said) => H.celebration({ name: H.parse(said).name, said });
+  assert.strictEqual(c('After Dhuhr I will drink 1 glass of water'), 'sip');
+  assert.strictEqual(c('After Maghrib I will walk 10 min'), 'jog');
+  assert.strictEqual(c('at 7am I will do 10 pushups'), 'jog');
+  assert.strictEqual(c('After Fajr I will read 1 page of Quran'), 'read');
+  assert.strictEqual(c('At 23:00 I will put my phone away'), null); // the usual heart
+});
+
+test('a habit knows its pack, even one added before packs were remembered', () => {
+  const said = H.PACKS.water[0];
+  assert.strictEqual(H.packOf({ said }), 'water');
+  assert.strictEqual(H.packOf({ said: 'my own sentence', pack: 'bac' }), 'bac');
+  assert.strictEqual(H.packOf({ said: 'my own sentence' }), null);
+});
+
 test('every pack sentence reads into a habit with a name and a cue', () => {
   Object.keys(H.PACKS).forEach((pack) => H.PACKS[pack].forEach((sentence) => {
     const p = H.parse(sentence);

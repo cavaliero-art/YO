@@ -82,7 +82,7 @@
     pill: { pillStyle: 'dark', position: 'center', size: 'normal' },
     saved: [null, null, null],
   };
-  const PILL = { pillStyle: ['dark', 'smoke', 'tint', 'light'], position: ['left', 'center', 'right'], size: ['small', 'normal', 'large'] };
+  const PILL = { pillStyle: ['dark', 'smoke', 'tint', 'light', 'sidi'], position: ['left', 'center', 'right'], size: ['small', 'normal', 'large'] };
   const prefs = loadPrefs();
 
   function loadPrefs() {

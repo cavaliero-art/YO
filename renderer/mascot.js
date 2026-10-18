@@ -46,11 +46,18 @@
         '<g class="t-flower"><circle cx="100" cy="48.5" r="3"/><circle cx="104.3" cy="51.6" r="3"/><circle cx="102.6" cy="56.6" r="3"/>' +
           '<circle cx="97.4" cy="56.6" r="3"/><circle cx="95.7" cy="51.6" r="3"/><circle class="t-center" cx="100" cy="53" r="2.2"/></g>' +
         '<g class="t-sprout"><path class="t-stem" d="M100 61V51.5"/><path d="M100 52.5C100 47.6 103.6 45 108 45C108 49.8 104.6 52.5 100 52.5Z"/>' +
-          '<path d="M100 55.5C100 51.6 97.2 49.5 93.5 49.5C93.5 53.4 96.3 55.5 100 55.5Z"/></g></g>' +
+          '<path d="M100 55.5C100 51.6 97.2 49.5 93.5 49.5C93.5 53.4 96.3 55.5 100 55.5Z"/></g>' +
+        // a little jasmine bouquet (mashmoum): white buds around a yellow heart, a green stem
+        '<g class="t-jasmine"><path class="t-jstem" d="M100 62V56"/>' +
+          '<circle cx="100" cy="47.6" r="3.3"/><circle cx="94.6" cy="51.6" r="3.3"/><circle cx="105.4" cy="51.6" r="3.3"/>' +
+          '<circle cx="96.7" cy="57.2" r="3.3"/><circle cx="103.3" cy="57.2" r="3.3"/><circle class="t-jheart" cx="100" cy="53" r="2.3"/></g></g>' +
       '<path class="o-moon" d="M103 45.5a7.5 7.5 0 1 0 0 15a9 9 0 0 1 0 -15z"/>' +
       '<circle class="hit-ant" cx="100" cy="54" r="12"/>' +
     '</g>' +
     '<g class="o-cape"><path class="o-capec" d="M72 84Q100 77 128 84L141 136Q121 143 100 138Q79 143 59 136Z"/></g>' +
+    // the backpack sits behind YO; its straps are drawn in front, with the neckwear
+    '<g class="o-pack"><rect class="o-packc" x="118" y="82" width="22" height="34" rx="8"/><rect class="o-packp" x="122" y="96" width="14" height="12" rx="3.5"/>' +
+      '<path class="o-packz" d="M124 99.5H134"/></g>' +
     '<rect class="c-foot" x="80" y="130" width="14" height="7" rx="3"/>' +
     '<rect class="c-foot" x="106" y="130" width="14" height="7" rx="3"/>' +
     '<rect class="c-body" x="68" y="70" width="64" height="60" rx="22"/>' +
@@ -76,6 +83,12 @@
       '<path class="o-scarfs" d="M80 119V127M92 121V129.5M108 121V129.5M120 119V127"/>' +
       '<g class="scarf-tail"><rect class="o-scarfc" x="111.5" y="121" width="9" height="19" rx="3"/><path class="o-scarfs" d="M111.5 134H120.5M111.5 137.5H120.5"/></g></g>' +
     '<g class="o-bowtie"><path class="o-tie" d="M100 121.5L89.5 115.5V127.5Z"/><path class="o-tie" d="M100 121.5L110.5 115.5V127.5Z"/><circle class="o-tie2" cx="100" cy="121.5" r="2.6"/></g>' +
+    // the fouta: the striped Tunisian towel, worn as a scarf with one end hanging
+    '<g class="o-fouta"><path class="o-foutac" d="M69 115Q100 124 131 115L131 124Q100 133 69 124Z"/>' +
+      '<path class="o-foutar" d="M70 117.6Q100 126.6 130 117.6"/><path class="o-foutab" d="M70 120.6Q100 129.6 130 120.6"/>' +
+      '<g class="fouta-tail"><rect class="o-foutac" x="111" y="121" width="10" height="20" rx="2.5"/>' +
+        '<path class="o-foutar" d="M111 129H121"/><path class="o-foutab" d="M111 132H121"/><path class="o-foutaf" d="M112 141v3M114.5 141v3M117 141v3M119.5 141v3"/></g></g>' +
+    '<g class="o-straps"><path class="o-strap" d="M74 75Q73 99 71.5 123"/><path class="o-strap" d="M126 75Q127 99 128.5 123"/></g>' +
     '<g class="hat">' +
       '<g class="o-winter"><path class="o-red" d="M70 78Q70 50 100 50Q130 50 130 78Z"/><rect class="o-white" x="67" y="70" width="66" height="9" rx="4.5"/><circle class="o-white" cx="100" cy="47.5" r="5.5"/></g>' +
       '<g class="o-party"><path class="o-violet" d="M75 72L98 70L84 39Z"/><path class="o-stripe" d="M79.5 62.5L94.5 61.3M82 53L90.5 52.3"/><circle class="o-yellow" cx="84" cy="38" r="3.6"/></g>' +
@@ -98,6 +111,11 @@
       '<g class="o-grad"><path class="o-dark" d="M82 71Q82 62 100 62Q118 62 118 71Z"/><path class="o-dark" d="M100 50.5L131 60L100 69.5L69 60Z"/>' +
         '<circle class="o-gold" cx="100" cy="60" r="1.8"/>' +
         '<g class="tassel"><path class="o-goldline" d="M100 60L125 64L125 74"/><rect class="o-gold" x="122.5" y="73" width="5" height="7" rx="1.5"/></g></g>' +
+      // the chechia: the red Tunisian felt cap, small and a little tilted, with its short black tassel
+      '<g class="o-chechia"><path class="o-chechc" d="M84 73Q83 55 100 54Q117 55 116 73Z"/><path class="o-chechb" d="M84 70.5Q100 74 116 70.5L116 73.5Q100 77 84 73.5Z"/>' +
+        '<path class="o-chechl" d="M100 54Q107 55.5 109.5 63"/><path class="o-chechk" d="M108 62h3.2v5.5h-3.2z"/></g>' +
+      // the sweatband: a sporty band across YO's forehead
+      '<g class="o-sweat"><rect class="o-sweatc" x="68" y="73" width="64" height="10" rx="5"/><rect class="o-sweatw" x="68" y="76.7" width="64" height="2.6"/></g>' +
     '</g>' +
     '<g class="o-book"><path class="o-bookc" d="M84 110L100 113L116 110V125L100 128L84 125Z"/><path class="o-bookp" d="M100 113V128"/>' +
       '<path class="o-bookl" d="M88 115.5L97 117M88 119L97 120.5M103 117L112 115.5M103 120.5L112 119"/></g>' +
@@ -111,6 +129,12 @@
         '<path class="o-gold" d="M-3 18h6l-3 3z"/></g>' +
         '<g class="o-mug"><path class="o-steam" d="M0 -6q-2 -3 0 -6M4.5 -6q-2 -3 0 -6"/><rect class="o-cup-body" x="-3.5" y="-3" width="11" height="12" rx="2.2"/>' +
         '<path class="o-handle" d="M7.5 0q4 0 4 3.5q0 3.5 -4 3.5"/><rect class="o-coffee" x="-2.5" y="-3" width="9" height="2" rx="1"/></g>' +
+        // a water bottle (Summer water) and the golden fanous, the full Ramadan lantern
+        '<g class="o-bottle"><rect class="o-bottlecap" x="-1.8" y="-5" width="6.6" height="4" rx="1.4"/><rect class="o-bottlec" x="-3" y="-1.5" width="9" height="17" rx="3"/>' +
+          '<rect class="o-bottlel" x="-3" y="4" width="9" height="5" rx="1"/><path class="o-bottles" d="M-1 0.5v5"/></g>' +
+        '<g class="o-fanous"><path class="o-chain" d="M0 -2v5"/><path class="o-gold" d="M-4 -3.5a3 3 0 0 1 8 0z"/><path class="o-moon" d="M1.8 -9.5a2.4 2.4 0 1 0 0 4.4a3 3 0 0 1 0 -4.4z"/>' +
+          '<path class="o-gold" d="M-7 4h14l-7 -5z"/><path class="o-fanglow" d="M-6 4h12l-1.5 15h-9z"/><path class="o-fanbar" d="M0 4v15M-3.6 4l-.8 15M3.6 4l.8 15"/>' +
+          '<rect class="o-flame" x="-2" y="9" width="4" height="6" rx="1.5"/><path class="o-gold" d="M-6 19h12l-2 3h-8z"/></g>' +
       '</g>' +
     '</g>' +
     '<g class="x-listen"><path d="M54 90Q48 100 54 110M146 90Q152 100 146 110"/></g>' +
@@ -135,18 +159,18 @@
   const BLINKS = { open: true, wide: true };
   const HAT_PIVOT = {
     winter: [100, 74], party: [87, 71], witch: [86, 71], crown: [100, 73], cap: [100, 76], headphones: [100, 74], bow: [117, 72],
-    propeller: [100, 74], nightcap: [100, 74], grad: [100, 70],
+    propeller: [100, 74], nightcap: [100, 74], grad: [100, 70], chechia: [100, 72], sweatband: [100, 79],
   };
   // what the user can pick; the first of each list is the default
   const LOOKS = {
-    color: ['mint', 'sky', 'coral', 'lilac', 'lemon', 'bubblegum', 'snow', 'graphite', 'gold'],
+    color: ['mint', 'sky', 'coral', 'lilac', 'lemon', 'bubblegum', 'snow', 'graphite', 'gold', 'sidi'],
     eyeColor: ['mint', 'white', 'amber', 'pink', 'cyan'],
     eyes: ['classic', 'round', 'pixel'],
-    hat: ['none', 'winter', 'party', 'witch', 'crown', 'cap', 'headphones', 'bow', 'propeller', 'nightcap', 'halo', 'grad'],
+    hat: ['none', 'winter', 'party', 'witch', 'crown', 'cap', 'headphones', 'bow', 'propeller', 'nightcap', 'halo', 'grad', 'chechia', 'sweatband'],
     glasses: ['none', 'sun', 'round'],
-    item: ['none', 'lantern', 'mug', 'controller'],
-    neck: ['none', 'scarf', 'bowtie', 'cape'],
-    tip: ['ball', 'heart', 'star', 'bolt', 'flower', 'sprout'],
+    item: ['none', 'lantern', 'mug', 'controller', 'bottle', 'fanous'],
+    neck: ['none', 'scarf', 'bowtie', 'cape', 'fouta', 'backpack'],
+    tip: ['ball', 'heart', 'star', 'bolt', 'flower', 'sprout', 'jasmine'],
     sticker: ['none', 'freckles', 'stripes', 'bolt', 'heart'],
   };
   const DEFAULT_LOOK = {
@@ -161,7 +185,7 @@
   };
   // what each seasonal outfit puts on
   const SEASON_LOOK = {
-    winter: { hat: 'winter' }, party: { hat: 'party' }, witch: { hat: 'witch' }, lantern: { item: 'lantern', moon: true }, sun: { glasses: 'sun' },
+    winter: { hat: 'winter' }, party: { hat: 'party' }, witch: { hat: 'witch' }, lantern: { item: 'lantern', moon: true }, sun: { glasses: 'sun', tip: 'jasmine' },
   };
 
   const round = (n) => Math.round(n * 100) / 100;
@@ -211,7 +235,8 @@
     const season = !prefs || prefs.seasonal !== false ? seasonal(date) : null;
     const extra = season ? SEASON_LOOK[season] : {};
     Object.keys(extra).forEach((key) => {
-      if (key === 'moon' || look[key] === 'none') look[key] = extra[key];
+      // the plain antenna ball counts as empty too: summer's jasmine takes its place
+      if (key === 'moon' || look[key] === 'none' || (key === 'tip' && look[key] === 'ball')) look[key] = extra[key];
     });
     return look;
   }
@@ -246,7 +271,7 @@
       ant: spring(0, 240, 5), acc: spring(0, 180, 7), hat: spring(0, 70, 4.5), glasses: spring(0, 150, 15),
       lantern: spring(0, 45, 2.2), armL: spring(12, 170, 15), armR: spring(12, 170, 15),
       lookX: spring(0, 120, 17), lookY: spring(0, 120, 17), blush: spring(0, 40, 12), mouth: spring(0, 520, 22),
-      cape: spring(0, 55, 4.5), tail: spring(0, 80, 5),
+      cape: spring(0, 55, 4.5), tail: spring(0, 80, 5), run: spring(0, 90, 13),
     };
     const holds = {}; // short overrides: expr, pose, look, tilt -> { v, until }
     const later = []; // steps of a reaction: { at, fn }
@@ -280,6 +305,7 @@
     let bookUntil = 0;
     let yawnUntil = 0;
     let danceUntil = 0;
+    let jogFrom = -9; // a short jog out and back (a walk or sport habit done)
     let flipFrom = -9;
     let spinFrom = -9;
     let music = false; // something is playing: YO bops along
@@ -386,7 +412,7 @@
       const base = BASE[state] || BASE.idle;
       const expr = held('expr') || (sleeping ? 'sleepy' : petting ? 'done' : work && work.name === 'star' ? 'proud' : mood || base[0]);
       let pose = held('pose') || (sleeping ? 'droop' : petting ? 'pet' : base[1]);
-      if (pose === 'rest' && (item === 'lantern' || item === 'mug')) pose = 'hold'; // holds it out
+      if (pose === 'rest' && (item === 'lantern' || item === 'mug' || item === 'bottle' || item === 'fanous')) pose = 'hold'; // holds it out
       if (pose === 'rest' && item === 'controller') pose = 'game'; // both hands on the pad
       if (clock < bookUntil) pose = 'game'; // holding the little book
       showExpr(expr);
@@ -409,6 +435,16 @@
         if (tilt === null && clock >= dizzyUntil) sp.tilt.t = Math.sin(beat) * 6;
         sp.armL.t = armL + Math.abs(Math.sin(beat)) * 30;
         sp.armR.t = armR + Math.abs(Math.cos(beat)) * 30;
+      }
+      // jogging: out to the side and back with quick little steps, arms swinging
+      const jogT = (clock - jogFrom) / 1.4;
+      if (jogT >= 0 && jogT < 1 && !still) {
+        sp.run.t = Math.sin(jogT * Math.PI) * 22;
+        sp.hop.t = -Math.abs(Math.sin(clock * 16)) * 3.2;
+        sp.armL.t = 30 + Math.sin(clock * 16) * 40;
+        sp.armR.t = 30 - Math.sin(clock * 16) * 40;
+      } else {
+        sp.run.t = 0;
       }
       // open wide while a file hovers; after the snap, a few small chews
       sp.mouth.t = hungry ? 1 + Math.sin(clock * 7) * 0.06 : clock < chompUntil ? (Math.sin(clock * 28) > 0 ? 0.35 : 0) :
@@ -452,7 +488,7 @@
       const spinT = (clock - spinFrom) / 0.9;
       const spin = spinT > 0 && spinT < 1 && !still ? Math.cos(spinT * Math.PI * 4) : 1;
       node.rig.setAttribute('transform',
-        'translate(0 ' + round(sp.hop.x) + ') translate(100 137) scale(' + round(sp.sx.x * spin) + ' ' + round(sp.sy.x) + ') translate(-100 -137) rotate(' + round(sp.tilt.x + flip) + ' 100 104)');
+        'translate(' + round(sp.run.x) + ' ' + round(sp.hop.x) + ') translate(100 137) scale(' + round(sp.sx.x * spin) + ' ' + round(sp.sy.x) + ') translate(-100 -137) rotate(' + round(sp.tilt.x + flip) + ' 100 104)');
       svg.setAttribute('data-prop', clock < bookUntil ? 'book' : '');
       node.ant.setAttribute('transform', 'rotate(' + round(sp.ant.x) + ' 100 70)');
       node.ears.setAttribute('transform', 'rotate(' + round(sp.acc.x) + ' 100 72)');
@@ -725,6 +761,32 @@
         hold('look', [0, 0.9], 1800);
         hold('expr', 'squint', 1600);
       },
+      // habit celebrations (Habits): each kind of habit gets its own little moment
+      // water: lifts its arm to drink, head back, then a drop pops up
+      sip() {
+        hold('pose', 'think', 900);
+        hold('tilt', -12, 800);
+        hold('expr', 'squint', 700);
+        after(700, () => {
+          hold('expr', 'done', 900);
+          spawn('sweat', 100, 62, 0, -26, 1.1, 0, 1.4);
+          burst('spark', 5, 100, 60, 34, 0.6);
+          kick('hop', -40);
+        });
+      },
+      // a walk or sport: a short jog out and back
+      jog() {
+        jogFrom = clock;
+        hold('expr', 'done', 1500);
+        after(1400, () => { kick('hop', -70); burst('spark', 6, 100, 62, 44, 0.7); });
+      },
+      // reading: the little book, looking down, pages, then a happy look up
+      read() {
+        bookUntil = clock + 1.6;
+        hold('look', [0, 0.9], 1500);
+        hold('expr', 'squint', 1400);
+        after(1600, () => { hold('expr', 'done', 900); kick('hop', -45); burst('star', 3, 100, 60, 32, 0.8); });
+      },
       wake() {
         sleeping = false;
         stopStream('z');
@@ -798,6 +860,7 @@
         bookUntil = 0;
         yawnUntil = 0;
         danceUntil = 0;
+        jogFrom = -9;
         work = null;
         flash = null;
         talkUntil = 0;
