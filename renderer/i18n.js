@@ -16,6 +16,7 @@
           '•  The grid button has my apps: Habits, To-do, Notes, Focus, Prayer times and Translate.\n' +
           '•  Type what you want: "open spotify", "remind me in 10 min to stretch".\n' +
           '•  Right-click me to change my look. Drop a file or some text on me.\n' +
+          '•  Everything stays on this PC. Backup and privacy: tray menu, About YO.\n' +
           'When you don\'t need me, I wait in the tray (bottom right). Its menu has Start with Windows and the shortcut.',
         apps: 'Show me the apps', ok: 'Got it',
       },
@@ -31,19 +32,19 @@
         open: 'Open an app, folder or site', remind: 'Remind me', timer: 'Start a timer', customize: 'Customize YO',
         dance: 'Dance', jump: 'Jump', wave: 'Wave hello', flip: 'Backflip', spin: 'Spin', love: 'Show some love',
         inbox: 'Inbox', translate: 'Translate', calc: 'Calculator',
-        todo: 'To-do list', notes: 'Notes', habits: 'Habits', exam: 'Add an exam', focus: 'Focus (Pomodoro)', prayer: 'Prayer times',
+        todo: 'To-do list', notes: 'Notes', habits: 'Habits', about: 'About YO, backup and privacy', exam: 'Add an exam', focus: 'Focus (Pomodoro)', prayer: 'Prayer times',
       },
       short: {
         open: 'Open', remind: 'Remind me', timer: 'Timer', customize: 'Customize',
         dance: 'Dance', jump: 'Jump', wave: 'Wave', flip: 'Flip', spin: 'Spin', love: 'Love', inbox: 'Inbox',
-        translate: 'Translate', calc: 'Calculator', todo: 'To-do', notes: 'Notes', habits: 'Habits', exam: 'Exam', focus: 'Focus', prayer: 'Prayer',
+        translate: 'Translate', calc: 'Calculator', todo: 'To-do', notes: 'Notes', habits: 'Habits', about: 'About YO', exam: 'Exam', focus: 'Focus', prayer: 'Prayer',
       },
       // mini apps (renderer/apps/)
       app: {
         back: 'All apps', close: 'Close', copied: 'Copied!',
         sub: {
           translate: 'Any language', calc: 'Math, units, %',
-          open: 'Apps, sites, folders', remind: 'Later, for you', timer: 'Countdown', inbox: 'Your news', todo: 'Tasks and exams', notes: 'Saves itself', habits: 'Small steps, daily', focus: 'Pomodoro with YO', prayer: 'Times and reminders',
+          open: 'Apps, sites, folders', remind: 'Later, for you', timer: 'Countdown', inbox: 'Your news', todo: 'Tasks and exams', notes: 'Saves itself', habits: 'Small steps, daily', about: 'Backup, privacy, licence', focus: 'Pomodoro with YO', prayer: 'Times and reminders',
           customize: 'Make YO yours',
         },
         moves: "YO's moves", unread: '{n} new', todoLeft: '{n} left today',
@@ -104,6 +105,43 @@
           task: 'Did you finish "{task}"?', breakOver: 'Break over', breakBody: 'Ready for the next focus session?',
           startBreak: 'Start break', markDone: 'Mark done', open: 'Open Focus', startFocus: 'Start focus' },
         status: { focus: 'Focus {t}', break: 'Break {t}' },
+      },
+      about: {
+        tab: { about: 'About', data: 'Your data', privacy: 'Privacy' }, cancel: 'Cancel', version: 'Version {v}',
+        app: 'Backup and restore work in the YO app',
+        what: 'A small companion at the top of your screen: habits, tasks, notes, focus and prayer times, and quick things for your PC. It stays out of the way until you need it.',
+        licenceTitle: 'Licence',
+        licence: 'YO is freeware: free to use, on as many of your PCs as you like. It is not open source: please don\'t copy, change, resell or republish it. © 2026 cavaliero-art. All rights reserved.',
+        creditsTitle: 'Credits',
+        credits: ['Built with Electron and Chromium (their open-source licences come with the app)',
+          'Translations by MyMemory (translated.net), a free service',
+          'Prayer times worked out on your PC with the published calculation methods (Tunisia, Muslim World League, Umm al-Qura and others)',
+          'Habits follow the four laws of behavior change: make it obvious, attractive, easy and satisfying'],
+        privacy: {
+          lead: 'YO has no account, no cloud, no ads and no tracking. What you put in YO stays on this PC.',
+          staysTitle: 'Stays on this PC',
+          stays: ['Your habits, tasks, notes, reminders and Focus history', 'Your prayer city and what you mark as prayed', 'Your looks, settings and what you typed in the bar'],
+          sentTitle: 'Leaves this PC',
+          sent: ['Only the text you translate, sent to MyMemory to be translated', 'Nothing else. Updates, once they come, will only ask GitHub for the newest version'],
+          readTitle: 'Read on this PC, never sent',
+          read: ['The song that is playing, so YO can bop along', 'Your installed apps, so "open ..." can find them', 'Files you drop on YO, only to show their name and path'],
+          where: 'Everything is in %APPDATA%\\YO and in YO\'s own storage. Your data tab can back it up, restore it, or delete it all.',
+        },
+        data: {
+          lead: 'One file with your habits, tasks, notes, reminders, Focus history, prayer settings, looks and settings.',
+          save: 'Back up now', restore: 'Restore a backup…', auto: 'Back up every week by itself',
+          last: 'Last one: {d}, in Documents\\YO backups (the last 4 are kept)', none: 'None yet. Saved in Documents\\YO backups.',
+          folder: 'Open the backups folder', erase: 'Delete all my data…', saved: 'Backed up!', failed: "That didn't work. Try another place.",
+          from: 'Backup from {d} (YO {v})', empty: 'This backup has settings only.',
+          replace: 'Restoring replaces what is on this PC now. What you have now is saved aside first, in the backups folder. YO restarts.',
+          restoreNow: 'Restore and restart', restarting: 'Restored! Starting again…',
+          n: { tasks: '{n} tasks', habits: '{n} habits', notes: '{n} notes', reminders: '{n} reminders', look: 'your look' },
+          one: { tasks: '1 task', habits: '1 habit', notes: '1 note', reminders: '1 reminder' },
+          bad: { notYo: "That isn't a YO backup", newer: 'That backup is from a newer YO. Update YO first.', big: 'That file is too big to be a YO backup', read: "Couldn't read that file" },
+          eraseTitle: 'Delete everything?',
+          eraseBody: 'Your habits, tasks, notes, reminders, Focus history, prayer settings, looks and settings are deleted from this PC, and YO starts fresh. Your backup files stay. This can\'t be undone.',
+          eraseNow: 'Delete everything', erased: 'Deleted. Starting fresh…',
+        },
       },
       habits: {
         today: 'Today', month: 'Month', new: 'New', becoming: "You're becoming", and: 'and', motto: 'Small steps, every day.',
@@ -167,7 +205,7 @@
         open: 'open spotify', remind: 'remind me in 20 min to stretch', timer: 'timer 25 min', customize: 'customize',
         dance: 'dance', jump: 'jump', wave: 'hi yo', flip: 'flip', spin: 'spin', love: 'love you', inbox: 'inbox',
         translate: 'tr hola to english', calc: 'calc 12*7',
-        todo: 'todo math homework friday 18:00 #math', notes: 'note call the dentist', habits: 'habit after Fajr I will read 2 pages', exam: 'exam physics 12/11', focus: 'focus on math homework', prayer: 'prayer',
+        todo: 'todo math homework friday 18:00 #math', notes: 'note call the dentist', habits: 'habit after Fajr I will read 2 pages', about: 'backup', exam: 'exam physics 12/11', focus: 'focus on math homework', prayer: 'prayer',
       },
       openDone: 'Would open “{arg}” (demo)',
       openWhat: 'Open what? Try “open spotify”',

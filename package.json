@@ -8,9 +8,9 @@
     "start": "electron .",
     "icons": "electron scripts/make-icons.js",
     "dist": "electron-builder --win nsis",
-    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js"
+    "test": "node --test --test-force-exit tests/agent.test.js tests/unlocks.test.js tests/miniapps.test.js tests/todo.test.js tests/prayer.test.js tests/customize.test.js tests/habits.test.js tests/backup.test.js"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "author": "cavaliero-art",
   "build": {
     "appId": "com.cavaliero.yo",
@@ -47,7 +47,11 @@
       "shortcutName": "YO",
       "include": "build/installer.nsh",
       "deleteAppDataOnUninstall": false
-    }
+    },
+    "extraFiles": [
+      "LICENSE",
+      "PRIVACY.md"
+    ]
   },
   "devDependencies": {
     "electron": "^44.7.0",

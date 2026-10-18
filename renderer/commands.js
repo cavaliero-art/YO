@@ -53,6 +53,8 @@
       icon: svg('<path d="M12 5.5l9 4.2-9 4.3-9-4.3z"/><path d="M7 12v3.8c3 2.2 7 2.2 10 0V12"/><path d="M21 9.7v4.6"/><circle class="a" cx="21" cy="15.6" r="1.3"/>') }
   );
   // Focus: Pomodoro sessions; "focus 50" starts 50 minutes, "focus on math homework" picks the task
+  LIST.push({ id: 'about', category: 'system', app: 'about', words: ['about', 'backup', 'back up', 'restore', 'privacy', 'licence', 'license', 'my data'],
+    icon: svg('<rect x="4" y="5" width="16" height="14" rx="6"/><path class="al" d="M12 11v4.5"/><circle class="a" cx="12" cy="8.6" r="1.1"/>') });
   LIST.push({ id: 'habits', category: 'time', app: 'habits', words: ['habits', 'habit', 'routine', 'healthy', 'new habit'],
     icon: svg('<path d="M12 20.5v-8"/><path d="M12 13c0-4.2 2.9-6.8 7-6.8 0 4.2-2.9 6.8-7 6.8z"/>' +
       '<path class="al" d="M12 15.5c0-3.3-2.3-5.4-5.6-5.4 0 3.3 2.3 5.4 5.6 5.4z"/><path d="M7.5 20.5h9"/>') });

@@ -58,7 +58,7 @@
   // the work face YO puts on for each tool (renderer/mascot.js): [face, screen text]
   const TOOL_FACE = {
     translate: ['speech'], calc: ['screen', '='], open: ['launch'], remind: ['notes'],
-    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], notes: ['notes'], habits: ['star'], focus: ['clock'], prayer: ['moon'],
+    timer: ['clock'], inbox: ['news'], customize: ['star'], todo: ['check'], notes: ['notes'], habits: ['star'], about: ['read'], focus: ['clock'], prayer: ['moon'],
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let growFrom = null; // the tile an app is opening from: it grows into the app
@@ -1580,6 +1580,9 @@
   setLang('en');
   if (Y.prayerAlerts) Y.prayerAlerts.start(host); // prayer reminders run even before the app is opened
   if (Y.habitsCoach) Y.habitsCoach.start(host); // so do the habit cues
+  if (Y.backupCoach) Y.backupCoach.start(host); // and the weekly backup
+  // the tray opens an app (About YO, backup and privacy)
+  if (bridge.onOpenApp) bridge.onOpenApp((id) => { if (Y.miniapps.get(id)) openApp(id, ''); });
   syncUnread();
   applyPrefs();
   applyStrings();

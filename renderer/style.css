@@ -819,6 +819,31 @@ html, body {
 }
 .row-act:hover { color: var(--ink); background: var(--fill-hover); }
 
+/* About YO: the licence, your data, privacy */
+.about { display: flex; flex-direction: column; gap: 10px; }
+.ab-tabs { align-self: flex-start; }
+.ab-tabs .ctab { white-space: nowrap; }
+.ab-page { display: flex; flex-direction: column; gap: 10px; }
+.ab-name { display: flex; align-items: baseline; gap: 10px; }
+.ab-yo { font-size: 22px; font-weight: 700; letter-spacing: .02em; color: var(--acc-ink); }
+.ab-ver { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ab-text { color: var(--ink); font-size: 13px; line-height: 1.5; }
+.ab-lead { font-size: 14px; line-height: 1.5; }
+.ab-faint { color: var(--faint); }
+.ab-small { font-size: var(--tiny); }
+.ab-block { display: flex; flex-direction: column; gap: 4px; }
+.ab-block .olabel { width: auto; }
+.ab-list { margin: 0; padding-inline-start: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+.ab-list li::marker { color: var(--acc); }
+.ab-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ab-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ab-row .link { font-size: 12px; }
+.ab-danger { color: var(--s-alert); }
+.ab-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--fill); box-shadow: inset 0 0 0 .5px var(--line); }
+.ab-card.ab-warn { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s-alert) 45%, transparent); }
+.ab-cardtitle { font-size: 14.5px; font-weight: 600; }
+.btn.ab-dangerbtn { background: var(--s-alert); color: #fff; border-color: transparent; font-weight: 600; }
+
 /* Habits: the day as a path between the prayers, a row per habit, a month of days */
 .habits { display: flex; flex-direction: column; gap: 8px; }
 .hb-top { display: flex; align-items: center; gap: 10px; }

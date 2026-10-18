@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen, shell } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu, screen, shell, dialog } = require('electron');
 const path = require('path');
 const Agent = require('./main/agent');
 const apps = require('./main/apps');
@@ -9,6 +9,7 @@ const watch = require('./main/watch');
 const translator = require('./main/translate');
 const store = require('./main/store');
 const Todo = require('./main/todo');
+const backup = require('./main/backup');
 
 const WIN_W = 720; // room for the large pill size
 const WIN_H = 600;
@@ -103,6 +104,15 @@ function summon() {
   win.show();
   win.focus();
   win.webContents.send('hotkey');
+}
+
+// the tray opens one of YO's apps (About)
+function openApp(id) {
+  if (!win) return;
+  if (!win.isVisible()) placeWindow();
+  win.show();
+  win.focus();
+  win.webContents.send('open-app', id);
 }
 
 const pretty = (combo) => (combo ? combo.replace('Control', 'Ctrl') : 'none');
@@ -237,6 +247,8 @@ function buildMenu() {
       },
       { label: 'Sounds', type: 'checkbox', checked: prefs.sound, click: (item) => setPref('sound', item.checked) },
       { type: 'separator' },
+      { label: 'About YO, backup and privacy', click: () => openApp('about') },
+      { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
     ])
   );
@@ -351,6 +363,73 @@ ipcMain.on('quit', (event) => {
   if (fromMainWindow(event)) app.quit();
 });
 
+// after a restore or "delete all my data": start again, so every part reads the new data
+ipcMain.on('restart', (event) => {
+  if (!fromMainWindow(event)) return;
+  app.relaunch({ args: process.argv.slice(1).filter((a) => a !== '--login') });
+  app.quit();
+});
+
+// ---------- backup and restore (main/backup.js) ----------
+// the page sends its own storage along; a restore is picked first (checked, summarized), then confirmed
+let pendingRestore = null;
+const stamp = () => {
+  const d = new Date();
+  return backup.day(d) + ' ' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+};
+
+ipcMain.handle('backup', async (event, action, storage) => {
+  if (!fromMainWindow(event)) return null;
+  try {
+    if (action === 'status') return { folder: backup.folder(), last: backup.lastAuto() };
+    if (action === 'save') {
+      const pick = await dialog.showSaveDialog(win, {
+        title: 'Back up YO',
+        defaultPath: path.join(backup.folder(), 'YO backup ' + backup.day(new Date()) + '.yo'),
+        filters: [{ name: 'YO backup', extensions: ['yo'] }],
+      });
+      if (pick.canceled || !pick.filePath) return { cancel: true };
+      backup.write(pick.filePath, storage);
+      return { saved: pick.filePath };
+    }
+    if (action === 'auto') return backup.auto(storage);
+    if (action === 'pick') {
+      const pick = await dialog.showOpenDialog(win, {
+        title: 'Restore a YO backup',
+        defaultPath: backup.folder(),
+        filters: [{ name: 'YO backup', extensions: ['yo'] }],
+        properties: ['openFile'],
+      });
+      if (pick.canceled || !pick.filePaths.length) return { cancel: true };
+      const res = backup.read(pick.filePaths[0]);
+      if (res.error) return { error: res.error };
+      pendingRestore = res.backup;
+      return { summary: backup.summary(res.backup) };
+    }
+    if (action === 'restore') {
+      if (!pendingRestore) return { error: 'none' };
+      // what you have now is kept aside first, so this can be undone
+      backup.write(path.join(backup.folder(), 'YO before restore ' + stamp() + '.yo'), storage);
+      backup.restoreFiles(pendingRestore);
+      const restored = pendingRestore.storage;
+      pendingRestore = null;
+      return { storage: restored };
+    }
+    if (action === 'erase') {
+      backup.eraseFiles();
+      return { erased: true };
+    }
+    if (action === 'folder') {
+      fs.mkdirSync(backup.folder(), { recursive: true });
+      await shell.openPath(backup.folder());
+      return { opened: true };
+    }
+  } catch (err) {
+    return { error: 'write' };
+  }
+  return null;
+});
+
 ipcMain.handle('get-info', (event) => {
   if (!fromMainWindow(event)) return null;
   return {
@@ -358,6 +437,7 @@ ipcMain.handle('get-info', (event) => {
     shortcut: activeShortcut ? pretty(activeShortcut) : null,
     platform: process.platform,
     atLogin: AT_LOGIN,
+    version: app.getVersion(),
   };
 });
 

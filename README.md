@@ -238,18 +238,32 @@ reminders, approvals, petting, waking up...) and never on every keypress. The tr
 - A popup never steals focus from the app you are typing in.
 - "Reduce motion" in Windows replaces the animations with short fades.
 
+## Your data, licence and privacy
+
+- **About YO** (tray menu, or type `about`, `backup`, `privacy`): the version, the licence, the credits,
+  and your data.
+- **Back up** everything in one `.yo` file: habits, tasks, notes, reminders, Focus history, prayer
+  settings, looks and settings. **Restore** shows what's inside first, saves what you have now aside,
+  then restarts YO with the backup. A **weekly backup** goes to `Documents\YO backups` by itself (the
+  last 4 are kept; it can be turned off). **Delete all my data** wipes YO's data from this PC (backups stay).
+- **Licence:** freeware. Free to use, not open source: no copying, changing, reselling or republishing.
+  See [LICENSE](LICENSE). Electron and Chromium keep their own open-source licences.
+- **Privacy:** no account, no cloud, no tracking. Only the text you translate leaves your PC (to
+  MyMemory). See [PRIVACY.md](PRIVACY.md).
+
 ## Files
 
     main.js            hidden window, transparent, always on top, click-through
     main/              agent.js (YO's hands: checks, approvals, actions, reminders),
                        apps.js (installed apps), store.js (JSON files), watch.js (what's playing),
+                       backup.js (backup, restore, the weekly backup, delete my data),
                        translate.js (asks MyMemory), todo.js (tasks, dates, due alerts)
     preload.js         the only bridge to Electron (no Node in the page)
     renderer/          index.html, style.css, i18n.js, app.js,
                        mascot.js (YO's body and motion), sound.js (its voice),
                        commands.js (the action list), quick.js (quick answers), unlocks.js,
                        agent.js (asks the main process), mock-agent.js (demo, for a plain browser),
-                       miniapps.js (what every mini app shares), apps/ (habits, todo, notes, focus, prayer, translate, calc),
+                       miniapps.js (what every mini app shares), apps/ (habits, todo, notes, focus, prayer, translate, calc, about),
                        prayer-calc.js (prayer times from the sun's position)
     scripts/           make-icons.js (draws the icons from the real YO)
     build/             icon.png and installer.nsh (installer settings)
@@ -260,5 +274,7 @@ apps.json (the installed apps it found), tasks.json (your to-do list). Your look
 
 ## Next
 
-- More mini apps (text tools, images, notes, QR, focus) once the first three have been tried.
+- Auto-update, from a public releases repo (the code stays private).
+- Habits: a Ramadan mode that moves habits around Suhoor and Iftar by itself.
+- French, then Arabic.
 

@@ -26,4 +26,8 @@ contextBridge.exposeInMainWorld('yo', {
   translate: (request) => ipcRenderer.invoke('translate', request),
   todo: (action, arg) => ipcRenderer.invoke('todo', action, arg),
   setStatus: (text) => ipcRenderer.send('status', text),
+  // backup and restore: action is status, save, auto, pick, restore, erase or folder; storage is the page's own
+  backup: (action, storage) => ipcRenderer.invoke('backup', action, storage),
+  restart: () => ipcRenderer.send('restart'),
+  onOpenApp: (callback) => ipcRenderer.on('open-app', (event, id) => callback(id)),
 });

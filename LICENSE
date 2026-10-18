@@ -1,0 +1,39 @@
+YO — Freeware Licence
+
+Copyright (c) 2026 cavaliero-art. All rights reserved.
+
+YO is free to use. This licence explains what that means.
+
+1. You may
+   - download and install YO on any computer you own or use,
+   - use it for free, for personal, study or work purposes,
+   - share the official installer, unchanged, with other people, as long as you don't charge for it.
+
+2. You may not
+   - copy, change, translate, or build on YO's source code, design, artwork or its mascot,
+   - take YO apart to get at its code (decompile, unpack or reverse engineer it), except where the law
+     where you live allows it no matter what this licence says,
+   - sell, rent or sublicense YO, or bundle it with something you sell,
+   - publish YO, or a changed copy of it, under another name, or as if it were yours,
+   - remove or hide this licence, the copyright notice, or the credits.
+
+3. Other people's work
+   YO is built with open-source software, such as Electron and Chromium. Those parts keep their own
+   licences, which are included with YO (LICENSE.electron.txt and LICENSES.chromium.html in the
+   installed folder). This licence doesn't change them.
+
+4. Your data
+   What you put in YO stays on your computer. YO has no account, no cloud and no tracking.
+   PRIVACY.md (and "About YO" in the app) lists what YO keeps and what it sends.
+
+5. No warranty
+   YO is given "as is", without any warranty. The author is not responsible for any loss or damage
+   that comes from using it, as far as the law allows. Keep backups of anything important; YO can
+   make them for you (About YO, Your data).
+
+6. Changes and ending
+   A new version of YO may come with a new version of this licence. If you break this licence, your
+   right to use YO ends.
+
+For any other use (for example selling YO, a partnership, or a custom version), ask the author:
+https://github.com/cavaliero-art

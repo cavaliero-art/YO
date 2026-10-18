@@ -12,7 +12,9 @@ module.exports = {
   userData,
   calls,
   app: {
-    getPath: (name) => (name === 'userData' ? userData : path.join(os.homedir(), name)),
+    // Documents is inside the temp folder too: tests never write to the real one
+    getPath: (name) => (name === 'userData' ? userData : name === 'documents' ? path.join(userData, 'Documents') : path.join(os.homedir(), name)),
+    getVersion: () => '0.10.0',
   },
   shell: {
     openExternal: async (url) => { calls.push(['openExternal', url]); },
