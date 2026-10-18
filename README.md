@@ -13,7 +13,7 @@ already does well (media keys, Win+L, clipboard history with Win+V).
 </p>
 <p align="center"><b>▶ <a href="docs/yo-demo.mp4">Watch the full video, with sound (42 s)</a></b></p>
 
-## Install it (Windows 10/11)
+## Install it (Windows 10/11, 64-bit)
 
 Run `YO-Setup-<version>.exe` from the latest release. It installs for you only (no admin rights), adds YO
 to the Start menu and starts it. The first time, a welcome card shows the few things worth knowing.
